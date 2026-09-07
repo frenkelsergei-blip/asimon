@@ -320,7 +320,106 @@ function openTwo(r, aimAt){
   }
 }
 
-/* ---- 4. the podium names whoever won, not whoever counted highest ---- */
+/* ---- 4. The link: three words on the table and one thing behind them ---- */
+/* classic lane 2 is O,D,L,T,D,O — row 3 is the Link square. */
+function linkRound(n){
+  const r = room(n), e = r.engine;
+  for(let i = 0; i < 40; i++){
+    e.S.units.forEach(u => { u.pos = { r:3, c:2 }; });
+    e.S.giverIdx = i;
+    e.newRound();
+    if(e.S.r.mod === "L"){ r.phase = "giver"; return r; }
+  }
+  return null;
+}
+{
+  const r = linkRound(4);
+  ok(!!r, "no Link round could be dealt from a Link square");
+  if(r){
+    const e = r.engine, R = e.S.r, g = R.giver;
+    const others = r.players.filter(p => p.id !== g);
+
+    /* dealt whole: the thing is the round's one word, the six belong to it */
+    ok(!!R.linkKey, "a Link round was dealt without a link");
+    ok(R.words.length === 1, "a Link round dealt " + R.words.length + " words, not the link itself");
+    ok(R.linkPool.length === 6, "the pool holds " + R.linkPool.length + " words, not six");
+    ok(R.pick === 0, "the link is not the round's answer");
+    ok(R.challenge === "open", "a Link round asked the giver for a difficulty");
+    ok(e.wordValue(R, R.words[0]) === 3,
+       "a link paid " + e.wordValue(R, R.words[0]) + ", not its flat three");
+
+    const gv = play.viewFor(r, g);
+    ok(gv.secret && gv.secret.pool && gv.secret.pool.length === 6,
+       "the giver was not sent the six to choose from");
+    ok(!play.viewFor(r, others[0].id).secret, "LEAK: a guesser was sent the link");
+
+    /* three go up, and not two */
+    play.applyAction(r, P(r, g), { type:"pick", i:0 }, CTX);
+    play.applyAction(r, P(r, g), { type:"pick", i:1 }, CTX);
+    play.applyAction(r, P(r, g), { type:"aim", target:others[0].id }, CTX);
+    ok(play.applyAction(r, P(r, g), { type:"ready" }, CTX).error === "pick_first",
+       "a Link round started on two words");
+    play.applyAction(r, P(r, g), { type:"pick", i:2 }, CTX);
+    ok(R.shown.length === 3, "three words did not go up");
+    /* a fourth pushes the first out rather than making four */
+    play.applyAction(r, P(r, g), { type:"pick", i:3 }, CTX);
+    ok(R.shown.length === 3 && R.shown.indexOf(3) >= 0 && R.shown.indexOf(0) < 0,
+       "a fourth word did not replace the oldest: " + JSON.stringify(R.shown));
+    play.applyAction(r, P(r, g), { type:"pick", i:3 }, CTX);
+    play.applyAction(r, P(r, g), { type:"pick", i:0 }, CTX);
+
+    /* nothing of it reaches the table until the round is on it */
+    ok(!play.viewFor(r, others[0].id).link, "the three words were shown before the round began");
+    play.applyAction(r, P(r, g), { type:"ready" }, CTX);
+
+    const tv = play.viewFor(r, others[0].id);
+    ok(tv.link && tv.link.shown.length === 3, "the table was not shown the three");
+    const shownTexts = R.shown.map(i => R.linkPool[i]);
+    ok(shownTexts.every(w => tv.link.shown.indexOf(w) >= 0), "the wrong three reached the table");
+    const held = R.linkPool.filter((w, i) => R.shown.indexOf(i) < 0);
+    const asSeen = JSON.stringify(tv);
+    ok(held.every(w => asSeen.indexOf(w) < 0),
+       "LEAK: a word the giver kept back reached the table");
+    ok(asSeen.indexOf(R.words[0].text) < 0, "LEAK: the link itself reached the table");
+
+    /* a wrong guess costs nothing and the round carries on */
+    play.applyAction(r, others[0], { type:"buzz" }, CTX);
+    play.applyAction(r, P(r, g), { type:"judge", yes:false }, CTX);
+    ok(r.phase === "table", "a wrong guess at a link ended the round");
+    ok(R.lockedOut.length === 0, "a wrong guess at a link locked somebody out");
+    ok(!play.viewFor(r, others[0].id).iAmOut, "a guesser was barred from guessing again");
+
+    /* and the right one pays the flat three, with the giver on the band */
+    R.acc = Math.round(R.total * 1000 * 0.8); R.startedAt = Date.now();
+    play.applyAction(r, others[0], { type:"buzz" }, CTX);
+    play.applyAction(r, P(r, g), { type:"judge", yes:true }, CTX);
+    ok(r.phase === "reveal", "the link was named and the round did not end");
+    const rows = e.S.result.rows;
+    ok(e.S.result.word.text === R.words[0].text, "the reveal did not name the link");
+    ok(rows.find(x => x.id === e.unitOf(others[0].id).id).pts === 3,
+       "naming the link paid " + rows.find(x => x.id === e.unitOf(others[0].id).id).pts + ", not three");
+    const giverRow = rows.find(x => x.giver);
+    ok(giverRow.pts >= 4, "a late landing paid the giver " + giverRow.pts + "; the band plus the aim");
+  }
+}
+
+/* Switch has nothing to switch a link to, and is not offered */
+{
+  const r = linkRound(4);
+  if(r){
+    const e = r.engine, R = e.S.r, g = R.giver;
+    [0,1,2].forEach(i => play.applyAction(r, P(r, g), { type:"pick", i }, CTX));
+    play.applyAction(r, P(r, g), { type:"aim", target:r.players.find(p => p.id !== g).id }, CTX);
+    play.applyAction(r, P(r, g), { type:"ready" }, CTX);
+    const u = e.unitOf(g); u.cards = ["swap"];
+    ok((play.viewFor(r, g).hand || []).every(c => c.key !== "swap"),
+       "Switch was offered on a Link round");
+    ok(play.applyAction(r, P(r, g), { type:"playcard", key:"swap" }, CTX).error === "nothing_to_swap",
+       "Switch was played on a Link round");
+  }
+}
+
+/* ---- 5. the podium names whoever won, not whoever counted highest ---- */
 /* Points are steps you spend, but a wrong shout costs points without costing
    ground — so the score column and the finish line disagree about one game in
    five, and the phone crowns the head of that list. */
@@ -361,5 +460,5 @@ function openTwo(r, aimAt){
 
 console.log(bad.length ? "FAIL (" + bad.length + "):\n" + [...new Set(bad)].join("\n")
   : "round ok — a blind verdict belongs to the table, a Duel belongs to one name, "+
-    "Two words pays each of them, and the podium names the winner");
+    "Two words pays each of them, a Link keeps its own back, and the podium names the winner");
 process.exit(bad.length ? 1 : 0);

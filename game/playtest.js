@@ -42,7 +42,7 @@ const MODEL = {
      1 up to 4 — the bank's four tiers, priced a notch below their tier. */
   solveByValue: { 1:0.94, 2:0.87, 3:0.75, 4:0.62 },
   /* ...nudged by the square the giver was standing on */
-  solveByMod: { S:1, F:0.90, O:0.84, M:0.80, D:1, T:1, U:0.95, W:0.88, B:0.78 },
+  solveByMod: { S:1, F:0.90, O:0.84, M:0.80, D:1, T:1, U:0.95, W:0.88, B:0.78, L:0.82 },
   /* ...and by how much help the giver asked for */
   solveByChallenge: { topic:1.12, open:1, cold:0.95 },
   /* more heads guessing, more chance one of them lands it */
@@ -160,6 +160,19 @@ function playOne(cfg){
       g.perUnit[e.unitOf(R.giver).id].gave++;
       R.words.forEach(w => { if(g.words.indexOf(w.text) >= 0) g.repeats++; else g.words.push(w.text); });
 
+      if(R.mod === "L"){
+        /* three out of the six, and the round is already dealt */
+        [0, 1, 2].forEach(i => act(R.giver, { type:"pick", i }));
+        count(g.challenges, "open");
+        if(!R.shotFixed){
+          const mine = e.unitOf(R.giver).members;
+          const targets = S.players.filter(p => p.id !== R.giver &&
+            !(S.seating === "groups" && mine.indexOf(p.id) >= 0));
+          if(targets.length) act(R.giver, { type:"aim", target: pick(targets).id });
+        }
+        act(R.giver, { type:"ready" });
+        continue;
+      }
       const roll = rnd();
       const k = cfg.forceChallenge ? cfg.forceChallenge
               : roll < MODEL.challenge.topic ? "topic"
@@ -216,7 +229,10 @@ function playOne(cfg){
         if(room.phase !== "table") return;
         if(!(u.cards || []).length || !chance(MODEL.playCard)) return;
         const isGiverUnit = u.members.indexOf(R.giver) >= 0;
-        const holdable = u.cards.filter(k => k !== "swap" || isGiverUnit);
+        /* the same hand the phone would show: Switch is the giver's alone, and
+           a Link round has nothing for it to switch to */
+        const holdable = u.cards.filter(k =>
+          k !== "swap" || (isGiverUnit && R.mod !== "L"));
         if(!holdable.length) return;
         const key = pick(holdable);
         const before = e.remainMs();
@@ -548,9 +564,9 @@ const stepHist = merge(runs, g => g.stepHist);
 const topicsSeen = merge(runs, g => g.topics);
 const ALL_TOPICS = Object.keys(SAMPLE.packs().TOPICS);
 const ALL_CARDS = Object.keys(SAMPLE.packs().CARDS);
-const ALL_MODS = ["S","F","O","M","B","D","T","U","W"];
+const ALL_MODS = ["S","F","O","M","B","D","T","U","W","L"];
 const MOD_NAME = { S:"Standard", F:"Fast", O:"One word", M:"Mime", B:"Blind",
-                   D:"Double", T:"Partners", U:"Duel", W:"Two words" };
+                   D:"Double", T:"Partners", U:"Duel", W:"Two words", L:"The link" };
 
 /* ---- json for anything downstream ---- */
 if(has("json")){

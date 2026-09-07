@@ -114,8 +114,8 @@ const L = {
     lg_lane_d:"ארבעה מסלולים, כל אחד בצבע שלו, וכל אחד נושא סוג אחר של סבבים.",
     lg_lane_0:"עדין — דו־קרב, שתי מילים, שותפים",
     lg_lane_1:"מהיר, שתי מילים, דו־קרב, מילה אחת",
-    lg_lane_2:"כפול, מילה אחת, שותפים",
-    lg_lane_3:"פרוע — עיוור, פנטומימה, כפול",
+    lg_lane_2:"כפול, הקישור, מילה אחת",
+    lg_lane_3:"פרוע — פנטומימה, עיוור, הקישור",
     lg_why_k:"למה זה משנה",
     lg_why_d:"המשבצת שהנותן עומד עליה קובעת איזה סוג סבב יהיה כשיגיע תורו. אז כשאתם בוחרים לאן לזוז — אתם בוחרים איזה סבב תיתנו.",
     lg_key_k:"מה יש על הלוח",
@@ -244,8 +244,8 @@ const L = {
     lg_lane_d:"Four lanes, each its own colour, each carrying a different kind of round.",
     lg_lane_0:"Gentle — duels, two words, partners",
     lg_lane_1:"Fast, two words, duels, one word",
-    lg_lane_2:"Double, one word, partners",
-    lg_lane_3:"Wild — blind, mime, double",
+    lg_lane_2:"Double, the link, one word",
+    lg_lane_3:"Wild — mime, blind, the link",
     lg_why_k:"Why it matters",
     lg_why_d:"The square the giver is standing on decides what kind of round it will be when their turn comes. So choosing where to move is choosing what round you will give.",
     lg_key_k:"What is on the board",
@@ -897,6 +897,11 @@ function notes(s){
   if(s.insight) out += '<div class="sentence art">'+cardEmblem("insight", 36)+
     '<span class="mt"><span class="sl">'+t("insight_k")+'</span>'+
     '<span class="sw" style="font-size:17px">'+s.insight.map(esc).join(" · ")+'</span></span></div>';
+  if(s.link && (s.link.shown || []).length){
+    out += '<div class="sentence"><span class="sl">'+t("link_shown")+'</span>'+
+      '<span class="sw">'+s.link.shown.map(esc).join(
+        '<span style="opacity:.35"> · </span>')+'</span></div>';
+  }
   if(s.two){
     (s.two.found || []).forEach(f => {
       out += '<div class="sentence"><span class="sl">'+t("got_tag")+'</span>'+
@@ -934,6 +939,20 @@ function wordCards(s, sel, disabled){
       '<span class="wv" style="background:'+tint[0]+';color:'+tint[1]+'">'+
         '<b>'+w.value+'</b>'+valuePip(on ? "#221700" : tint[0])+'</span></button>';
   }).join("")+'</div>';
+}
+/* Six words that all belong to the thing, and the thing itself above them.
+   Three go up; the other three stay where nobody sees them. */
+function linkPicker(s){
+  const sec = s.secret || {}, pool = sec.pool || [], up = sec.shown || [];
+  return '<div class="sentence"><span class="sl">'+t("link_is")+'</span>'+
+    '<span class="sw">'+esc(((sec.words || [])[0] || {}).text || "")+'</span></div>'+
+    '<div class="cardgrid stagger">'+pool.map((w, i) =>
+      '<button class="wordcard'+(up.indexOf(i) >= 0 ? " on" : "")+'" data-w="'+i+'">'+
+      '<span class="wt">'+esc(w)+'</span>'+
+      (up.indexOf(i) >= 0
+        ? '<span class="wv" style="background:var(--good-soft);color:var(--good-ink)">'+
+          (up.indexOf(i) + 1)+'</span>' : '')+
+      '</button>').join("")+'</div>';
 }
 function waitCard(title, sub, who){
   /* nothing else is on this screen, so the face is the screen */
@@ -986,7 +1005,9 @@ function vGiver(s){
   const duel = s.mod.key === "U";
   const aimed = sec.shot;
   const two = s.mod.key === "W";
-  const canGo = sec.pick !== null && (!two || (sec.pick2 !== null && sec.pick2 !== undefined))
+  const link = s.mod.key === "L";
+  const canGo = (link ? (sec.shown || []).length === 3 : sec.pick !== null)
+                && (!two || (sec.pick2 !== null && sec.pick2 !== undefined))
                 && (aimed || s.partner);
   /* Two decisions, and on a phone you scroll from one to the other: which
      word, and who to aim it at. Lying down there is room to hold both at
@@ -996,10 +1017,10 @@ function vGiver(s){
   const twoSided = !s.partner;
   h('<div class="stack grow'+(twoSided ? " split" : "")+'">'+topbar(s)+
     (twoSided ? '<div class="pane">' : '')+
-    '<h2>'+(cold ? t("cold_k") : two ? t("two_k") : t("pick_word"))+'</h2>'+
-    '<p class="note">'+(cold ? t("cold_d") : two ? t("two_d") : t("pick_word_d"))+'</p>'+
+    '<h2>'+(link ? t("link_k") : cold ? t("cold_k") : two ? t("two_k") : t("pick_word"))+'</h2>'+
+    '<p class="note">'+(link ? t("link_d") : cold ? t("cold_d") : two ? t("two_d") : t("pick_word_d"))+'</p>'+
     modBlock(s)+notes(s)+
-    wordCards(s, sec.pick, cold)+
+    (link ? linkPicker(s) : wordCards(s, sec.pick, cold))+
     (twoSided ? '</div><div class="pane">' : '')+
     (s.shotFixed ? '' :
       '<p class="kicker">'+(duel ? t("duel_k") : t("shot_k"))+'</p>'+
@@ -1045,11 +1066,16 @@ function vTable(s){
      told their own. Blind is the exception and needs no branch: there the
      table talks and the giver guesses, and its copy already describes the
      round rather than instructing whoever happens to be reading it. */
-  const head = blind ? t("blind_table_h")
+  /* A Link round has no sentence to say or to listen for — the three words
+     are already on the table and everybody works on them at once. */
+  const linkRound = s.mod.key === "L";
+  const head = linkRound ? t("link_table_h")
+             : blind ? t("blind_table_h")
              : s.isGiver
                ? (mimed ? t("say_it_mime")  : s.mod.key === "O" ? t("say_it_one")  : t("say_it"))
                : (mimed ? t("hear_it_mime") : s.mod.key === "O" ? t("hear_it_one") : t("hear_it"));
-  const sub  = blind ? t("blind_table_d", esc(s.giverName))
+  const sub  = linkRound ? t("link_table_d")
+             : blind ? t("blind_table_d", esc(s.giverName))
              : s.isGiver
                ? (mimed ? t("say_it_mime_d")  : s.mod.key === "O" ? t("say_it_one_d")  : t("say_it_d"))
                : (mimed ? t("hear_it_mime_d") : s.mod.key === "O" ? t("hear_it_one_d") : t("hear_it_d"));

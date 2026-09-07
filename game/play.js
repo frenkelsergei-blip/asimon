@@ -542,6 +542,9 @@ function viewFor(room, pid){
         words: R.words.map(w => ({ text:w.text, value:e.wordValue(R, w) })),
         pick: R.pick,
         pick2: R.pick2,
+        /* the link itself, and the six that belong to it */
+        pool: R.mod === "L" ? R.linkPool.slice() : null,
+        shown: R.mod === "L" ? R.shown.slice() : null,
         shot: isGiver ? R.shot : null,
         shotName: (isGiver && R.shot) ? e.playerById(R.shot).name : null
       };
@@ -559,6 +562,11 @@ function viewFor(room, pid){
     /* A word that has been said out loud is nobody's secret any more, so the
        table is told which of the two are down and who said them. The one
        still out there is named to the giver alone, as it always was. */
+    /* The three words the giver put up are the round: they are on the table
+       for everybody. What connects them stays on the giver's phone. */
+    if(R.mod === "L" && room.phase !== "giver"){
+      base.link = { shown:(R.shown || []).map(i => R.linkPool[i]) };
+    }
     if(R.mod === "W"){
       base.two = { need:2, found:(R.found || []).map(f => ({
         text:(R.words[f.pick] || {}).text, by:f.by, name:e.playerById(f.by).name })) };
@@ -576,7 +584,8 @@ function viewFor(room, pid){
     if(myUnit){
       const isGiverUnit = e.unitOf(R.giver).id === myUnit.id;
       base.hand = (myUnit.cards || [])
-        .filter(k => k !== "swap" || isGiverUnit)      /* only the giver may switch words */
+        /* only the giver may switch words, and a link has nothing to switch to */
+        .filter(k => k !== "swap" || (isGiverUnit && R.mod !== "L"))
         .map(k => ({ key:k, n:CARDS[k].n, d:CARDS[k].d }));
       base.canPlay = room.phase === "table" && base.hand.length > 0;
     }
@@ -1039,6 +1048,17 @@ function applyAction(room, me, body, ctx){
       if(R.challenge === "cold") return { error:"no_choice" };
     }
     const i = Number(body.i);
+    /* A Link round's choosing is out of its own pool of six, not out of the
+       four words a round usually deals — the round's one word is the answer. */
+    if(R.mod === "L"){
+      if(room.phase !== "giver" || !isGiver) return { error:"not_your_turn" };
+      if(!(i >= 0 && i < (R.linkPool || []).length)) return { error:"bad_choice" };
+      const at = R.shown.indexOf(i);
+      if(at >= 0) R.shown.splice(at, 1);
+      else if(R.shown.length < 3) R.shown.push(i);
+      else { R.shown.shift(); R.shown.push(i); }
+      return { ok:true };
+    }
     if(!(i >= 0 && i < R.words.length)) return { error:"bad_choice" };
     if(R.mod === "W" && !blind){
       /* Two words, taken by tapping and untaken by tapping again. Which of
@@ -1086,6 +1106,7 @@ function applyAction(room, me, body, ctx){
       if(room.phase !== "giver" || !isGiver) return { error:"not_your_turn" };
       if(R.pick === null) return { error:"pick_first" };
       if(R.mod === "W" && R.pick2 === null) return { error:"pick_first" };
+      if(R.mod === "L" && (R.shown || []).length < 3) return { error:"pick_first" };
       if(!R.shot && !R.shotFixed) return { error:"aim_first" };
       /* the whole of a Duel: from here the named person answers alone */
       if(R.mod === "U") R.only = R.shot;
@@ -1164,7 +1185,11 @@ function applyAction(room, me, body, ctx){
       S.screen = "reveal"; room.phase = "reveal";
       return { ok:true };
     }
-    if(R.mod === "B"){
+    /* Blind and Link are the two rounds where a wrong guess costs nothing.
+       Both invite the table to keep going — one word each round the table, or
+       everybody shouting at the same three words — and a lockout would end
+       that on the first miss. */
+    if(R.mod === "B" || R.mod === "L"){
       R.judging = null;
       if(e.remainMs() <= 0){ R.solvedBy = null; e.scoreRound(); S.screen="reveal"; room.phase="reveal"; }
       else { S.screen = "table"; room.phase = "table"; e.resumeClock(); ctx.armClock(); }
@@ -1289,6 +1314,9 @@ function applyAction(room, me, body, ctx){
        switch to and the giver would land on a screen with nothing to tap.
        The card says a different word, so this is where the different word is
        dealt — same hat, same worth. Only then is the card spent. */
+    /* A link is the answer itself, not one of four words on offer, so there
+       is nothing for Switch to change it to. */
+    if(key === "swap" && R.mod === "L") return { error:"nothing_to_swap" };
     if(key === "swap" && R.words.length < 2 && !dealAlternative(e, R))
       return { error:"nothing_to_swap" };
 

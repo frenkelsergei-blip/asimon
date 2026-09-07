@@ -14,10 +14,10 @@
    own `S`, so two rooms can never see each other's state. */
 function createEngine(){
   /* ============ language ============ */
-  let W, UI, CARDS, MODS, TOPICS, TIER, CARDKEYS, D;
+  let W, UI, CARDS, MODS, TOPICS, LINKS, TIER, CARDKEYS, D;
   function applyLang(){
     const P = (S && S.lang === "he") ? HE : EN;
-    W = P.words; CARDS = P.cards; MODS = P.mods; TOPICS = P.topics; D = P.ui;
+    W = P.words; CARDS = P.cards; MODS = P.mods; TOPICS = P.topics; LINKS = P.links; D = P.ui;
     TIER = {}; [2,3,4,5].forEach(v => W[v].forEach(x => { TIER[x] = v; }));
     CARDKEYS = Object.keys(CARDS);
   }
@@ -89,7 +89,8 @@ function createEngine(){
    D:{n:"Double",   s:"\u00d72", d:"Every word is worth double this round. A wrong buzz costs 2."},
    T:{n:"Partners", s:"PAIR", d:"The game draws the giver a partner. If that partner gets it, they both score."},
    U:{n:"Duel",     s:"DUEL", d:"The giver names one person out loud, and only that person may answer. Everybody else watches. One shout, right or wrong, and the round is over."},
-   W:{n:"Two words", s:"TWO", d:"The giver holds two words and gets one sentence for both. Each is worth a point less, and the round runs until both are found or the clock stops. Whoever says one takes it."}
+   W:{n:"Two words", s:"TWO", d:"The giver holds two words and gets one sentence for both. Each is worth a point less, and the round runs until both are found or the clock stops. Whoever says one takes it."},
+   L:{n:"The link",  s:"LINK", d:"No sentence at all. The giver is given a thing and six words that belong to it, and puts three of them up. Everybody guesses at once, out loud, as often as they like &mdash; what connects them?"}
   };
   const HE_MODS = {
    S:{n:"רגיל",     s:"", d:"תשעים שניות. משפט אחד, נאמר פעם אחת."},
@@ -100,7 +101,8 @@ function createEngine(){
    D:{n:"כפול",     s:"\u00d72", d:"כל מילה שווה כפול בסבב הזה. באזה שגוי עולה 2."},
    T:{n:"שותפים",   s:"זוג", d:"המשחק מגריל לנותן שותף. אם השותף קולט — שניהם מקבלים."},
    U:{n:"דו־קרב",   s:"קרב", d:"הנותן בוחר אדם אחד בקול, ורק הוא יכול לענות. כל השאר מסתכלים. צעקה אחת, נכונה או לא, והסבב נגמר."},
-   W:{n:"שתי מילים", s:"שתיים", d:"הנותן מחזיק שתי מילים ומקבל משפט אחד לשתיהן. כל אחת שווה נקודה פחות, והסבב רץ עד ששתיהן נמצאו או שהשעון נגמר. מי שאומר מילה לוקח אותה."}
+   W:{n:"שתי מילים", s:"שתיים", d:"הנותן מחזיק שתי מילים ומקבל משפט אחד לשתיהן. כל אחת שווה נקודה פחות, והסבב רץ עד ששתיהן נמצאו או שהשעון נגמר. מי שאומר מילה לוקח אותה."},
+   L:{n:"הקישור",   s:"קישור", d:"בלי משפט בכלל. הנותן מקבל דבר ושש מילים ששייכות אליו, ומעלה שלוש מהן. כולם מנחשים בו־זמנית, בקול, כמה פעמים שרוצים &mdash; מה מחבר ביניהן?"}
   };
 
   /* ============ game modes ============
@@ -112,7 +114,7 @@ function createEngine(){
      engine played before modes existed at all. That is the safety net. */
   const MODES = {
    quick:    { id:"quick",     timer:{ normal:60,  fast:30 }, rowsDelta:-3,
-               reweighChance:0.35, modWeights:{ S:6, F:3, O:1, D:1, T:1, U:2, W:2, M:0, B:0 }, win:"first" },
+               reweighChance:0.35, modWeights:{ S:6, F:3, O:1, D:1, T:1, U:2, W:2, M:0, B:0, L:0 }, win:"first" },
    regular:  { id:"regular",   timer:{ normal:90,  fast:45 }, rowsDelta:0,
                reweighChance:0,    modWeights:null, win:"first" },
    /* Slow is the long clock and nothing else. Two minutes a round is already
@@ -120,9 +122,9 @@ function createEngine(){
       games past forty minutes — first at four rows, then again at one once
       Duel started leaving more rounds unanswered. */
    slow:     { id:"slow",      timer:{ normal:120, fast:60 }, rowsDelta:0,
-               reweighChance:0.35, modWeights:{ S:6, F:1, O:1, D:1, T:1, U:2, W:2, M:0, B:0 }, win:"first" },
+               reweighChance:0.35, modWeights:{ S:6, F:1, O:1, D:1, T:1, U:2, W:2, M:0, B:0, L:1 }, win:"first" },
    challenge:{ id:"challenge", timer:{ normal:75,  fast:35 }, rowsDelta:0,
-               reweighChance:0.5,  modWeights:{ S:1, F:1, O:3, M:3, B:3, D:2, T:1, U:2, W:2 }, win:"score", scoreTarget:20 }
+               reweighChance:0.5,  modWeights:{ S:1, F:1, O:3, M:3, B:3, D:2, T:1, U:2, W:2, L:3 }, win:"score", scoreTarget:20 }
   };
 
   /* ============ interface strings ============ */
@@ -154,6 +156,10 @@ function createEngine(){
    duel_k:"Name your opponent", duel_d:"Out loud, and the whole table hears it. Only they may answer &mdash; and one shout, right or wrong, ends the round.",
    duel_is:"Answering alone",
    two_k:"Pick two words", two_d:"One sentence for both of them, and each is worth a point less. Tap two &mdash; tap again to change your mind.",
+   link_k:"Put three of them up", link_d:"All six belong to it. Choose the three that circle it without pointing at it &mdash; you still want it landing late.",
+   link_is:"The link", link_table_h:"What connects these three?",
+   link_table_d:"Everybody at once, out loud, as often as you like. A wrong guess costs nothing.",
+   link_shown:"On the table",
    two_left:"One still out there", two_got:"{0} said {1}",
    judge_which:"Which one did {0} say?", judge_neither:"Neither of them",
    partner_k:"Your partner this round", partner_d:"If they get it, you both score. The other side can still steal it.",
@@ -223,7 +229,7 @@ function createEngine(){
     '<p class="note">Savta takes 4. Dana takes 4 for landing in the good window, plus 1 because Savta was exactly who she aimed at. Ilan went too early on a hunch and paid for it &mdash; that is the whole game.</p>'+
     '<hr class="hr"><p class="kicker">Two more things</p>'+
     '<div class="opening"><span class="ol">Cards</span><span class="orl">Score well and you take one. Slam the clock to 30 seconds, reveal all four words, force a mime, or &mdash; if you are the giver &mdash; switch words when you feel them getting close.</span></div>'+
-    '<div class="opening"><span class="ol">The board</span><span class="orl">Points are <strong>steps you spend</strong>. Each step goes straight up or one column across, and you land wherever you choose &mdash; so the route is yours, every single round. The square you stop on sets your next round: Fast, One word, Double, Partners, <strong>Duel</strong> &mdash; where you name one person and only they may answer &mdash; Mime, a card, or <strong>Blind</strong>, where it all turns around and you become the guesser. The left column is the gentle one; the right is where the awkward rounds live.</span></div>'
+    '<div class="opening"><span class="ol">The board</span><span class="orl">Points are <strong>steps you spend</strong>. Each step goes straight up or one column across, and you land wherever you choose &mdash; so the route is yours, every single round. The square you stop on sets your next round: Fast, One word, Double, Partners, <strong>Duel</strong> &mdash; where you name one person and only they may answer &mdash; <strong>Two words</strong>, Mime, a card, <strong>The link</strong> &mdash; three words and no sentence at all &mdash; or <strong>Blind</strong>, where it all turns around and you become the guesser. The left column is the gentle one; the right is where the awkward rounds live.</span></div>'
   };
   const HE_UI = {
    lang_k:"שפה", kick:"משפט אחד &middot; הזדמנות אחת", tagline:"בוחרים מילה. מכוונים משפט אחד לאדם אחד. וגורמים לזה לנחות כמה שיותר מאוחר.",
@@ -253,6 +259,10 @@ function createEngine(){
    duel_k:"בחרו יריב", duel_d:"בקול, וכל השולחן שומע. רק הוא יכול לענות &mdash; וצעקה אחת, נכונה או לא, מסיימת את הסבב.",
    duel_is:"עונה לבד",
    two_k:"בחרו שתי מילים", two_d:"משפט אחד לשתיהן, וכל אחת שווה נקודה פחות. הקישו על שתיים &mdash; והקישו שוב כדי לשנות.",
+   link_k:"העלו שלוש מהן", link_d:"כל השש שייכות אליו. בחרו את השלוש שמקיפות אותו בלי להצביע עליו &mdash; אתם עדיין רוצים שזה ינחת מאוחר.",
+   link_is:"הקישור", link_table_h:"מה מחבר בין השלוש?",
+   link_table_d:"כולם ביחד, בקול, כמה פעמים שרוצים. ניחוש שגוי לא עולה כלום.",
+   link_shown:"על השולחן",
    two_left:"אחת עוד בחוץ", two_got:"{0} אמר/ה {1}",
    judge_which:"איזו מהן {0} אמר/ה?", judge_neither:"אף אחת מהן",
    partner_k:"השותף/ה שלכם בסבב הזה", partner_d:"אם הם יקלטו, שניכם מקבלים. הצד השני עדיין יכול לגנוב.",
@@ -322,7 +332,7 @@ function createEngine(){
     '<p class="note">סבתא לוקחת 4. דנה לוקחת 4 על נחיתה בחלון הטוב, ועוד 1 כי סבתא הייתה בדיוק מי שהיא כיוונה אליה. אילן הלך מוקדם מדי על תחושה ושילם על זה &mdash; וזה כל המשחק.</p>'+
     '<hr class="hr"><p class="kicker">עוד שני דברים</p>'+
     '<div class="opening"><span class="ol">קלפים</span><span class="orl">מי שצובר יפה לוקח קלף. להוריד את השעון ל־30 שניות, לחשוף את כל ארבע המילים, לכפות פנטומימה, או &mdash; אם אתם הנותן &mdash; להחליף מילה כשאתם מרגישים שהם מתקרבים.</span></div>'+
-    '<div class="opening"><span class="ol">הלוח</span><span class="orl">נקודות הן <strong>צעדים שאתם מוציאים</strong>. כל צעד הוא ישר למעלה או עמודה אחת הצידה, ואתם נוחתים איפה שתבחרו &mdash; אז המסלול שלכם, בכל סבב מחדש. המשבצת שתעצרו עליה קובעת את הסבב הבא שלכם: מהיר, מילה אחת, כפול, שותפים, <strong>דו־קרב</strong> &mdash; שבו בוחרים אדם אחד ורק הוא עונה &mdash; פנטומימה, קלף, או <strong>עיוור</strong> שבו הכול מתהפך ואתם הופכים למנחשים. העמודה השמאלית היא העדינה, הימנית היא המקום שבו יושבים הסבבים המסובכים.</span></div>'
+    '<div class="opening"><span class="ol">הלוח</span><span class="orl">נקודות הן <strong>צעדים שאתם מוציאים</strong>. כל צעד הוא ישר למעלה או עמודה אחת הצידה, ואתם נוחתים איפה שתבחרו &mdash; אז המסלול שלכם, בכל סבב מחדש. המשבצת שתעצרו עליה קובעת את הסבב הבא שלכם: מהיר, מילה אחת, כפול, שותפים, <strong>דו־קרב</strong> &mdash; שבו בוחרים אדם אחד ורק הוא עונה &mdash; <strong>שתי מילים</strong>, פנטומימה, קלף, <strong>הקישור</strong> &mdash; שלוש מילים ובלי משפט בכלל &mdash; או <strong>עיוור</strong> שבו הכול מתהפך ואתם הופכים למנחשים. העמודה השמאלית היא העדינה, הימנית היא המקום שבו יושבים הסבבים המסובכים.</span></div>'
   };
 
   /* Topics are curated slices of the same word bank, so the values still stand. */
@@ -410,8 +420,113 @@ function createEngine(){
      4:["איסלנד","מרוקו","תאילנד","ארגנטינה","שווייץ"],
      5:["נפאל","פרו","פינלנד","וייטנאם"]}}
   };
-  const EN = {words:EN_WORDS, cards:EN_CARDS, mods:EN_MODS, topics:EN_TOPICS, ui:EN_UI};
-  const HE = {words:HE_WORDS, cards:HE_CARDS, mods:HE_MODS, topics:HE_TOPICS, ui:HE_UI};
+  /* ============ links ============
+     A Link round hands the giver a thing and six words that all belong to it,
+     and they put three of them up. Every word here really is of its link — a
+     decoy would make the round unguessable, and the difficulty is already in
+     which three the giver chooses to show. Ranked roughly obvious to oblique,
+     so a giver reading down the list is reading down a difficulty curve.
+
+     The Hebrew is not the English translated. A family in Israel is handed
+     יום העצמאות and שבת and חמין and הפוך, because a link only works when it
+     is lived in rather than looked up. */
+  const EN_LINKS = {
+   argentina:{ n:"Argentina", w:["Messi","tango","asado","the Andes","blue and white","a striped shirt"] },
+   winter:{ n:"Winter", w:["snow","a scarf","short days","hot soup","bare trees","a hot water bottle"] },
+   sea:{ n:"The sea", w:["waves","salt","a lighthouse","seagulls","the horizon","wet sand"] },
+   egypt:{ n:"Egypt", w:["the pyramids","the Nile","camels","hieroglyphs","a pharaoh","the desert"] },
+   wedding:{ n:"A wedding", w:["a ring","a white dress","speeches","confetti","a first dance","an aunt crying"] },
+   coffee:{ n:"Coffee", w:["beans","the morning","steam","a paper cup","staying awake","a ring on the table"] },
+   italy:{ n:"Italy", w:["pasta","the Colosseum","a gondola","olive oil","a scooter","hands that talk"] },
+   rain:{ n:"Rain", w:["an umbrella","puddles","a grey sky","wet shoes","the smell of pavement","a cancelled picnic"] },
+   school:{ n:"School", w:["a bell","a blackboard","homework","a satchel","break time","a report card"] },
+   moon:{ n:"The moon", w:["craters","the tides","a flag","silver","a crescent","one small step"] },
+   football:{ n:"Football", w:["a whistle","a red card","a goal","grass","a striped scarf","extra time"] },
+   japan:{ n:"Japan", w:["sushi","cherry blossom","a bullet train","origami","bowing","Mount Fuji"] },
+   hospital:{ n:"A hospital", w:["a white coat","a waiting room","a chart","disinfectant","a bed on wheels","visiting hours"] },
+   chocolate:{ n:"Chocolate", w:["cocoa","a wrapper","melting","brown","a gift","breaking off a square"] },
+   fire:{ n:"Fire", w:["smoke","orange","a match","warmth","ash","a chimney"] },
+   books:{ n:"Books", w:["pages","a spine","a library","dust","a bookmark","quiet"] },
+   birthday:{ n:"A birthday", w:["candles","a wish","cake","singing","wrapping paper","getting older"] },
+   desert:{ n:"The desert", w:["sand","no water","a mirage","dunes","heat","a caravan"] },
+   time:{ n:"Time", w:["a clock","a calendar","waiting","wrinkles","an hourglass","running out"] },
+   france:{ n:"France", w:["a baguette","the Eiffel Tower","cheese","perfume","wine","a beret"] },
+   music:{ n:"Music", w:["a stage","headphones","a chorus","applause","strings","a rhythm"] },
+   cat:{ n:"A cat", w:["whiskers","a box","indifference","purring","nine lives","landing on its feet"] },
+   money:{ n:"Money", w:["a coin","a wallet","a queue at the bank","taxes","a piggy bank","running short"] },
+   space:{ n:"Space", w:["stars","a rocket","silence","a black hole","no gravity","a telescope"] },
+   hotel:{ n:"A hotel", w:["a key card","a tiny soap","a stranger's bed","breakfast","a lobby","checking out"] },
+   sleep:{ n:"Sleep", w:["a pillow","a dream","an alarm","snoring","darkness","an eye mask"] },
+   greece:{ n:"Greece", w:["olives","white houses","blue doors","ruins","feta","a myth"] },
+   sport:{ n:"Sport", w:["sweat","a stopwatch","a medal","the bench","training","a photo finish"] },
+   farm:{ n:"A farm", w:["a tractor","mud","an early morning","a fence","hay","a rooster"] },
+   india:{ n:"India", w:["spices","the monsoon","a sari","cricket","the Taj Mahal","a crowded train"] },
+   phone:{ n:"A phone", w:["a screen","a charger","a notification","a cracked corner","a group chat","no battery left"] },
+   barber:{ n:"A hairdresser", w:["scissors","a mirror","a cape","small talk","a sink","a fringe"] },
+   circus:{ n:"The circus", w:["a tent","a clown","a tightrope","popcorn","a ringmaster","an elephant"] },
+   autumn:{ n:"Autumn", w:["leaves","wind","a jumper","brown","the clocks going back","a school year starting"] },
+   heist:{ n:"A robbery", w:["a mask","a getaway car","an alarm","a vault","a hostage","a plan that goes wrong"] },
+   brazil:{ n:"Brazil", w:["carnival","the Amazon","a beach","football","samba","coffee"] },
+   dentist:{ n:"A dentist", w:["a chair","a drill","a bright light","rinsing","a filling","dreading it"] },
+   kitchen:{ n:"A kitchen", w:["a knife","steam","a burnt edge","a recipe","washing up","somebody in the way"] },
+   childhood:{ n:"Childhood", w:["a scraped knee","a swing","a lunchbox","believing everything","a bunk bed","summer being long"] },
+   train:{ n:"A train", w:["a platform","a ticket","a window seat","a delay","a tunnel","somebody's loud call"] },
+   ireland:{ n:"Ireland", w:["green","rain","a pint","a fiddle","sheep","a saint"] },
+   gym:{ n:"The gym", w:["a mirror","weights","sweat","the January crowd","a locker","giving up in February"] },
+   wind:{ n:"Wind", w:["a slammed door","a kite","hair in your face","a whistle","a broken umbrella","washing on the line"] },
+   library:{ n:"A library", w:["quiet","a stamp","shelves","a fine","a whisper","a due date"] },
+   winterhols:{ n:"The holidays", w:["lights","a tree","queues in the shops","family","too much food","a terrible jumper"] }
+  };
+  const HE_LINKS = {
+   argentina:{ n:"ארגנטינה", w:["מסי","טנגו","אסאדו","האנדים","כחול־לבן","חולצה מפוספסת"] },
+   winter:{ n:"חורף", w:["גשם","מעיל","ימים קצרים","מרק","תנור","גרביים רטובות"] },
+   sea:{ n:"הים", w:["גלים","מלח","מציל","חול","שקיעה","מדוזה"] },
+   egypt:{ n:"מצרים", w:["הפירמידות","הנילוס","גמלים","סיני","פרעה","מדבר"] },
+   wedding:{ n:"חתונה", w:["טבעת","שמלה לבנה","צלם","מעטפה","ריקוד ראשון","דודה שבוכה"] },
+   coffee:{ n:"קפה", w:["הפוך","בוקר","קצף","כוס נייר","להישאר ער","בית קפה"] },
+   italy:{ n:"איטליה", w:["פסטה","הקולוסיאום","גונדולה","שמן זית","ג׳לטו","ידיים שמדברות"] },
+   rain:{ n:"גשם", w:["מטרייה","שלוליות","שמיים אפורים","נעליים רטובות","ריח של אספלט","טיול שבוטל"] },
+   school:{ n:"בית ספר", w:["פעמון","לוח","שיעורי בית","ילקוט","הפסקה","תעודה"] },
+   moon:{ n:"הירח", w:["מכתשים","גאות","דגל","כסוף","סהר","צעד קטן"] },
+   football:{ n:"כדורגל", w:["שופט","כרטיס אדום","גול","דשא","צעיף","הארכה"] },
+   japan:{ n:"יפן", w:["סושי","פריחת הדובדבן","רכבת מהירה","אוריגמי","קידה","הר פוג׳י"] },
+   hospital:{ n:"בית חולים", w:["חלוק לבן","חדר המתנה","אינפוזיה","ריח של חיטוי","מיטה עם גלגלים","שעות ביקור"] },
+   chocolate:{ n:"שוקולד", w:["קקאו","עטיפה","נמס","חום","מתנה","לשבור ריבוע"] },
+   fire:{ n:"אש", w:["עשן","כתום","גפרור","חום","אפר","מדורה"] },
+   books:{ n:"ספרים", w:["דפים","כריכה","ספרייה","אבק","סימנייה","שקט"] },
+   birthday:{ n:"יום הולדת", w:["נרות","משאלה","עוגה","שיר","נייר עטיפה","להתבגר"] },
+   desert:{ n:"המדבר", w:["חול","אין מים","מיראז׳","דיונות","חום","שביל"] },
+   time:{ n:"זמן", w:["שעון","לוח שנה","לחכות","קמטים","שעון חול","נגמר"] },
+   france:{ n:"צרפת", w:["באגט","מגדל אייפל","גבינה","בושם","יין","כומתה"] },
+   music:{ n:"מוזיקה", w:["במה","אוזניות","פזמון","מחיאות כפיים","מיתרים","קצב"] },
+   cat:{ n:"חתול", w:["שפם","קופסה","אדישות","גרגור","תשעה חיים","נוחת על הרגליים"] },
+   money:{ n:"כסף", w:["מטבע","ארנק","תור בבנק","מיסים","קופת חיסכון","נגמר באמצע החודש"] },
+   space:{ n:"החלל", w:["כוכבים","טיל","שקט","חור שחור","אפס כבידה","טלסקופ"] },
+   hotel:{ n:"מלון", w:["כרטיס מגנטי","סבון קטן","מיטה זרה","ארוחת בוקר","לובי","צ׳ק אאוט"] },
+   sleep:{ n:"שינה", w:["כרית","חלום","שעון מעורר","נחירות","חושך","כיסוי עיניים"] },
+   greece:{ n:"יוון", w:["זיתים","בתים לבנים","דלתות כחולות","חורבות","פטה","מיתוס"] },
+   sport:{ n:"ספורט", w:["זיעה","סטופר","מדליה","ספסל","אימון","צילום סיום"] },
+   farm:{ n:"משק", w:["טרקטור","בוץ","בוקר מוקדם","גדר","חציר","תרנגול"] },
+   india:{ n:"הודו", w:["תבלינים","מונסון","סארי","קריקט","הטאג׳ מאהל","רכבת עמוסה"] },
+   phone:{ n:"טלפון", w:["מסך","מטען","התראה","פינה סדוקה","קבוצת ווטסאפ","נגמרה הסוללה"] },
+   barber:{ n:"מספרה", w:["מספריים","מראה","שכמייה","שיחת חולין","כיור","פוני"] },
+   circus:{ n:"קרקס", w:["אוהל","ליצן","חבל דק","פופקורן","מנהל הזירה","פיל"] },
+   autumn:{ n:"סתיו", w:["עלים","רוח","סוודר","חום","שעון חורף","שנה שמתחילה"] },
+   heist:{ n:"שוד", w:["מסכה","רכב מילוט","אזעקה","כספת","בן ערובה","תוכנית שמשתבשת"] },
+   brazil:{ n:"ברזיל", w:["קרנבל","האמזונס","חוף","כדורגל","סמבה","קפה"] },
+   dentist:{ n:"רופא שיניים", w:["כיסא","מקדחה","אור חזק","לשטוף","סתימה","לפחד מזה"] },
+   kitchen:{ n:"מטבח", w:["סכין","אדים","קצה שרוף","מתכון","כלים בכיור","מישהו שעומד בדרך"] },
+   childhood:{ n:"ילדות", w:["ברך שרוטה","נדנדה","קופסת אוכל","להאמין לכל דבר","מיטת קומתיים","קיץ ארוך"] },
+   train:{ n:"רכבת", w:["רציף","כרטיס","מקום ליד החלון","עיכוב","מנהרה","מישהו שמדבר בקול"] },
+   independence:{ n:"יום העצמאות", w:["דגלים","מנגל","זיקוקים","פטישי פלסטיק","מטס","שכונה שלמה בחוץ"] },
+   gym:{ n:"חדר כושר", w:["מראה","משקולות","זיעה","עומס בינואר","לוקר","לוותר בפברואר"] },
+   wind:{ n:"רוח", w:["דלת שנטרקת","עפיפון","שיער בפנים","שריקה","מטרייה שבורה","כביסה על החבל"] },
+   library:{ n:"ספרייה", w:["שקט","חותמת","מדפים","קנס","לחישה","תאריך החזרה"] },
+   shabbat:{ n:"שבת", w:["נרות","חלה","שקט ברחוב","ארוחה משפחתית","חמין","סבתא"] }
+  };
+
+  const EN = {words:EN_WORDS, cards:EN_CARDS, mods:EN_MODS, topics:EN_TOPICS, links:EN_LINKS, ui:EN_UI};
+  const HE = {words:HE_WORDS, cards:HE_CARDS, mods:HE_MODS, topics:HE_TOPICS, links:HE_LINKS, ui:HE_UI};
 
   /* ============ board ============
      A lattice you actually navigate. Four columns, many rows. Every step you may
@@ -428,6 +543,10 @@ function createEngine(){
      round moved a quarter of the board and a good one crossed half of it, so
      the scale sits a notch below the tiers and the flat bonuses sit with it. */
   const POINTS = { 2:1, 3:2, 4:3, 5:4 };
+  /* A link has no tier to be priced from — it is a thing, not a word off a
+     bank — so it carries one flat price, pitched at the dearer end because
+     naming it from three oblique words is the hardest ask in the game. */
+  const LINK_VALUE = 3;
   function wordPoints(tier){ return POINTS[tier] || 1; }
   const CHALLENGES = { topic:-1, open:0, cold:1 };
   /* The giver's reward for calling who would get it. On an ordinary round the
@@ -452,6 +571,19 @@ function createEngine(){
     while(out.length < 4 && spare.length){ const x = spare.pop(); out.push({ text:x, value:wordPoints(tierLookup[x]) }); }
     if(out.length){ R.words = out.sort((a,b)=>a.value-b.value); }
     R.topic = key;
+  }
+  /* A link round is dealt whole: the thing itself becomes the round's one
+     word — the answer everybody is racing to say — and the six that belong to
+     it go in the pool the giver chooses three from. */
+  function dealLink(){
+    const keys = Object.keys(LINKS);
+    const key = keys[Math.floor(Math.random() * keys.length)];
+    const L = LINKS[key];
+    S.r.linkKey  = key;
+    S.r.words    = [{ text:L.n, value:LINK_VALUE }];
+    S.r.pick     = 0;
+    S.r.linkPool = shuffle(L.w.slice());
+    S.r.shown    = [];
   }
   const UNIT_COLORS = ["#2C6BFF","#12B886","#FF5A3D","#D97706","#7A5AF8","#0891B2","#DB2777","#4D7C0F"];
   /* palettes this game has worn before, kept only so a saved game repaints itself */
@@ -504,26 +636,26 @@ function createEngine(){
   const MAPS = {
    classic:{ id:"classic", themeId:"classic", rowsDelta:0,
      pattern:{ 0:["S","U","W","F","T","U"], 1:["S","F","T","W","U","F"],
-               2:["O","D","S","T","D","O"], 3:["B","M","D","B","M","B"] },
+               2:["O","D","L","T","D","O"], 3:["B","M","D","L","M","B"] },
      cardRule:{ col:1, every:3 }, wildRule:{ col:3, every:5 } },
    twist:{ id:"twist", themeId:"twist", rowsDelta:0,
      pattern:{ 0:["S","F","U","T","W","U"], 1:["F","U","O","W","F","T"],
-               2:["S","D","T","D","O","O"], 3:["M","B","B","D","M","B"] },
+               2:["S","D","L","D","O","O"], 3:["M","B","L","D","M","B"] },
      cardRule:{ col:2, every:4 }, wildRule:{ col:0, every:5 } },
    /* Storm is the wild board, not the long one — its character is in the
       pattern, and two extra rows on top of it ran one game in eight past
       forty minutes once the rounds themselves grew longer. */
    storm:{ id:"storm", themeId:"storm", rowsDelta:1,
      pattern:{ 0:["S","T","U","W","U","S"], 1:["F","O","W","D","U","F"],
-               2:["D","B","T","B","D","B"], 3:["M","B","M","B","M","D"] },
+               2:["D","B","L","B","D","B"], 3:["M","L","M","B","M","D"] },
      cardRule:{ col:1, every:4 }, wildRule:{ col:2, every:4 } },
    sprint:{ id:"sprint", themeId:"sprint", rowsDelta:-3,
      pattern:{ 0:["S","F","U","T","W","U"], 1:["S","W","T","F","U","T"],
-               2:["F","D","D","S","F","O"], 3:["O","T","D","D","O","F"] },
+               2:["F","D","L","S","F","O"], 3:["O","T","D","L","O","F"] },
      cardRule:{ col:0, every:3 }, wildRule:{ col:3, every:4 } },
    chaos:{ id:"chaos", themeId:"chaos", rowsDelta:0,
      pattern:{ 0:["S","U","D","W","T","U"], 1:["O","D","U","W","D","O"],
-               2:["D","T","B","T","D","M"], 3:["B","M","B","M","B","D"] },
+               2:["D","L","B","T","D","M"], 3:["B","M","L","M","B","D"] },
      cardRule:{ col:3, every:3 }, wildRule:{ col:1, every:4 } }
   };
   /* How long the board is, by how many units are racing on it. A unit scores
@@ -777,13 +909,14 @@ function createEngine(){
     else if(mod === "U"){ shotPublic = true; }
     if(S.forceBlind){ S.forceBlind = false; }
     const modeTimer = (MODES[S.modeId] || MODES.regular).timer;
-    S.r = { giver, words, pick:null, challenge: (mod==="B" ? "open" : null), topic:null,
+    S.r = { giver, words, pick:null, challenge: (mod==="B" || mod==="L" ? "open" : null), topic:null,
             shot: (mod==="B"?null:shot), shotPublic: (mod==="B"?false:shotPublic),
             shotFixed: (mod==="B"?false:shotFixed), only:null, mod,
-            pick2:null, found:[],
+            pick2:null, found:[], linkKey:null, linkPool:null, shown:null,
             total: (mod==="F") ? modeTimer.fast : modeTimer.normal,
             acc:0, startedAt:null, lockedOut:[], solvedBy:null, solveMs:null,
             judging:null, doubles:[], insight:false, veto:false, mimeCard:false, swapped:false };
+    if(mod === "L") dealLink();
     S.round += 1; S.result = null; S.steps = {}; S.moveSeat = 0; S.offers = null;
     S.screen = (mod === "B") ? "blindPick" : "giverHandoff";
   }
@@ -928,6 +1061,7 @@ function createEngine(){
     pauseClock,
     resumeClock,
     dealTopic,
+    dealLink,
     wordValue,
     wordPoints,
     valueDelta,
@@ -955,7 +1089,7 @@ function createEngine(){
     get COLS(){ return COLS; },
     get MODES(){ return MODES; },
     get MAPS(){ return MAPS; },
-    packs(){ return { W, CARDS, MODS, TOPICS, TIER, CARDKEYS, D }; }
+    packs(){ return { W, CARDS, MODS, TOPICS, LINKS, TIER, CARDKEYS, D }; }
   };
 }
 
