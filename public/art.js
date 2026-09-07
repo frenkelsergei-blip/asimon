@@ -164,7 +164,10 @@ const SKIN = { light:"#F2C79E", tan:"#D99A6C", deep:"#8D5524", old:"#EFCBAA" };
 const LINE = "#2A2118";
 function eyes(y, c){
   const f = c || LINE;
-  return '<circle cx="16" cy="'+y+'" r="1.6" fill="'+f+'"/><circle cx="24" cy="'+y+'" r="1.6" fill="'+f+'"/>';
+  /* named so gestures.css can close one of them — a wink needs to know
+     which eye it is holding */
+  return '<circle class="ey el" cx="16" cy="'+y+'" r="1.6" fill="'+f+'"/>'+
+         '<circle class="ey er" cx="24" cy="'+y+'" r="1.6" fill="'+f+'"/>';
 }
 function smile(y){
   return '<path d="M16.4 '+y+'q3.6 3 7.2 0" stroke="'+LINE+'" stroke-width="1.5" fill="none" stroke-linecap="round"/>';

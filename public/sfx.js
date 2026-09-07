@@ -309,13 +309,7 @@ function mount(){
       'opacity:.5;transition:opacity .15s ease,background .15s ease}' +
     '#sfxbtn:hover,#sfxbtn:focus-visible{opacity:1}' +
     '#sfxbtn.muted{background:rgba(216,53,28,.62);opacity:.85}' +
-    /* picking a face should feel like picking it */
-    '.facetile.on{animation:sfxpick .4s cubic-bezier(.22,.7,.3,1)}' +
-    '@keyframes sfxpick{0%{transform:scale(1)}32%{transform:scale(1.13) rotate(-5deg)}' +
-      '64%{transform:scale(.975) rotate(1.5deg)}100%{transform:none}}' +
-    '.facetile.on .tick{animation:sfxtick .34s cubic-bezier(.22,.7,.3,1) .06s both}' +
-    '@keyframes sfxtick{0%{transform:scale(0)}60%{transform:scale(1.25)}100%{transform:scale(1)}}' +
-    '@media(prefers-reduced-motion:reduce){.facetile.on,.facetile.on .tick{animation:none}}';
+    '';
   document.head.appendChild(css);
 
   const b = document.createElement("button");
