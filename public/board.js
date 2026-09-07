@@ -47,8 +47,8 @@ const L = {
     sc_w_jack:"ג׳קפוט", sc_w_jack_d:"שתי נקודות, כאן ועכשיו.",
     sc_host:"מארח/ת",
     sc_maponly:"רק המפה", sc_mapback:"להראות גם את המצב",
-    sc_over_k:"נגמר", sc_wins:"{0} מנצח/ת",
-    sc_pts:"נק׳", sc_cards_k:"קלפים", sc_row_k:"שורה", sc_waiting:"מחכים ל{0}",
+    sc_over_k:"נגמר", sc_wins:"{0} מנצח/ת", sc_wins_p:"{0} מנצחים", sc_won_tag:"ניצח",
+    sc_pts:"נק׳", sc_cards_k:"קלפים", sc_card_k:"קלף", sc_row_k:"שורה", sc_waiting:"מחכים ל{0}",
     /* the five boards and the four speeds, named as the phone names them */
     sc_map_classic:"קלאסי", sc_map_twist:"תפנית", sc_map_storm:"סופה",
     sc_map_sprint:"ספרינט", sc_map_chaos:"תוהו ובוהו",
@@ -86,8 +86,8 @@ const L = {
     sc_w_jack:"Jackpot", sc_w_jack_d:"Two points, right now.",
     sc_host:"Host",
     sc_maponly:"The map on its own", sc_mapback:"Show the state as well",
-    sc_over_k:"That is the game", sc_wins:"{0} wins",
-    sc_pts:"pts", sc_cards_k:"cards", sc_row_k:"row", sc_waiting:"Waiting on {0}",
+    sc_over_k:"That is the game", sc_wins:"{0} wins", sc_wins_p:"{0} win", sc_won_tag:"won",
+    sc_pts:"pts", sc_cards_k:"cards", sc_card_k:"card", sc_row_k:"row", sc_waiting:"Waiting on {0}",
     /* the five boards and the four speeds, named as the phone names them */
     sc_map_classic:"Classic", sc_map_twist:"Twist", sc_map_storm:"Storm",
     sc_map_sprint:"Sprint", sc_map_chaos:"Chaos",
@@ -383,7 +383,10 @@ function moment(s){
   if(s.phase === "over"){
     const won = (s.units || []).find(u => u.id === s.winner) || (s.standings || [])[0] || {};
     return M({ tone:"green", kick:t("sc_over_k"), face:unitFace(s, won.id),
-               head:t("sc_wins", esc(won.name || "")) });
+               /* a pair or a group is several people, and takes the plural */
+               head: (won.members && won.members.length > 1)
+                 ? t("sc_wins_p", esc(won.name || ""))
+                 : t("sc_wins",   esc(won.name || "")) });
   }
   return M({ tone:"ink", head:t("sc_lobby") });
 }
@@ -419,7 +422,12 @@ function standings(s){
   const rows = s.rows || 1, steps = s.steps || {}, pts = {};
   if(s.phase === "reveal" && s.result) s.result.rows.forEach(r => { pts[r.id] = r.pts; });
   const out = (s.units || []).slice()
-    .sort((a,b) => b.pos.r - a.pos.r || b.score - a.score)
+    /* Whoever won leads, then by how far up the board, then by score. Two
+       units can cross in the same round, and the one with more points is not
+       always the one that got there — sorted on score alone the screen put
+       the winner second and the headline disagreed with the list. */
+    .sort((a,b) => (b.id === s.winner) - (a.id === s.winner)
+                || b.pos.r - a.pos.r || b.score - a.score)
     .map(u => {
       const col = u.color || "#2C6BFF";
       const isGiver = s.giver && u.members && u.members.indexOf(s.giver) >= 0;
@@ -430,10 +438,11 @@ function standings(s){
       return '<div class="srow'+(isOut?" out":"")+'">'+
         '<span class="sface">'+faceMark(u.face, u.name, col)+'</span>'+
         '<span><span class="sname"><span class="nm">'+esc(u.name)+'</span>'+
-          (u.id === s.winner ? '<em class="tag won">'+t("got_tag")+'</em>' : '')+
+          (u.id === s.winner ? '<em class="tag won">'+t("sc_won_tag")+'</em>' : '')+
           (isGiver ? '<em class="tag giver">'+t("giver_tag")+'</em>' : '')+
           (isOut ? '<em class="tag out">'+t("locked")+'</em>' : '')+
-          (u.cards ? '<em class="tag">'+u.cards+' '+t("sc_cards_k")+'</em>' : '')+
+          (u.cards ? '<em class="tag">'+u.cards+' '+
+             (u.cards === 1 ? t("sc_card_k") : t("sc_cards_k"))+'</em>' : '')+
         '</span>'+
         '<span class="slane"><span class="sbar">'+
           (pend ? '<i class="ghost" style="width:'+pct(u.pos.r+pend)+'%;background:'+col+'"></i>' : '')+

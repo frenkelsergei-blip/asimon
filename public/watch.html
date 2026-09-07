@@ -26,14 +26,26 @@
   .cap b{font-size:14px;font-weight:800}
   .cap span{font-size:11.5px;opacity:.7;font-variant-numeric:tabular-nums}
   iframe{display:block;width:100%;height:812px;border:0;background:#FFFCF6}
+  /* the screen is the tablet in the middle of the table: landscape, no seat,
+     and it gets its own row under the phones because that is where it sits */
+  .telly{max-width:1360px;margin:16px auto 0}
+  .telly .seat{overflow:hidden}
+  .telly iframe{height:760px;background:#FFFCF6}
 </style>
 </head>
 <body>
 <header>
-  <h1>Three phones, one room</h1>
-  <span class="hint">Each pane is a separate player with its own saved seat — the same as three phones on a table.</span>
+  <h1>Three phones and the screen</h1>
+  <span class="hint">Each pane is a separate player with its own saved seat, and the wide one is the
+  screen in the middle of the table — it watches by code alone and takes no seat.</span>
 </header>
 <div class="rack" id="rack"></div>
+<div class="telly">
+  <div class="seat">
+    <div class="cap"><b>The screen</b><span>/board.html &middot; watches, holds no seat</span></div>
+    <iframe id="telly" src="/board.html" title="The screen"></iframe>
+  </div>
+</div>
 <script>
   const seats = [
     { p:"1", label:"Phone 1" },

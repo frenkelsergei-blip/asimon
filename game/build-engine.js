@@ -6,6 +6,26 @@
 const fs = require("fs");
 const path = require("path");
 
+/* ---------------------------------------------------------------------------
+   This no longer runs, and must not.
+
+   game/engine.js began life here, lifted out of the pass-and-play build. It
+   has since grown four game modes, five maps, the wildcard square, the board's
+   own balance and a scoring scale — none of which exist in any buzz.html.
+   Regenerating produces roughly six hundred lines against the engine's eight
+   hundred and takes the rest with it, and play.js stops finding its exports
+   the moment it loads.
+
+   The file is kept because it records how the engine was first assembled and
+   which parts of the original build were left behind. To change the rules,
+   edit game/engine.js.                                                       */
+console.error(
+  "game/build-engine.js does not run any more.\n" +
+  "game/engine.js is written by hand — regenerating would delete the game\n" +
+  "modes, the maps, the wildcard square and the board balance. Edit the\n" +
+  "engine directly; npm test and npm run playtest are the net.");
+process.exit(1);
+
 const src = process.argv[2];
 if(!src){ console.error("usage: node game/build-engine.js <buzz.html>"); process.exit(1); }
 const html = fs.readFileSync(src, "utf8");

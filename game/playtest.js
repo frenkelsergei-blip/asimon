@@ -42,7 +42,7 @@ const MODEL = {
      1 up to 4 — the bank's four tiers, priced a notch below their tier. */
   solveByValue: { 1:0.94, 2:0.87, 3:0.75, 4:0.62 },
   /* ...nudged by the square the giver was standing on */
-  solveByMod: { S:1, F:0.90, O:0.84, M:0.80, D:1, T:1, B:0.78 },
+  solveByMod: { S:1, F:0.90, O:0.84, M:0.80, D:1, T:1, U:0.95, B:0.78 },
   /* ...and by how much help the giver asked for */
   solveByChallenge: { topic:1.12, open:1, cold:0.95 },
   /* more heads guessing, more chance one of them lands it */
@@ -72,13 +72,31 @@ const CTX = { armClock(){}, clearClock(){} };
 
 /* ---------------- one sitting ---------------- */
 function playOne(cfg){
-  const names = Array.from({ length: cfg.players }, (_, i) => "P" + i);
   const room = {
     code: "SIM", lang: cfg.lang || "en", hostId: "p0", phase: "lobby", lanUrl: "sim",
-    mapId: cfg.map,
-    players: names.map((n, i) => ({ id: "p" + i, name: n, online: true, face: "f" + i }))
+    mapId: cfg.map, seating: cfg.seating || "solo",
+    players: [], people: []
   };
-  play.startGame(room, { mode: cfg.mode, gameMode: cfg.gameMode });
+  /* Solo and pairs put one person behind each phone, so the two rosters are
+     the same list under two names. Groups hands a phone two to four people —
+     the sofa, the kids, whoever is sharing — and then a phone is a unit. */
+  if(cfg.seating === "groups"){
+    let n = 0;
+    for(let ph = 0; ph < cfg.phones; ph++){
+      const id = "p" + ph;
+      room.players.push({ id, name:"Sofa " + ph, online:true, face:"f" + ph, groupName:"Sofa " + ph });
+      const size = cfg.groupSize || (2 + Math.floor(rnd() * 3));
+      for(let k = 0; k < size; k++, n++)
+        play.addPerson(room, id, "P" + n, "f" + (n % 15));
+    }
+  } else {
+    for(let i = 0; i < cfg.players; i++){
+      const id = "p" + i;
+      room.players.push({ id, name:"P" + i, online:true, face:"f" + i });
+      play.addPerson(room, id, "P" + i, "f" + i);
+    }
+  }
+  play.startGame(room, { seating: cfg.seating, mode: cfg.mode, gameMode: cfg.gameMode });
   const e = room.engine;
   /* experiment dials: try a board length or a per-round ceiling without
      committing either to the engine first */
@@ -88,6 +106,8 @@ function playOne(cfg){
   /* a personality per seat, drawn once and kept for the game */
   const trait = {};
   room.players.forEach(p => { trait[p.id] = { give: pick(MODEL.givers), move: pick(MODEL.movers) }; });
+  /* the rules name people; the actions come from the phone holding them */
+  const phoneOf = personId => play.phoneOf(room, personId);
 
   const g = {
     cfg, rounds: 0, seconds: 0, stuck: null, guardHit: false,
@@ -102,6 +122,8 @@ function playOne(cfg){
   };
   e.S.units.forEach(u => { g.perUnit[u.id] = { gave:0, solved:0, wrong:0, cards:0, played:0, dry:0, dryRun:0, maxDry:0, pts:0 }; });
   g.opening = (e.S.opening || {}).key || null;
+  g.units = e.S.units.length;
+  g.people = e.S.players.length;
   g.cardSource = {};
   if(g.opening){ g.cardsDrawn[g.opening] = 1; g.cardSource.opening = 1; }
   const bumpDry = (uid, scored) => {
@@ -110,8 +132,8 @@ function playOne(cfg){
   };
 
   const P = id => room.players.find(p => p.id === id);
-  const act = (pid, body) => {
-    const r = play.applyAction(room, P(pid), body, CTX);
+  const act = (personId, body) => {
+    const r = play.applyAction(room, P(phoneOf(personId)), body, CTX);
     if(r && r.error) g.stuck = g.stuck || (room.phase + ":" + body.type + ":" + r.error);
     return r;
   };
@@ -124,7 +146,8 @@ function playOne(cfg){
     /* ---- the play order is up: every phone taps in before round one ---- */
     if(room.phase === "order"){
       g.seconds += SECONDS.order;
-      S.players.forEach(p => act(p.id, { type:"order_ok" }));
+      /* one tap a phone, not one a person — a sofa of three taps once */
+      room.players.forEach(ph => { if(room.phase === "order") act(ph.id, { type:"order_ok" }); });
       if(room.phase === "order"){ g.stuck = g.stuck || "order:never-began"; break; }
       continue;
     }
@@ -148,14 +171,19 @@ function playOne(cfg){
         act(R.giver, { type:"topic", k:key });
       }
       if(k !== "cold"){
-        const how = trait[R.giver].give;
+        const how = trait[phoneOf(R.giver)].give;
         const vals = R.words.map(w => w.value);
         const want = how === "greedy" ? Math.max(...vals)
                    : how === "safe"   ? Math.min(...vals)
                    : vals.slice().sort((a,b)=>a-b)[Math.floor(vals.length/2)];
         act(R.giver, { type:"pick", i: R.words.findIndex(w => w.value === want) });
       }
-      if(!R.shotPublic) act(R.giver, { type:"aim", target: pick(S.players.filter(p => p.id !== R.giver)).id });
+      if(!R.shotFixed){
+        const mine = e.unitOf(R.giver).members;
+        const targets = S.players.filter(p => p.id !== R.giver &&
+          !(S.seating === "groups" && mine.indexOf(p.id) >= 0));
+        if(targets.length) act(R.giver, { type:"aim", target: pick(targets).id });
+      }
       act(R.giver, { type:"ready" });
       continue;
     }
@@ -166,7 +194,8 @@ function playOne(cfg){
       count(g.mods, "B"); count(g.challenges, "open");
       g.perUnit[e.unitOf(R.giver).id].gave++;
       R.words.forEach(w => { if(g.words.indexOf(w.text) >= 0) g.repeats++; else g.words.push(w.text); });
-      const chooser = pick(S.players.filter(p => p.id !== R.giver)).id;
+      const gp = phoneOf(R.giver);
+      const chooser = pick(S.players.filter(p => phoneOf(p.id) !== gp)).id;
       act(chooser, { type:"pick", i: Math.floor(rnd() * R.words.length) });
       act(chooser, { type:"ready" });
       continue;
@@ -220,7 +249,15 @@ function playOne(cfg){
       if(room.phase !== "table") continue;
 
       const word = R.words[R.pick] || R.words[0];
-      const aliveNow = () => S.players.filter(p => p.id !== R.giver && R.lockedOut.indexOf(p.id) < 0);
+      /* whoever is holding the giver's phone is reading the word over their
+         shoulder — in groups that is the whole sofa, not just the giver */
+      const giverPhone = phoneOf(R.giver);
+      const barred = {};
+      R.lockedOut.forEach(id => { barred[phoneOf(id)] = true; });
+      /* a Duel names one answerer and everybody else watches */
+      const aliveNow = () => S.players.filter(p =>
+        phoneOf(p.id) !== giverPhone && !barred[phoneOf(p.id)]
+        && (!R.only || p.id === R.only));
 
       /* a wrong shout, first */
       const early = aliveNow();
@@ -232,6 +269,9 @@ function playOne(cfg){
           act(who, { type:"buzz" });
           if(room.phase === "judge"){
             g.lockouts++; g.buzzes++; g.perUnit[e.unitOf(who).id].wrong++;
+            /* the server records the lockout against the phone's first person,
+               so the whole phone is barred whoever on it actually shouted */
+            barred[phoneOf(who)] = true;
             g.seconds += SECONDS.judge;
             act(R.giver, { type:"judge", yes:false });
           }
@@ -251,7 +291,9 @@ function playOne(cfg){
       if(R.insight) p *= 1.18;
       p = Math.max(0.04, Math.min(0.97, p));
 
-      const solverAlive = blind ? [P(R.giver)] : alive;
+      /* on a blind round the giver is the one guessing — a person in the
+         roster, which in groups is not the same list as the phones */
+      const solverAlive = blind ? S.players.filter(p => p.id === R.giver) : alive;
       if(solverAlive.length && chance(p)){
         const floor = MODEL.whenFloor + MODEL.whenFloorPerValue * (word.value - MODEL.cheapestWord);
         let f = floor + (0.97 - floor) * Math.pow(rnd(), MODEL.whenSkew);
@@ -268,7 +310,8 @@ function playOne(cfg){
         if(room.phase === "judge"){
           g.seconds += SECONDS.judge;
           /* blind puts the verdict on a phone that can see the word */
-          const verdict = blind ? pick(S.players.filter(p => p.id !== R.giver)).id : R.giver;
+          const verdict = blind
+            ? pick(S.players.filter(p => phoneOf(p.id) !== giverPhone)).id : R.giver;
           act(verdict, { type:"judge", yes:true });
           g.perUnit[e.unitOf(who).id].solved++;
           g.solved++; g.buzzes++;
@@ -329,7 +372,7 @@ function playOne(cfg){
       const best = spots.filter(s => s.d === far);
       const typeOf = s => (s.r > e.ROWS() ? "END" : (e.isCardNode(s.r, s.c) ? "CARD" : e.nodeTypeAt(s.r, s.c)));
       let want;
-      const how = trait[mover].move;
+      const how = trait[phoneOf(mover)].move;
       if(how === "seeker"){
         const cards = spots.filter(s => typeOf(s) === "CARD");
         want = cards.length ? pick(cards) : pick(best);
@@ -378,6 +421,7 @@ function playOne(cfg){
 
   const S = e.S;
   g.boardWinner = (e.winnerUnit() || {}).id || null;
+  g.crossed = S.units.filter(u => e.atFinish(u)).length;
   const byScore = S.units.slice().sort((a, b) => b.score - a.score);
   g.scoreWinner = byScore[0] ? byScore[0].id : null;
   g.scores = byScore.map(u => ({ id:u.id, name:u.name, score:u.score, row:(u.pos || {}).r || 0 }));
@@ -405,9 +449,18 @@ const runs = [];
 for(const n of wantPlayers){
   for(const gameMode of (arg("gameMode") ? [arg("gameMode")] : MODES)){
     for(const map of (arg("map") ? [arg("map")] : MAPS)){
-      for(const mode of (n >= 4 && !has("solo-only") ? ["solo","teams"] : ["solo"])){
+      /* Three ways to sit. Solo and pairs are one person a phone, so the
+         table size is the head count. Groups is phones — three sofas of three
+         is nine people racing as three, so it is swept by phone count. */
+      const want = arg("seating");
+      let seatings = has("solo-only") ? ["solo"] : n >= 4 ? ["solo", "pairs"] : ["solo"];
+      if(n >= 3 && !has("solo-only")) seatings.push("groups");
+      if(want) seatings = seatings.filter(x => x === want);
+      for(const seating of seatings){
         for(let i = 0; i < perCell; i++)
-          runs.push(playOne({ players:n, gameMode, map, mode, forceChallenge: arg("challenge"),
+          runs.push(playOne({ players:n, phones:n, seating,
+                              mode: seating === "pairs" ? "teams" : "solo",
+                              gameMode, map, forceChallenge: arg("challenge"),
                               rows: arg("rows"), addRows: arg("addRows"), cap: arg("cap"), minus: arg("minus"),
                               lang: i % 3 === 0 ? "he" : "en" }));
       }
@@ -441,7 +494,7 @@ runs.forEach(g => Object.keys(g.perUnit).forEach(k => units.push(Object.assign({
 
 const hard = [];
 runs.forEach(g => {
-  const tag = g.cfg.players + "p/" + g.cfg.gameMode + "/" + g.cfg.map + "/" + g.cfg.mode;
+  const tag = g.cfg.players + "p/" + g.cfg.gameMode + "/" + g.cfg.map + "/" + (g.cfg.seating || g.cfg.mode);
   if(g.guardHit) hard.push("a game never ended: " + tag);
   if(g.stuck) hard.push("a phone was refused mid-game (" + tag + "): " + g.stuck);
   if(g.negativeScore) hard.push("a score went negative: " + tag);
@@ -472,8 +525,9 @@ const stepHist = merge(runs, g => g.stepHist);
 const topicsSeen = merge(runs, g => g.topics);
 const ALL_TOPICS = Object.keys(SAMPLE.packs().TOPICS);
 const ALL_CARDS = Object.keys(SAMPLE.packs().CARDS);
-const ALL_MODS = ["S","F","O","M","B","D","T"];
-const MOD_NAME = { S:"Standard", F:"Fast", O:"One word", M:"Mime", B:"Blind", D:"Double", T:"Partners" };
+const ALL_MODS = ["S","F","O","M","B","D","T","U"];
+const MOD_NAME = { S:"Standard", F:"Fast", O:"One word", M:"Mime", B:"Blind",
+                   D:"Double", T:"Partners", U:"Duel" };
 
 /* ---- json for anything downstream ---- */
 if(has("json")){
@@ -638,14 +692,27 @@ checkMax("Table size", "a game runs about as long at any table size", sizeSpread
       "baseRowsForN is meant to even this out — retune it");
 
 /* ---------- 5. solo and pairs ---------- */
-const soloRuns = runs.filter(g => g.cfg.mode === "solo");
-const teamRuns = runs.filter(g => g.cfg.mode === "teams");
-if(teamRuns.length){
-  head("solo and pairs");
-  table(SLICE_COLS, [slice("every player", soloRuns), slice("in pairs", teamRuns)].filter(Boolean));
-  const gap = Math.abs(avg(soloRuns, g => g.rounds) - avg(teamRuns, g => g.rounds));
-  checkMax("Pairs", "pairs runs about as long as solo", gap, n1(gap) + " rounds apart", 2, 3.5,
-        "the board is a race between units — check baseRowsForN at the unit counts pairs produces");
+const seatOf = g => g.cfg.seating || (g.cfg.mode === "teams" ? "pairs" : "solo");
+const soloRuns  = runs.filter(g => seatOf(g) === "solo");
+const teamRuns  = runs.filter(g => seatOf(g) === "pairs");
+const groupRuns = runs.filter(g => seatOf(g) === "groups");
+if(teamRuns.length || groupRuns.length){
+  head("three ways to sit");
+  table(SLICE_COLS, [slice("every player alone", soloRuns), slice("in pairs", teamRuns),
+                     slice("a phone to a group", groupRuns)].filter(Boolean));
+  if(groupRuns.length){
+    line();
+    line("  a group phone carries " + n1(avg(groupRuns, g => g.people / g.units)) +
+         " people on average, and the board is a race between " +
+         n1(avg(groupRuns, g => g.units)) + " of them");
+  }
+  const spread = (function(){
+    const r = [soloRuns, teamRuns, groupRuns].filter(a => a.length).map(a => avg(a, g => g.rounds));
+    return r.length > 1 ? Math.max(...r) - Math.min(...r) : 0;
+  })();
+  checkMax("Seating", "solo, pairs and groups run about as long as each other", spread,
+        n1(spread) + " rounds apart", 2, 3.5,
+        "the board is a race between units — check baseRowsForN at the unit counts each seating produces");
 }
 
 /* ---------- 6. the round ---------- */
@@ -680,6 +747,10 @@ check("The round", "wrong shouts per game", wrongPer, n1(wrongPer) + " a game",
 checkMin("The round", "solves landing in the late window", shareOf(bandsAll, "late"),
       n1(shareOf(bandsAll, "late")) + "%", 20, 12,
       "the late landing is what the game is about — if it never happens the bands are mistuned");
+const commonestMod = ALL_MODS.map(k => ({ k, v:shareOf(modsAll, k) })).sort((a, b) => b.v - a.v)[0];
+checkMax("The round", "no one kind of round takes over the game", commonestMod.v,
+      MOD_NAME[commonestMod.k] + " " + n1(commonestMod.v) + "%", 40, 48,
+      "a board that deals mostly one square is a board with one round on it — reweight the map patterns");
 const rarestMod = ALL_MODS.map(k => ({ k, v:shareOf(modsAll, k) })).sort((a, b) => a.v - b.v)[0];
 checkMin("The round", "the rarest square is still met", rarestMod.v,
       MOD_NAME[rarestMod.k] + " " + n1(rarestMod.v) + "%", 2, 1,
@@ -766,6 +837,14 @@ line("  longest scoreless run, per player  " + n1(longDry) + " rounds");
 line("  players who went 4+ rounds dry     " + n1(pct(units, u => u.maxDry >= 4)) + "%");
 line("  giver turns, most minus fewest     " + n1(giverGap));
 line("  a player finished on nothing       " + n1(zeroFinish) + "% of games");
+/* Two units can cross in the same round: the move queue runs in unit order,
+   so the lower-numbered one gets there first and wins the race even when the
+   other is ahead on points. Every surface has to agree about that — the
+   phone's podium, the screen's table and the headline over both. */
+line("  two or more over the line at the end " + n1(pct(runs, g => g.crossed > 1)) + "% of games");
+line("  the winner was not the top scorer   " +
+     n1(pct(runs, g => g.boardWinner && g.scoreWinner && g.boardWinner !== g.scoreWinner)) +
+     "% — the race and the score column disagree this often");
 checkMin("Drama", "games that finish within two points", closeGames, n1(closeGames) + "%",
       22, 14, "a runaway is not a game — look at the size of the biggest rounds");
 check("Drama", "the halfway leader goes on to win", leadHolds, n1(leadHolds) + "%",
@@ -879,7 +958,8 @@ const AUDIT = {
     mode: MODES.map(m => sliceObj(m, runs.filter(g => g.cfg.gameMode === m))).filter(Boolean),
     map:  MAPS.map(m => sliceObj(m, runs.filter(g => g.cfg.map === m))).filter(Boolean),
     size: wantPlayers.map(n => sliceObj(n + " players", runs.filter(g => g.cfg.players === n))).filter(Boolean),
-    seat: [sliceObj("every player for themselves", soloRuns), sliceObj("in pairs", teamRuns)].filter(Boolean)
+    seat: [sliceObj("every player alone", soloRuns), sliceObj("in pairs", teamRuns),
+           sliceObj("a phone to a group", groupRuns)].filter(Boolean)
   },
   modKeys: ALL_MODS,
   modNames: ALL_MODS.map(k => MOD_NAME[k]),

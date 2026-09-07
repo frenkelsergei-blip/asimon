@@ -282,7 +282,7 @@ function render(a, opts){
 '<section><h2>Three to eight players</h2><div class="panel">' +
   table(SLICE_COLS, sliceRows(a.slices.size)) +
   (a.slices.seat.length > 1
-    ? '<div><h3>Every player for themselves, and in pairs</h3>' +
+    ? '<div><h3>Three ways to sit</h3>' +
       table(SLICE_COLS, sliceRows(a.slices.seat)) + '</div>' : "") +
 '</div></section>' +
 

@@ -20,7 +20,7 @@ address; once it is hosted, it is the public one.
 | | |
 |---|---|
 | `server.js` | rooms, the live stream, the HTTP surface. No packages. |
-| `game/engine.js` | **generated** — the rules and all the content |
+| `game/engine.js` | the rules and all the content — written by hand |
 | `game/build-engine.js` | lifts that engine out of the pass-and-play build |
 | `game/play.js` | the round across several phones, and who may see what |
 | `public/` | the phone: `index.html`, `app.js`, `art.js`, `style.css` |
@@ -32,12 +32,12 @@ address; once it is hosted, it is the public one.
 | `design/logo/` | the logo canvas the mark came out of |
 | `design/screen/` | the canvas the screen in the room was drawn on |
 
-The engine is generated, never edited by hand. When the rules or the words
-change in the pass-and-play build, regenerate:
-
-```bash
-npm run build:engine -- /path/to/buzz.html
-```
+The engine began as a lift out of the pass-and-play build, and `game/build-engine.js`
+is the script that did it. It does not run any more: the game modes, the five
+boards, the wildcard square and the board's balance were all written into the
+engine by hand and are in no `buzz.html`, so regenerating would delete them.
+Edit `game/engine.js` directly — `npm test` is the net, and `npm run playtest`
+says what a change did to the game.
 
 ## Tests
 
