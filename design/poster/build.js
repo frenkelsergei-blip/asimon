@@ -136,7 +136,8 @@ function foot(o) {
         eyebrow("איך מתחילים", "#8F8CA0") +
         '<p style="margin: 0; font-size: ' + (o.tall ? 18.5 : 17) + 'px; line-height: 1.45; ' +
           'font-weight: 700; max-width: 400px; text-wrap: pretty">' +
-          "פותחים את הכתובת בטלפון, מקישים את קוד החדר, ומתחילים. אין מה להתקין." +
+          "פותחים את הכתובת בטלפון, מקישים את קוד החדר, ומתחילים. " +
+          (o.detail ? "עד חמישה על טלפון אחד." : "אין מה להתקין.") +
         "</p>" +
       "</div>" +
       '<div style="display: flex; flex-direction: column; align-items: center; gap: 4px; flex: 0 0 auto">' +
@@ -156,7 +157,7 @@ function foot(o) {
         "font-size: " + (o.tall ? 33 : 29) + 'px; line-height: 1.05; color: ' + AMBER +
         '; text-decoration: none; letter-spacing: -.01em">' + n("asimon.onrender.com") + "</a>" +
       '<div style="display: flex; gap: 8px">' +
-        fact(n("3–8") + " שחקנים") + fact("לכל המשפחה") +
+        fact(n("3–30") + " שחקנים") + fact("לכל המשפחה") +
         fact("עברית ו־English") + fact("בלי הורדות", true) +
       "</div>" +
     "</div>" +
@@ -177,7 +178,7 @@ function poster() {
       '<div style="display: flex; flex-direction: column; gap: 3px">' +
         wordmark(40) +
         '<span style="font-size: 16.5px; font-weight: 700; color: ' + MUTED + '">' +
-          "משחק לכל המשפחה · טלפון לכל אחד</span>" +
+          "משחק לכל המשפחה · טלפון לכל אחד, או לכל קבוצה</span>" +
       "</div>" +
 
       '<div style="display: flex; flex-direction: column; margin-top: 36px">' +
@@ -271,7 +272,7 @@ function howToPlay() {
       "</div>" +
     "</div>" +
 
-    foot({ ground: CARD }) + "</div>";
+    foot({ ground: CARD, detail: true }) + "</div>";
 }
 
 /* ---------------- two other ways the poster could have gone ---------------- */
@@ -303,7 +304,7 @@ function altCoin() {
           "font-size: 30px; color: " + INK + "; background: " + AMBER + '; border-radius: 999px; ' +
           'padding: 12px 28px; text-decoration: none">' + n("asimon.onrender.com") + "</a>" +
         '<span style="font-size: 17px; font-weight: 700; color: #8F8CA0">' +
-          n("3–8") + " שחקנים · לכל המשפחה · בלי הורדות</span>" +
+          n("3–30") + " שחקנים · לכל המשפחה · בלי הורדות</span>" +
       "</div>" +
     "</div></div>";
 }
@@ -318,7 +319,7 @@ function altClock() {
     '<div style="padding: 52px 54px 0; display: flex; align-items: flex-start; ' +
       'justify-content: space-between; gap: 20px">' + wordmark(40) +
       '<span style="font-size: 16.5px; font-weight: 700; color: ' + MUTED + '; text-align: left">' +
-        "משחק לכל המשפחה<br>טלפון לכל אחד</span>" + "</div>" +
+        "משחק לכל המשפחה<br>טלפון לכל אחד, או לכל קבוצה</span>" + "</div>" +
 
     '<div style="flex-grow: 1; display: flex; flex-direction: column; align-items: center; ' +
       'justify-content: center; gap: 34px; padding: 0 54px">' +

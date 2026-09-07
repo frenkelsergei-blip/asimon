@@ -86,7 +86,7 @@ function createEngine(){
    O:{n:"One word", s:"ONE", d:"The giver&rsquo;s clue must be a single word. Not two."},
    M:{n:"Mime",     s:"MIME", d:"No speaking at all &mdash; the giver acts it out. And the clock flips: here the giver wants it read <em>fast</em>, not late."},
    B:{n:"Blind",    s:"BLIND", d:"Everything turns around. The giver becomes the guesser, everybody else sees the word, and you each give one word until they crack it."},
-   G:{n:"Gamble",   s:"BET", d:"Everything here is worth more, in both directions. The word pays a point more, a wrong shout costs two &mdash; and if nobody gets it at all, the giver loses one. The only square you can go backwards on."},
+   G:{n:"Gamble",   s:"BET", d:"A real bet. The board deals the hard words and starts the short clock &mdash; so the word is worth <strong>two</strong> more, a wrong shout costs two, and if nobody gets it at all the giver loses one. Nearly a third of them die. The only square you can go backwards on."},
    T:{n:"Partners", s:"PAIR", d:"The game draws the giver a partner. If that partner gets it, they both score."},
    U:{n:"Duel",     s:"DUEL", d:"The giver names one person out loud, and only that person may answer. Everybody else watches. One shout, right or wrong, and the round is over."},
    W:{n:"Two words", s:"TWO", d:"The giver holds two words and gets one sentence for both. Each is worth a point less, and the round runs until both are found or the clock stops. Whoever says one takes it."},
@@ -98,7 +98,7 @@ function createEngine(){
    O:{n:"מילה אחת", s:"מילה", d:"הרמז של הנותן חייב להיות מילה אחת. לא שתיים."},
    M:{n:"פנטומימה", s:"מחזה", d:"בלי לדבר בכלל &mdash; הנותן ממחיז. והשעון מתהפך: כאן הנותן רוצה שיקלטו <em>מהר</em>, לא מאוחר."},
    B:{n:"עיוור",    s:"עיוור", d:"הכול מתהפך. הנותן הופך למנחש, כל השאר רואים את המילה, וכל אחד אומר מילה אחת עד שהוא קולט."},
-   G:{n:"הימור",    s:"הימור", d:"הכול כאן שווה יותר, לשני הכיוונים. המילה שווה נקודה יותר, באזה שגוי עולה 2 &mdash; ואם אף אחד לא קולט בכלל, הנותן מאבד נקודה. המשבצת היחידה שאפשר לרדת בה אחורה."},
+   G:{n:"הימור",    s:"הימור", d:"הימור אמיתי. הלוח מחלק את המילים הקשות ומפעיל את השעון הקצר &mdash; ולכן המילה שווה <strong>שתי</strong> נקודות יותר, באזה שגוי עולה 2, ואם אף אחד לא קולט בכלל הנותן מאבד נקודה. כמעט שליש מהם מתים. המשבצת היחידה שאפשר לרדת בה אחורה."},
    T:{n:"שותפים",   s:"זוג", d:"המשחק מגריל לנותן שותף. אם השותף קולט — שניהם מקבלים."},
    U:{n:"דו־קרב",   s:"קרב", d:"הנותן בוחר אדם אחד בקול, ורק הוא יכול לענות. כל השאר מסתכלים. צעקה אחת, נכונה או לא, והסבב נגמר."},
    W:{n:"שתי מילים", s:"שתיים", d:"הנותן מחזיק שתי מילים ומקבל משפט אחד לשתיהן. כל אחת שווה נקודה פחות, והסבב רץ עד ששתיהן נמצאו או שהשעון נגמר. מי שאומר מילה לוקח אותה."},
@@ -556,10 +556,13 @@ function createEngine(){
   function shotBonus(R){ return SHOT_BONUS + (R.mod === "U" ? 1 : 0); }
   function valueDelta(R){ return CHALLENGES[R.challenge] !== undefined ? CHALLENGES[R.challenge] : 0; }
   function wordValue(R, w){
-    /* Gamble adds one, not two. At two it was the best square on the board by
-       a distance — the only round that paid near the top while landing near
-       the top, because the word was dearer without the round being harder. */
-    return Math.max(1, w.value + (R.mod === "G" ? 1 : 0) + (R.mod === "W" ? -1 : 0) + valueDelta(R));
+    /* Two more, and the round is made hard enough to be worth it. At two on
+       an ordinary round this was the best square on the board by a distance:
+       it paid the most and landed the most, because the word was dearer
+       without the round being harder. The dearness is the same now; what has
+       changed is that a Gamble runs on the short clock and deals from the top
+       of the bank, so nearly a third of them die and the giver pays for it. */
+    return Math.max(1, w.value + (R.mod === "G" ? 2 : 0) + (R.mod === "W" ? -1 : 0) + valueDelta(R));
   }
   function dealTopic(key){
     const R = S.r, T0 = TOPICS[key] || {};
@@ -665,9 +668,14 @@ function createEngine(){
      when it gives or when it gets the word, so the fewer of them there are the
      more often each one moves and the longer the board has to be. Four players
      in pairs are two racers, and two racers on the sixteen-row board meant for
-     five crossed it in nine rounds. */
+     five crossed it in nine rounds.
+
+     The row that came off when Gamble was cut to a point went back on when it
+     went to two: a square paying 3.1 moves people, and without the row the
+     median game lost a round. Both lengths pass every check — this is the one
+     that keeps the board the length it was asked to be. */
   function baseRowsForN(n){
-    return n <= 2 ? 19 : n === 3 ? 16 : n <= 5 ? 15 : n === 6 ? 13 : 11;
+    return n <= 2 ? 20 : n === 3 ? 17 : n <= 5 ? 16 : n === 6 ? 14 : 12;
   }
   /* Two dials shorten the board — the mode and the map — and they used to
      subtract at once: Quick on Sprint came to nine rows, which is three good
@@ -890,7 +898,12 @@ function createEngine(){
   function newRound(){
     const giver = S.players[S.giverIdx % S.players.length].id;
     const mod = S.forceBlind ? "B" : modOf(unitOf(giver));
-    const words = [2,3,4,5].map(v=>{
+    /* A Gamble deals from the top of the bank. Every other round hands the
+       giver one word from each tier, so there is always a cheap one to hide
+       behind; on this square there is not. Half the risk is here and the other
+       half is the clock, and between them they are what the two extra points
+       are paid for. */
+    const words = (mod === "G" ? [4,4,5,5] : [2,3,4,5]).map(v=>{
       const bank = W[v];
       const fresh = bank.filter(x=>S.used.indexOf(v+"|"+x)<0);
       const pool = fresh.length ? fresh : bank;
@@ -916,7 +929,7 @@ function createEngine(){
             shot: (mod==="B"?null:shot), shotPublic: (mod==="B"?false:shotPublic),
             shotFixed: (mod==="B"?false:shotFixed), only:null, mod,
             pick2:null, found:[], linkKey:null, linkPool:null, shown:null,
-            total: (mod==="F") ? modeTimer.fast : modeTimer.normal,
+            total: (mod==="F"||mod==="G") ? modeTimer.fast : modeTimer.normal,
             acc:0, startedAt:null, lockedOut:[], solvedBy:null, solveMs:null,
             judging:null, doubles:[], insight:false, veto:false, mimeCard:false, swapped:false };
     if(mod === "L") dealLink();
@@ -1041,10 +1054,12 @@ function createEngine(){
         if(R.shot && R.shot === R.solvedBy) bump(gu.id, shotBonus(R), t("w_shot", shotBonus(R)));
       }
     } else if(R.mod === "G"){
-      /* Gamble raises everybody's stake but the giver's: the word pays a point
-         more to whoever gets it and a wrong shout costs two, while the giver had
-         nothing of their own on the table. A round nobody gets costs them one,
-         which is the whole of why the square is a bet and not a free upgrade. */
+      /* Gamble raises everybody's stake but the giver's: the word pays two
+         points more to whoever gets it and a wrong shout costs two, while the
+         giver had nothing of their own on the table. A round nobody gets costs
+         them one, and on this square nearly a third of them do — the short
+         clock and the dear word see to that. It is the whole of why this is a
+         bet and not a free upgrade, and the reason two points are affordable. */
       bump(gu.id, -1, t("w_none_x2"));
     } else {
       bump(gu.id, 0, t("w_none"));

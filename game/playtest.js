@@ -42,7 +42,12 @@ const MODEL = {
      1 up to 4 — the bank's four tiers, priced a notch below their tier. */
   solveByValue: { 1:0.94, 2:0.87, 3:0.75, 4:0.62 },
   /* ...nudged by the square the giver was standing on */
-  solveByMod: { S:1, F:0.90, O:0.84, M:0.80, G:1, T:1, U:0.95, W:0.88, B:0.78, L:0.82 },
+    /* Gamble takes Fast's number because it now runs Fast's clock: this is the
+     one figure here that is assumed rather than watched, and it is the same
+     assumption the sweep already makes about a short clock. Its other half of
+     difficulty — dealing only dear words — needs no constant, because
+     solveByValue prices that on its own. */
+  solveByMod: { S:1, F:0.90, O:0.84, M:0.80, G:0.90, T:1, U:0.95, W:0.88, B:0.78, L:0.82 },
   /* ...and by how much help the giver asked for */
   solveByChallenge: { topic:1.12, open:1, cold:0.95 },
   /* more heads guessing, more chance one of them lands it */

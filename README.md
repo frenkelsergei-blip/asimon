@@ -62,12 +62,12 @@ the reveal), and the version surface.
 npm run playtest
 ```
 
-A table of bots plays 8,800 whole games — every mode, every board, three to
-eight players, solo and in pairs — through `game/play.js`, sending the same
+A table of bots plays 13,600 whole games — every mode, every board, three to
+eight phones, solo, in pairs and in groups — through `game/play.js`, sending the same
 actions a phone sends. It prints an audit: how long a sitting runs, which
 squares and cards a table actually meets, whether the finishes are close, how
 often somebody sits a round out with nothing to do, and a verdict on each of
-twenty-seven checks with what to change when one fails.
+twenty-nine checks with what to change when one fails.
 
 Every threshold is a claim about what a good sitting looks like, and they are
 gathered in `CHECKS` near the foot of `game/playtest.js` — arguing with the

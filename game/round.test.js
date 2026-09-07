@@ -437,9 +437,16 @@ function linkRound(n){
     play.applyAction(r, P(r, g), { type:"pick", i:3 }, CTX);
     if(!R.shotFixed) play.applyAction(r, P(r, g), { type:"aim", target:other.id }, CTX);
     /* the word really is worth two more */
-    ok(e.wordValue(R, R.words[3]) === R.words[3].value + 1,
+    ok(e.wordValue(R, R.words[3]) === R.words[3].value + 2,
        "a Gamble round's word was worth " + e.wordValue(R, R.words[3]) +
        " against a plain " + R.words[3].value);
+    /* and the two things it is paid for: no cheap word, and half the clock */
+    ok(R.words.every(w => w.value >= 3),
+       "a Gamble dealt a word worth " + Math.min(...R.words.map(w => w.value)) +
+       " — there is meant to be nothing cheap to hide behind");
+    ok(R.total === e.MODES[e.S.modeId].timer.fast,
+       "a Gamble ran " + R.total + "s, not the short clock's " +
+       e.MODES[e.S.modeId].timer.fast + "s");
     play.applyAction(r, P(r, g), { type:"ready" }, CTX);
 
     /* nobody gets it, and the giver pays for having stood there */
