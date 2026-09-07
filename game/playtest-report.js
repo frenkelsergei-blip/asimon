@@ -287,6 +287,15 @@ function render(a, opts){
 '</div></section>' +
 
 /* the round */
+'<section><h2>Each kind of round, and how it plays</h2><div class="panel">' +
+  table(["round", "share", "dealt", "landed", "paid the giver", "clock spent"],
+    (a.rounds || []).map(r => [esc(r.name), n1(r.share) + "%", thou(r.dealt),
+      n1(r.landed) + "%", n1(r.pay), n1(r.secs) + "s"])) +
+  '<p class="small">Landed is the giver being paid at all &mdash; the round arriving ' +
+  'somewhere rather than dying. A kind of round that never lands is one the table ' +
+  'learns to walk around.</p>' +
+'</div></section>' +
+
 '<section><h2>The round</h2>' +
 '<div class="grid2">' +
   '<div class="panel"><h3>Where a solve landed on the clock</h3>' + bandBar(a.round.bands) + '</div>' +

@@ -811,8 +811,9 @@ checkMin("The round", "the rarest square is still met", rarestMod.v,
 
 /* ---------- 7. what a round moves ---------- */
 head("each kind of round, and how it plays");
+const BY_MOD = {};
 {
-  const bm = {};
+  const bm = BY_MOD;
   runs.forEach(g => Object.keys(g.byMod).forEach(k => {
     const a = bm[k] = bm[k] || { dealt:0, landed:0, pay:0, secs:0 };
     ["dealt","landed","pay","secs"].forEach(f => a[f] += g.byMod[k][f]);
@@ -1038,6 +1039,13 @@ const AUDIT = {
   },
   modKeys: ALL_MODS,
   modNames: ALL_MODS.map(k => MOD_NAME[k]),
+  rounds: ALL_MODS.filter(k => BY_MOD[k]).map(k => {
+    const b = BY_MOD[k];
+    return { name:MOD_NAME[k], share:shareOf(modsAll, k), dealt:b.dealt,
+             landed:100 * b.landed / Math.max(1, b.dealt),
+             pay:b.pay / Math.max(1, b.dealt),
+             secs:b.secs / Math.max(1, b.dealt) };
+  }),
   squaresByMap: MAPS.map(m => {
     const a = runs.filter(g => g.cfg.map === m);
     if(!a.length) return null;
