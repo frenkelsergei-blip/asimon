@@ -1,0 +1,13 @@
+{
+  "name": "last-second",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Last Second — a party game played across phones on one Wi-Fi. No dependencies.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "build:engine": "node game/build-engine.js",
+    "test": "node game/engine.test.js && node game/cards.test.js && node game/stall.test.js && node game/server.test.js && node game/reconnect.test.js"
+  },
+  "engines": { "node": ">=18" }
+}

@@ -1,0 +1,6 @@
+node_modules
+.DS_Store
+*.log
+
+# the seeded design canvas is 2.5MB of editor payload — not worth versioning
+design/pick-your-face.html

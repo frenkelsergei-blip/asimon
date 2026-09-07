@@ -1,0 +1,13 @@
+{
+  "artboards": [
+    { "file": "Main.dc.html",        "x": 0,    "y": 0, "w": 390, "h": 844, "title": "A · Creatures" },
+    { "file": "Monogram.dc.html",    "x": 490,  "y": 0, "w": 390, "h": 844, "title": "B · Letter and colour" },
+    { "file": "FaceBuilder.dc.html", "x": 980,  "y": 0, "w": 390, "h": 844, "title": "C · Build a face" },
+    { "file": "InPlace.dc.html",     "x": 1470, "y": 0, "w": 390, "h": 844, "title": "Where it shows up" }
+  ],
+  "annotations": [
+    { "id": "brief", "x": 0, "y": -150, "w": 560,
+      "text": "Pick-your-face, for the join screen.\nThree systems, then one board showing the same avatar at every size the game actually uses — 34px score rows, 26px standings, 23px board tokens. That last board is what should decide it." }
+  ],
+  "launch": { "view": "canvas" }
+}

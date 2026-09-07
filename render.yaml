@@ -1,0 +1,13 @@
+# Rooms live in this process's memory, so this must stay a single instance.
+# The free plan is one instance by definition, which is exactly what we want.
+services:
+  - type: web
+    name: last-second
+    runtime: docker
+    plan: free
+    region: frankfurt          # closest of Render's regions to Israel
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /healthz
+    envVars:
+      - key: NODE_ENV
+        value: production

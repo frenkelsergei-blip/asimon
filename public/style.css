@@ -1,0 +1,340 @@
+/* Last Second — the same Daylight palette and Ledger layout as the
+   pass-and-play build, so the two feel like one game. */
+:root{
+  color-scheme:light;
+  --paper:#FFFCF6; --surface:#FFFFFF; --sunk:#F4F2FA; --sunk2:#F1EFF9;
+  --ink:#17161C; --second:#46445A; --muted:#6B6A78; --faint:#A3A1B0; --zero:#B4B2C2;
+  --rule:#E7E4F0; --hair:#F1EFF9; --on-ink:#FFFFFF;
+  --accent:#2C6BFF; --accent-deep:#1B4FD1; --accent-soft:#EAF0FF; --accent-ink:#1B4FD1;
+  --good:#12B886;   --good-deep:#0D8F69;   --good-soft:#E6F7F1;   --good-ink:#0D8F69;
+  --blind:#FFB020;  --blind-deep:#D18A08;  --blind-soft:#FFF3DB;  --blind-ink:#B77800;
+  --guilty:#FF5A3D; --guilty-deep:#D8351C; --guilty-soft:#FFEDE9; --guilty-ink:#D8351C;
+  --violet:#7A5AF8;
+  --tone:var(--accent); --tone-soft:var(--accent-soft); --tone-ink:var(--accent-ink); --wash:.12;
+  --display:"Suez One",Georgia,serif;
+  --body:"Assistant",system-ui,"Segoe UI",Arial,sans-serif;
+  --shadow:0 1px 2px rgba(23,22,28,.05), 0 8px 24px -14px rgba(23,22,28,.35);
+}
+:root[data-tone="secret"]{ --tone:var(--blind); --tone-soft:var(--blind-soft); --tone-ink:var(--blind-ink) }
+:root[data-tone="scored"]{ --tone:var(--good);  --tone-soft:var(--good-soft);  --tone-ink:var(--good-ink) }
+:root[data-tone="burned"]{ --tone:var(--guilty); --tone-soft:var(--guilty-soft); --tone-ink:var(--guilty-ink) }
+
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{background:var(--paper)}
+body{margin:0;color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.45;
+  -webkit-font-smoothing:antialiased}
+#app{max-width:430px;margin:0 auto;min-height:100dvh;display:flex;flex-direction:column;gap:18px;
+  padding:max(20px,env(safe-area-inset-top)) 16px calc(26px + env(safe-area-inset-bottom));
+  background-color:var(--paper);
+  background-image:linear-gradient(180deg,color-mix(in srgb,var(--tone) calc(var(--wash)*100%),transparent),transparent);
+  background-repeat:no-repeat;background-size:100% 300px;transition:background-color .3s ease}
+@media (min-width:600px){
+  html,body{background:#F0ECE2}
+  body{padding:26px 16px 46px}
+  #app{max-width:412px;min-height:min(760px,calc(100dvh - 72px));border-radius:20px;padding:26px 20px 30px;
+    box-shadow:0 1px 2px rgba(23,22,28,.06),0 40px 80px -44px rgba(23,22,28,.45)}
+}
+@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+#app.enter{animation:rise .18s cubic-bezier(.22,.7,.3,1)}
+@media(prefers-reduced-motion:reduce){#app.enter{animation:none}*{transition:none!important}}
+
+h1{font-family:var(--display);font-weight:400;font-size:clamp(34px,10vw,44px);line-height:1.05;margin:0}
+h2{font-size:23px;font-weight:800;margin:0;letter-spacing:-.015em;line-height:1.2}
+h3{font-size:17px;font-weight:800;margin:0}
+p{margin:0}
+.kicker{font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);
+  margin:0;display:flex;align-items:center;gap:10px}
+.kicker::after{content:"";flex:1;height:1px;background:var(--rule)}
+.topbar .kicker::after,.hero .kicker::after,.center .kicker::after{display:none}
+.sub{color:var(--muted);font-size:14.5px}
+.note{font-size:13px;color:var(--muted);line-height:1.5}
+.num{font-variant-numeric:tabular-nums;direction:ltr;unicode-bidi:isolate}
+.stack{display:flex;flex-direction:column;gap:12px}
+.grow{flex:1}
+.center{display:flex;flex-direction:column;align-items:center;text-align:center;gap:12px;justify-content:center}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:12px}
+
+button{font-family:var(--body);font-size:16px;font-weight:800;border:0;border-radius:13px;cursor:pointer;
+  background:var(--accent);color:#fff;padding:16px;width:100%;box-shadow:var(--shadow);
+  transition:transform .12s ease,filter .15s ease}
+button:active{transform:translateY(1px)}
+button:disabled{background:var(--sunk);color:var(--faint);box-shadow:none;cursor:not-allowed}
+button.ghost{background:transparent;color:var(--second);border:1px solid var(--rule);box-shadow:none;font-weight:700;font-size:15px}
+button.quiet{background:transparent;color:var(--muted);box-shadow:none;font-weight:700;font-size:14.5px;padding:12px}
+button.good{background:var(--good)}
+button.red{background:var(--guilty)}
+.btnrow{display:flex;gap:10px}
+.btnrow button{flex:1;width:auto}
+input{font-family:var(--body);font-size:17px;font-weight:700;padding:15px;width:100%;border-radius:13px;
+  border:1px solid var(--rule);background:var(--surface);color:var(--ink)}
+input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+input::placeholder{color:var(--faint);font-weight:600}
+input.code{font-family:var(--display);font-weight:400;font-size:34px;text-align:center;letter-spacing:.18em;
+  text-transform:uppercase;direction:ltr;padding:14px}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+
+.av{width:34px;height:34px;flex:0 0 34px;border-radius:50%;display:grid;place-items:center;
+  font-size:11px;font-weight:800;letter-spacing:.04em;color:#fff;direction:ltr}
+.av.sm{width:26px;height:26px;flex:0 0 26px;font-size:9.5px}
+
+/* receipts: the room code, the revealed word, the secret */
+.hero{background:var(--ink);color:#fff;border-radius:18px 18px 4px 4px;padding:22px}
+.hero.good{background:var(--good)}
+.hero.secret{background:var(--blind);color:#221700}
+.hero.none{background:var(--sunk);color:var(--ink)}
+.hero .kicker{color:rgba(255,255,255,.7);letter-spacing:.14em}
+.hero.secret .kicker{color:rgba(34,23,0,.62)}
+.hero.none .kicker{color:var(--muted)}
+.perf{height:9px;background:radial-gradient(circle at 5px 0,transparent 3.6px,var(--ink) 4.1px) 0 0/10px 10px repeat-x}
+.perf.good{background-image:radial-gradient(circle at 5px 0,transparent 3.6px,var(--good) 4.1px)}
+.perf.secret{background-image:radial-gradient(circle at 5px 0,transparent 3.6px,var(--blind) 4.1px)}
+.perf.none{background-image:radial-gradient(circle at 5px 0,transparent 3.6px,var(--sunk) 4.1px)}
+.bigword{font-family:var(--display);font-weight:400;font-size:clamp(32px,10vw,44px);line-height:1.06;margin-top:8px}
+.herorow{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:16px;padding-top:14px;
+  border-top:1px dashed rgba(255,255,255,.38)}
+.hero.none .herorow{border-top-color:var(--rule)}
+.herorow .hw{font-size:16px;font-weight:800;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  display:flex;align-items:center;gap:9px}
+.herorow .ht{font-size:15px;font-weight:800;background:rgba(255,255,255,.18);padding:5px 11px;border-radius:8px;
+  font-variant-numeric:tabular-nums;direction:ltr;unicode-bidi:isolate}
+.hero.secret .herorow .ht{background:rgba(34,23,0,.12)}
+.hero.none .herorow .ht{background:var(--surface);color:var(--muted)}
+.heroav{background:#FFFFFF;color:var(--good-ink)}
+.hero.secret .heroav{color:var(--blind-ink)}
+.hero.none .heroav{color:var(--muted)}
+.roomcode{font-family:var(--display);font-weight:400;font-size:40px;line-height:1;letter-spacing:.14em;direction:ltr}
+
+.panel{background:var(--surface);border:1px solid var(--rule);border-radius:16px;padding:16px;
+  display:flex;flex-direction:column;gap:10px}
+.plist,.scores{display:flex;flex-direction:column}
+.prow,.resrow{display:grid;grid-template-columns:34px 1fr auto;align-items:center;column-gap:12px;
+  padding:13px 2px;border-bottom:1px solid var(--hair)}
+.prow:last-child,.resrow:last-child{border-bottom:0}
+.pname{font-size:16px;font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.resrow .who{min-width:0}
+.resrow .nm{font-size:16px;font-weight:800}
+.resrow .dt{font-size:12.5px;color:var(--muted);display:block;margin-top:2px}
+.resrow .pt{font-size:26px;font-weight:800;color:var(--good-ink);font-variant-numeric:tabular-nums;direction:ltr}
+.resrow .pt.zero{color:var(--zero);font-weight:600;font-size:20px}
+.resrow .pt.neg{color:var(--guilty-ink)}
+.resrow.quiet .nm{font-weight:700;color:var(--muted)}
+.resrow.quiet .av{opacity:.55}
+.tag,.role{font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;margin-inline-start:7px;
+  vertical-align:1px;display:inline-block}
+.tag.host,.role.gav{background:var(--blind-soft);color:var(--blind-ink)}
+.tag.you{background:var(--accent-soft);color:var(--accent-ink)}
+.role.got{background:var(--good-soft);color:var(--good-ink)}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--good)}
+.dot.off{background:var(--rule)}
+
+.langsw{display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:4px;border-radius:12px;background:var(--surface);border:1px solid var(--rule)}
+.langsw button{width:auto;border-radius:9px;background:transparent;color:var(--muted);font-weight:700;font-size:14px;padding:11px 8px;box-shadow:none}
+.langsw button.on{background:var(--accent);color:#fff}
+.err{background:var(--guilty-soft);color:var(--guilty-ink);border-radius:10px;padding:11px 14px;font-size:14px;font-weight:700}
+.link{background:var(--sunk);border-radius:10px;padding:11px 14px;font-size:13px;color:var(--muted);
+  word-break:break-all;direction:ltr;text-align:center}
+
+/* the clock */
+.clockblock{background:var(--surface);border:1px solid var(--rule);border-radius:16px;padding:20px 18px 16px;
+  display:flex;flex-direction:column;gap:13px}
+.bigclock{font-size:clamp(60px,18vw,72px);font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.03em;
+  line-height:.95;text-align:center;color:var(--accent);direction:ltr}
+.bigclock.warn{color:var(--guilty)}
+.bigclock.done{color:var(--faint)}
+.rail{height:8px;border-radius:99px;background:var(--sunk);overflow:hidden}
+.rail i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--accent),var(--violet));
+  transition:width .25s linear}
+.rail.warn i{background:var(--guilty)}
+
+/* the buzzer — the one control that has to be unmissable */
+.buzz{height:min(46vh,260px);border-radius:24px;font-size:30px;font-weight:800;background:var(--guilty);
+  box-shadow:0 6px 0 var(--guilty-deep);display:grid;place-items:center;line-height:1.1;padding:16px}
+.buzz:active{transform:translateY(4px);box-shadow:0 2px 0 var(--guilty-deep)}
+.buzz:disabled{background:var(--sunk);color:var(--faint);box-shadow:none}
+.buzz small{display:block;font-size:14px;font-weight:700;opacity:.85;margin-top:6px}
+
+/* choices */
+.cardgrid{display:flex;flex-direction:column;gap:9px}
+.gcard,.sus,.wordcard,.topic{background:var(--surface);border:1px solid var(--rule);border-radius:13px;
+  width:100%;text-align:start;color:var(--ink);cursor:pointer;box-shadow:none;
+  transition:background .12s ease,border-color .12s ease,transform .12s ease}
+.gcard:active,.sus:active,.wordcard:active,.topic:active{transform:translateY(1px)}
+.gcard{padding:15px;display:flex;flex-direction:column;gap:4px}
+.gcard .cn{font-size:17px;font-weight:800}
+.gcard .cd{font-size:13.5px;line-height:1.45;color:var(--muted)}
+.gcard .cw{font-size:11px;letter-spacing:.06em;font-weight:800;color:var(--tone-ink)}
+.topicgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.topic{padding:13px 10px;min-height:58px;display:grid;place-items:center;text-align:center;
+  font-size:14.5px;font-weight:800;line-height:1.2}
+.wordcard{padding:0 16px;height:66px;display:flex;align-items:center;justify-content:space-between;gap:14px}
+.wordcard .wt{font-size:20px;font-weight:800;line-height:1.15}
+.wordcard .wv{width:30px;height:30px;flex:0 0 30px;border-radius:50%;display:grid;place-items:center;
+  font-size:14px;font-weight:800;font-variant-numeric:tabular-nums;direction:ltr}
+.wordcard.on{background:var(--blind);border-color:var(--blind-deep)}
+.wordcard.on .wt{color:#221700}
+.wordcard.on .wv{background:#221700!important;color:var(--blind)!important}
+.suslist{display:flex;flex-direction:column;gap:8px}
+.sus{display:flex;align-items:center;gap:12px;padding:13px 14px;font-size:17px;font-weight:800}
+.sus .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sus .dotpick{width:11px;height:11px;border-radius:50%;background:var(--rule);flex:0 0 11px}
+.sus.on{background:var(--accent);border-color:var(--accent-deep);color:#fff}
+.sus.on .dotpick{background:#fff}
+.sus.on .av{background:#fff!important;color:var(--accent)}
+
+/* notices */
+.sentence,.mod{background:var(--surface);border:1px solid var(--rule);border-radius:10px;padding:13px 15px;
+  display:flex;flex-direction:column;gap:3px;border-inline-start:3px solid var(--tone)}
+.mod{border-inline-start-color:var(--guilty)}
+.sentence .sl{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--tone-ink)}
+.mod .sl{color:var(--guilty-ink)}
+.sentence .sw{font-size:20px;font-weight:800;line-height:1.2}
+.sentence .sr{font-size:13px;line-height:1.5;color:var(--muted)}
+
+/* segmented rows */
+.payoff,.band{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;padding:4px;background:var(--surface);
+  border:1px solid var(--rule);border-radius:12px}
+.payoff div,.band div{border-radius:9px;padding:10px 6px;text-align:center;display:flex;flex-direction:column;
+  gap:3px;justify-content:center;color:var(--muted)}
+.payoff b{font-size:13px;font-weight:800;line-height:1.2}
+.payoff span{font-size:11px;font-weight:600;line-height:1.3}
+.payoff .best{background:var(--good-soft);color:var(--good-ink)}
+.payoff .meh{background:var(--sunk)}
+.payoff .none{background:var(--guilty-soft);color:var(--guilty-ink)}
+.band div{font-size:12.5px;font-weight:700;line-height:1.25}
+.band .hit{color:#fff}
+.band .hit.great{background:var(--good)}
+.band .hit.ok{background:var(--accent)}
+.band .hit.bad{background:var(--guilty)}
+
+/* the board */
+.boardwrap{background:var(--surface);border:1px solid var(--rule);border-radius:16px;padding:12px 8px 8px}
+.board{width:100%;display:block}
+.track{display:flex;flex-direction:column;gap:10px}
+.trow{display:grid;grid-template-columns:26px 1fr auto;align-items:center;column-gap:10px}
+.tname{font-size:13.5px;font-weight:700;display:flex;align-items:baseline;gap:7px;min-width:0}
+.tname .tn{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.tbar{height:8px;border-radius:99px;background:var(--hair);position:relative;overflow:hidden;margin-top:4px}
+.tfill,.tghost{position:absolute;top:0;bottom:0;inset-inline-start:0;border-radius:99px;transition:width .4s ease}
+.tghost{opacity:.3}
+.tnum{font-size:14px;font-weight:800;text-align:end;font-variant-numeric:tabular-nums;direction:ltr}
+.stepchip{font-size:11.5px;font-weight:700;color:var(--good-ink);flex:none;font-variant-numeric:tabular-nums;direction:ltr}
+.qbar{display:flex;gap:6px;flex-wrap:wrap}
+.qchip{display:inline-flex;align-items:center;gap:7px;padding:4px 11px 4px 4px;border-radius:999px;
+  background:var(--sunk);font-size:12.5px;font-weight:700;color:var(--muted)}
+:root[dir="rtl"] .qchip{padding:4px 4px 4px 11px}
+.qchip.now{background:var(--accent);color:#fff}
+.qchip.done{opacity:.45}
+.qchip i{font-style:normal;font-size:11px;font-weight:800;font-variant-numeric:tabular-nums;direction:ltr}
+
+/* ============================================================
+   Drawn things and motion. Every animation below is switched off
+   wholesale by the prefers-reduced-motion rule further up.
+   ============================================================ */
+
+/* ---- card faces ---- */
+.ctile{width:46px;height:46px;flex:0 0 46px;border-radius:14px;display:grid;place-items:center}
+.ctile.sm{width:34px;height:34px;flex:0 0 34px;border-radius:11px}
+.ctile.t-accent{background:var(--accent-soft);color:var(--accent)}
+.ctile.t-good  {background:var(--good-soft);color:var(--good-ink)}
+.ctile.t-blind {background:var(--blind-soft);color:var(--blind-ink)}
+.ctile.t-guilty{background:var(--guilty-soft);color:var(--guilty)}
+.ctile.t-violet{background:#F1EDFE;color:var(--violet)}
+.ctile.t-ink   {background:var(--sunk);color:var(--ink)}
+.gcard.card{flex-direction:row;align-items:center;gap:13px}
+.gcard.card .ctext{min-width:0;display:flex;flex-direction:column;gap:3px}
+
+/* ---- the clock, as a ring ---- */
+.ring{position:relative;width:180px;height:180px;margin:0 auto;display:grid;place-items:center}
+.ring svg{position:absolute;inset:0;width:100%;height:100%;transform:rotate(-90deg)}
+.ring circle{fill:none;stroke-width:11;stroke-linecap:round}
+.ring .ring-bg{stroke:var(--sunk)}
+.ring .ring-fg{stroke:var(--accent);transition:stroke-dashoffset .28s linear,stroke .3s ease}
+.ring.warn .ring-fg{stroke:var(--guilty)}
+.ring .bigclock{position:relative;font-size:46px}
+.ring.warn .bigclock{animation:tick 1s ease-in-out infinite}
+@keyframes tick{0%,100%{transform:scale(1)}50%{transform:scale(1.055)}}
+
+/* ---- the buzzer ---- */
+.buzz{position:relative;overflow:hidden}
+.buzz:not(:disabled){animation:breathe 2.6s ease-in-out infinite}
+.buzz.hot:not(:disabled){animation:breathe 1s ease-in-out infinite}
+@keyframes breathe{0%,100%{box-shadow:0 6px 0 var(--guilty-deep)}
+                   50%{box-shadow:0 6px 0 var(--guilty-deep),0 0 0 12px rgba(255,90,61,.14)}}
+
+/* ---- entrances ---- */
+@keyframes popin{from{opacity:0;transform:translateY(10px) scale(.97)}to{opacity:1;transform:none}}
+.stagger>*{animation:popin .28s cubic-bezier(.2,.8,.3,1) both}
+.stagger>*:nth-child(1){animation-delay:.02s}
+.stagger>*:nth-child(2){animation-delay:.07s}
+.stagger>*:nth-child(3){animation-delay:.12s}
+.stagger>*:nth-child(4){animation-delay:.17s}
+.stagger>*:nth-child(5){animation-delay:.22s}
+.stagger>*:nth-child(6){animation-delay:.27s}
+
+/* ---- the reveal ---- */
+@keyframes stamp{0%{opacity:0;transform:scale(1.25) rotate(-2deg)}
+                 60%{opacity:1;transform:scale(.97) rotate(.4deg)}
+                 100%{opacity:1;transform:none}}
+.bigword{animation:stamp .42s cubic-bezier(.2,.9,.3,1) both}
+@keyframes slidein{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.scores .resrow{animation:slidein .3s ease both}
+.scores .resrow:nth-child(2){animation-delay:.06s}
+.scores .resrow:nth-child(3){animation-delay:.12s}
+.scores .resrow:nth-child(4){animation-delay:.18s}
+.scores .resrow:nth-child(5){animation-delay:.24s}
+.band .hit{animation:popin .34s .2s cubic-bezier(.2,.9,.3,1) both}
+
+/* ---- someone played a card ---- */
+.banner{position:fixed;inset-inline:0;top:0;z-index:40;display:flex;justify-content:center;
+  padding:max(10px,env(safe-area-inset-top)) 12px 0;pointer-events:none}
+.banner .in{display:flex;align-items:center;gap:11px;background:var(--ink);color:#fff;
+  border-radius:14px;padding:11px 15px;box-shadow:0 12px 30px -12px rgba(23,22,28,.55);
+  animation:drop .3s cubic-bezier(.2,.9,.3,1) both;max-width:400px}
+.banner .bn{font-weight:800;font-size:15px}
+.banner .bw{font-size:12.5px;opacity:.75}
+.banner .ctile{width:34px;height:34px;flex:0 0 34px;border-radius:11px}
+@keyframes drop{from{opacity:0;transform:translateY(-16px)}to{opacity:1;transform:none}}
+.banner.out .in{animation:lift .3s ease both}
+@keyframes lift{to{opacity:0;transform:translateY(-16px)}}
+
+/* ---- the burst and the flash ---- */
+.burst{position:fixed;inset:0;z-index:50;pointer-events:none}
+.flash{position:fixed;inset:0;z-index:39;pointer-events:none;animation:washout .7s ease both}
+.flash.t-accent{background:radial-gradient(circle at 50% 30%,rgba(44,107,255,.30),transparent 62%)}
+.flash.t-good  {background:radial-gradient(circle at 50% 30%,rgba(18,184,134,.30),transparent 62%)}
+.flash.t-blind {background:radial-gradient(circle at 50% 30%,rgba(255,176,32,.32),transparent 62%)}
+.flash.t-guilty{background:radial-gradient(circle at 50% 30%,rgba(255,90,61,.30),transparent 62%)}
+.flash.t-violet{background:radial-gradient(circle at 50% 30%,rgba(122,90,248,.30),transparent 62%)}
+.flash.t-ink   {background:radial-gradient(circle at 50% 30%,rgba(23,22,28,.22),transparent 62%)}
+@keyframes washout{0%{opacity:0}25%{opacity:1}100%{opacity:0}}
+
+/* ---- the board: a token that has just arrived ---- */
+@keyframes land{0%{transform:scale(.4);opacity:0}60%{transform:scale(1.12)}100%{transform:scale(1);opacity:1}}
+.board .tok{transform-box:fill-box;transform-origin:center;animation:land .34s cubic-bezier(.2,.9,.3,1) both}
+
+@media(prefers-reduced-motion:reduce){
+  .buzz:not(:disabled),.ring.warn .bigclock,.stagger>*,.bigword,
+  .scores .resrow,.band .hit,.banner .in,.board .tok{animation:none!important}
+}
+
+/* ---- the fifteen faces ---- */
+.av.pic{background:transparent!important;overflow:hidden}
+.av.pic svg{display:block;width:100%;height:100%}
+.facegrid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.facetile{position:relative;aspect-ratio:1;border-radius:16px;background:var(--surface);
+  border:2px solid var(--rule);display:grid;place-items:center;cursor:pointer;padding:0;
+  box-shadow:none;transition:border-color .12s ease,background .12s ease,transform .12s ease}
+.facetile svg{width:76%;height:76%}
+.facetile:active{transform:translateY(1px)}
+.facetile.on{border-color:var(--accent);background:var(--accent-soft);
+  box-shadow:0 0 0 3px rgba(44,107,255,.16)}
+.facetile.off{opacity:.28;cursor:not-allowed}
+.facetile .tick{position:absolute;top:-7px;inset-inline-end:-7px;width:22px;height:22px;border-radius:50%;
+  background:var(--accent);display:grid;place-items:center}
+.facetile .tick svg{width:13px;height:13px}
+
+/* ---- waiting on somebody else's phone ---- */
+.waitrow{display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--rule);
+  border-radius:14px;padding:13px 15px}
+.waitrow .wt{font-size:17px;font-weight:800;display:block}
+.waitrow .ws{font-size:13px;color:var(--muted);display:block;margin-top:1px}

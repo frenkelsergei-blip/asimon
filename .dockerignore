@@ -1,0 +1,6 @@
+.git
+design
+node_modules
+*.md
+round-result.html
+game/*.test.js

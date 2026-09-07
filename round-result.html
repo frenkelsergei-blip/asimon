@@ -1,0 +1,343 @@
+<title>תוצאות הסבב</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700;800&family=Suez+One&display=swap">
+<style>
+:root{
+  --ink:#131826;
+  --ink-2:#242C42;
+  --paper:#EFF1F4;
+  --surface:#FFFFFF;
+  --line:#DBDEE6;
+  --line-soft:#E7E9EF;
+  --text:#161B28;
+  --dim:#616A80;
+  --gold:#A9701A;
+  --gold-fill:#F7E9C9;
+  --catch:#0D7A6E;
+  --catch-fill:#D6EFEB;
+  --zero:#98A0B2;
+  --on-ink:#F5F6F9;
+  --on-ink-dim:#96A0BA;
+  --focus:#E0A02D;
+  --shadow:0 1px 2px rgba(19,24,38,.05), 0 8px 24px -12px rgba(19,24,38,.18);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ink:#070A12;
+    --ink-2:#1A2133;
+    --paper:#0D111C;
+    --surface:#161C2B;
+    --line:#2A3245;
+    --line-soft:#212938;
+    --text:#ECEFF6;
+    --dim:#98A1B7;
+    --gold:#E9B44C;
+    --gold-fill:#3B2F15;
+    --catch:#4FCBB8;
+    --catch-fill:#0F332E;
+    --zero:#6D758A;
+    --on-ink:#F0F2F8;
+    --on-ink-dim:#8C97B2;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+  }
+}
+:root[data-theme="dark"]{
+  --ink:#070A12;
+  --ink-2:#1A2133;
+  --paper:#0D111C;
+  --surface:#161C2B;
+  --line:#2A3245;
+  --line-soft:#212938;
+  --text:#ECEFF6;
+  --dim:#98A1B7;
+  --gold:#E9B44C;
+  --gold-fill:#3B2F15;
+  --catch:#4FCBB8;
+  --catch-fill:#0F332E;
+  --zero:#6D758A;
+  --on-ink:#F0F2F8;
+  --on-ink-dim:#8C97B2;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+}
+*{box-sizing:border-box}
+body{
+  background:var(--paper);
+  color:var(--text);
+  font-family:"Assistant",system-ui,"Segoe UI",sans-serif;
+  font-size:16px;
+  line-height:1.45;
+  -webkit-font-smoothing:antialiased;
+  padding:20px 16px 32px;
+  display:flex;
+  justify-content:center;
+}
+.screen{width:100%;max-width:430px;display:flex;flex-direction:column;gap:22px}
+
+/* ---------- shared bits ---------- */
+.eyebrow{
+  font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--dim);display:flex;align-items:center;gap:10px;
+}
+.eyebrow::after{content:"";flex:1;height:1px;background:var(--line)}
+.num{font-variant-numeric:tabular-nums;direction:ltr;unicode-bidi:isolate}
+.avatar{
+  width:34px;height:34px;border-radius:50%;flex:none;
+  display:grid;place-items:center;
+  font-size:11px;font-weight:800;letter-spacing:.04em;color:#FFFFFF;
+}
+
+/* ---------- 1. the reveal ---------- */
+.reveal{
+  background:var(--ink);color:var(--on-ink);
+  border-radius:18px 18px 4px 4px;
+  padding:26px 22px 20px;
+  position:relative;
+}
+.reveal .label{
+  font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--on-ink-dim);
+}
+.word{
+  font-family:"Suez One",Georgia,serif;
+  font-size:clamp(38px,12vw,52px);
+  line-height:1.05;
+  margin:10px 0 0;
+  text-wrap:balance;
+}
+.reveal .meta{
+  margin-top:18px;padding-top:16px;
+  border-top:1px dashed rgba(150,160,186,.35);
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+}
+.solver{display:flex;align-items:center;gap:10px;font-weight:700;font-size:15px}
+.solver .avatar{width:30px;height:30px;font-size:10px}
+.clock{
+  font-weight:800;font-size:15px;letter-spacing:.02em;
+  background:rgba(255,255,255,.09);
+  padding:5px 11px;border-radius:8px;color:var(--on-ink);
+}
+.perf{
+  height:9px;
+  background:radial-gradient(circle at 5px 0, transparent 3.6px, var(--ink) 4.1px) 0 0/10px 10px repeat-x;
+  filter:drop-shadow(0 0 0 transparent);
+}
+
+/* ---------- 2. calibration ---------- */
+.segmented{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  background:var(--surface);border:1px solid var(--line);
+  border-radius:12px;padding:4px;gap:4px;
+}
+.seg{
+  appearance:none;border:0;background:transparent;cursor:pointer;
+  font-family:inherit;font-size:13px;font-weight:700;color:var(--dim);
+  padding:11px 4px;border-radius:9px;line-height:1.2;
+  transition:background .15s ease,color .15s ease;
+}
+.seg:hover{color:var(--text)}
+.seg[aria-pressed="true"]{background:var(--ink);color:var(--on-ink)}
+.seg:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+
+/* ---------- 3. score list ---------- */
+.scores{display:flex;flex-direction:column}
+.row{
+  display:grid;
+  grid-template-columns:34px 1fr auto;
+  align-items:center;column-gap:12px;
+  padding:14px 2px;
+  border-bottom:1px solid var(--line-soft);
+}
+.row:last-child{border-bottom:0}
+.who{min-width:0}
+.name-line{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.name{font-weight:800;font-size:16px}
+.pill{
+  font-size:11px;font-weight:700;letter-spacing:.03em;
+  padding:2px 8px;border-radius:999px;
+}
+.pill.give{background:var(--gold-fill);color:var(--gold)}
+.pill.catch{background:var(--catch-fill);color:var(--catch)}
+.why{font-size:12.5px;color:var(--dim);margin-top:2px}
+.delta{font-size:26px;font-weight:800;letter-spacing:-.02em}
+.delta.plus{color:var(--gold)}
+.delta.none{color:var(--zero);font-weight:600;font-size:20px}
+.row.quiet .name{font-weight:700;color:var(--dim)}
+.row.quiet .avatar{opacity:.55}
+
+/* ---------- 4. standings ---------- */
+.standings{display:flex;flex-direction:column;gap:10px}
+.bar-row{
+  display:grid;grid-template-columns:26px 1fr 34px;
+  align-items:center;column-gap:10px;
+}
+.bar-name{font-size:13.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar-row .avatar{width:26px;height:26px;font-size:9px}
+.track{height:8px;border-radius:99px;background:var(--line-soft);overflow:hidden}
+.fill{height:100%;border-radius:99px;background:var(--ink-2)}
+.fill.lead{background:var(--gold)}
+.total{font-size:14px;font-weight:800;text-align:end}
+.gain{font-size:11.5px;font-weight:700;color:var(--gold);margin-inline-start:6px}
+.bar-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:2px}
+
+/* ---------- 5. actions ---------- */
+.actions{display:flex;flex-direction:column;gap:10px;margin-top:2px}
+.btn{
+  font-family:inherit;font-size:16px;font-weight:800;
+  padding:16px;border-radius:13px;border:0;cursor:pointer;
+  transition:transform .12s ease,filter .15s ease;
+}
+.btn:active{transform:translateY(1px)}
+.btn:focus-visible{outline:2px solid var(--focus);outline-offset:3px}
+.btn-primary{background:var(--ink);color:var(--on-ink);box-shadow:var(--shadow)}
+.btn-ghost{background:transparent;color:var(--dim);font-weight:700;font-size:14.5px;padding:10px}
+.btn-ghost:hover{color:var(--text)}
+
+@media (prefers-reduced-motion:reduce){
+  *{transition:none !important}
+}
+</style>
+<div class="screen" dir="rtl">
+
+  <!-- 1. הרמז והמילה -->
+  <section>
+    <p class="eyebrow" style="margin:0 0 10px">סבב 2 · תוצאה</p>
+    <div class="reveal">
+      <span class="label">המילה הייתה</span>
+      <h1 class="word">טיילור סוויפט</h1>
+      <div class="meta">
+        <span class="solver">
+          <span class="avatar" style="background:#0D7A6E">א</span>
+          אילן קלט אותה
+        </span>
+        <span class="clock num">0:05</span>
+      </div>
+    </div>
+    <div class="perf" aria-hidden="true"></div>
+  </section>
+
+  <!-- 2. כיול הרמז -->
+  <section>
+    <p class="eyebrow" style="margin:0 0 10px">כמה הרמז היה מדויק?</p>
+    <div class="segmented" role="group" aria-label="דירוג הרמז">
+      <button class="seg" type="button" aria-pressed="false">ברור מדי</button>
+      <button class="seg" type="button" aria-pressed="true">כוונת בול</button>
+      <button class="seg" type="button" aria-pressed="false">כמעט פספסתם</button>
+    </div>
+  </section>
+
+  <!-- 3. ניקוד הסבב -->
+  <section>
+    <p class="eyebrow" style="margin:0 0 4px">ניקוד הסבב</p>
+    <div class="scores">
+
+      <div class="row">
+        <span class="avatar" style="background:#8A5A12">ס</span>
+        <div class="who">
+          <div class="name-line">
+            <span class="name">סבתא</span>
+            <span class="pill give">נותנת הרמז</span>
+          </div>
+          <div class="why">כיוון נכון <span class="num">+2</span> · נפתר מהר <span class="num">+1</span></div>
+        </div>
+        <span class="delta plus num">+3</span>
+      </div>
+
+      <div class="row">
+        <span class="avatar" style="background:#0D7A6E">א</span>
+        <div class="who">
+          <div class="name-line">
+            <span class="name">אילן</span>
+            <span class="pill catch">קלט</span>
+          </div>
+          <div class="why">ניחש את המילה <span class="num">+2</span></div>
+        </div>
+        <span class="delta plus num">+2</span>
+      </div>
+
+      <div class="row quiet">
+        <span class="avatar" style="background:#3B4E8C">ד</span>
+        <div class="who">
+          <div class="name-line"><span class="name">דנה</span></div>
+          <div class="why">לא ניחשה הפעם</div>
+        </div>
+        <span class="delta none num">0</span>
+      </div>
+
+      <div class="row quiet">
+        <span class="avatar" style="background:#8C3A5A">י</span>
+        <div class="who">
+          <div class="name-line"><span class="name">יוני</span></div>
+          <div class="why">לא ניחש הפעם</div>
+        </div>
+        <span class="delta none num">0</span>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- 4. הלוח -->
+  <section>
+    <div class="bar-head">
+      <p class="eyebrow" style="margin:0;flex:1">על הלוח · אחרי 2 סבבים</p>
+    </div>
+    <div class="standings">
+
+      <div class="bar-row">
+        <span class="avatar" style="background:#8A5A12">ס</span>
+        <div>
+          <div class="bar-name">סבתא <span class="gain num">+3</span></div>
+          <div class="track"><div class="fill lead" style="width:100%"></div></div>
+        </div>
+        <span class="total num">14</span>
+      </div>
+
+      <div class="bar-row">
+        <span class="avatar" style="background:#0D7A6E">א</span>
+        <div>
+          <div class="bar-name">אילן <span class="gain num">+2</span></div>
+          <div class="track"><div class="fill" style="width:79%"></div></div>
+        </div>
+        <span class="total num">11</span>
+      </div>
+
+      <div class="bar-row">
+        <span class="avatar" style="background:#3B4E8C">ד</span>
+        <div>
+          <div class="bar-name">דנה</div>
+          <div class="track"><div class="fill" style="width:57%"></div></div>
+        </div>
+        <span class="total num">8</span>
+      </div>
+
+      <div class="bar-row">
+        <span class="avatar" style="background:#8C3A5A">י</span>
+        <div>
+          <div class="bar-name">יוני</div>
+          <div class="track"><div class="fill" style="width:43%"></div></div>
+        </div>
+        <span class="total num">6</span>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- 5. פעולות -->
+  <div class="actions">
+    <button class="btn btn-primary" type="button">לזוז על הלוח</button>
+    <button class="btn btn-ghost" type="button">לסיים את המשחק</button>
+  </div>
+
+</div>
+
+<script>
+  document.querySelectorAll('.segmented').forEach(function (group) {
+    group.addEventListener('click', function (e) {
+      var btn = e.target.closest('.seg');
+      if (!btn) return;
+      group.querySelectorAll('.seg').forEach(function (b) {
+        b.setAttribute('aria-pressed', String(b === btn));
+      });
+    });
+  });
+</script>
