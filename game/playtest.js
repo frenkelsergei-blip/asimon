@@ -95,6 +95,7 @@ function playOne(cfg){
     unsolved: 0, lockouts: 0, swapDeadlock: 0, insightOnCold: 0,
     stopwatchPlays: 0, stopwatchLateBand: 0, wildHits: 0, giverPts: 0, giverRounds: 0,
     stepHist: {}, bigRound: 0, leaderRows: [], bands: {}, solved: 0, buzzes: 0,
+    seats: 0, seatRounds2: 0, unitCount: 0,
     words: [], repeats: 0,
     perUnit: {}, halfLeader: null, boardWinner: null, scoreWinner: null,
     scores: [], rowsNeeded: e.ROWS() + 1, minRounds: null
@@ -296,6 +297,12 @@ function playOne(cfg){
         scored[r.id] = r.pts > 0; g.perUnit[r.id].pts += r.pts;
         if(r.giver){ g.giverPts += r.pts; g.giverRounds++; }
       });
+      /* how many of the units at the table got anything out of the round. An
+         ordinary solved round pays two — whoever got it and whoever gave it.
+         Nobody getting it pays none. Blind pays everybody. */
+      g.seats += (S.result.rows || []).filter(r => r.pts > 0).length;
+      g.seatRounds2 += 1;
+      g.unitCount = S.units.length;
       /* what one round is worth in ground, which is what sets the length */
       Object.keys(S.steps).forEach(uid => {
         const n = S.steps[uid];
@@ -576,13 +583,15 @@ MODES.forEach(m => {
   const mods = merge(a, g => g.mods);
   line("  " + pad(m, 10) + "squares: " + share(mods).slice(0, 4).join("  "));
 });
+/* in minutes, not rounds: the clock is most of what separates the modes, and
+   minutes are what a table sitting down for the evening actually feels */
 const modeSpread = (function(){
-  const r = MODES.map(m => avg(runs.filter(g => g.cfg.gameMode === m), g => g.rounds)).filter(x => x > 0);
+  const r = MODES.map(m => avg(runs.filter(g => g.cfg.gameMode === m), g => g.minutes)).filter(x => x > 0);
   return r.length > 1 ? Math.max(...r) - Math.min(...r) : 0;
 })();
 if(new Set(runs.map(g => g.cfg.gameMode)).size > 1)
 checkMin("Modes", "quick and slow actually differ in length", modeSpread,
-      n1(modeSpread) + " rounds apart", 2.5, 1.5,
+      n1(modeSpread) + " minutes apart", 8, 5,
       "the four modes are meant to feel different — widen the timer or rowsDelta gap");
 
 /* ---------- 3. boards ---------- */
@@ -636,7 +645,7 @@ if(teamRuns.length){
   table(SLICE_COLS, [slice("every player", soloRuns), slice("in pairs", teamRuns)].filter(Boolean));
   const gap = Math.abs(avg(soloRuns, g => g.rounds) - avg(teamRuns, g => g.rounds));
   checkMax("Pairs", "pairs runs about as long as solo", gap, n1(gap) + " rounds apart", 2, 3.5,
-        "pairs halves the number of units on the board — check baseRowsForN for teams");
+        "the board is a race between units — check baseRowsForN at the unit counts pairs produces");
 }
 
 /* ---------- 6. the round ---------- */
@@ -732,6 +741,15 @@ head("fairness and drama");
 const closeGames = pct(runs, g => g.margin <= 2);
 const leadHolds = pct(runs.filter(g => g.halfLeader), g => g.halfLeader === g.boardWinner);
 const dryShare = 100 * sum(units, u => u.dry) / Math.max(1, TOT.seatRounds);
+/* A round pays two seats — whoever got the word and whoever gave it — so at a
+   table of U units, U−2 of them cannot score however well the game is tuned,
+   and a round nobody gets pays nobody at all. That floor is 75% at eight
+   players and no threshold can argue with it. What design can move is the
+   distance below it, which is what Blind rounds and Partners squares buy. */
+const floorDry = 100 * sum(runs, g => g.solved * Math.max(0, g.unitCount - 2) + g.unsolved * g.unitCount)
+                     / Math.max(1, sum(runs, g => g.rounds * g.unitCount));
+const relief = floorDry - dryShare;
+const seatsPerRound = sum(runs, g => g.seats) / Math.max(1, sum(runs, g => g.seatRounds2));
 const longDry = avg(units, u => u.maxDry);
 const giverGap = avg(runs, g => Math.max(...Object.values(g.perUnit).map(u => u.gave)) -
                                 Math.min(...Object.values(g.perUnit).map(u => u.gave)));
@@ -740,7 +758,10 @@ line("  final margin                       avg " + n1(avg(runs, g => g.margin)) 
      "   median " + n0(med(runs, g => g.margin)));
 line("  finished within two points         " + n1(closeGames) + "% of games");
 line("  the leader at round 4 went on to win " + n1(leadHolds) + "%");
+line("  seats a round actually pays        " + n1(seatsPerRound) + " of the units at the table");
 line("  rounds a player scored nothing     " + n1(dryShare) + "% of all seat-rounds");
+line("    of which unavoidable              " + n1(floorDry) + "%   (two seats a round, and none when nobody gets it)");
+line("    relieved by Blind and Partners    " + n1(relief) + " points below that floor");
 line("  longest scoreless run, per player  " + n1(longDry) + " rounds");
 line("  players who went 4+ rounds dry     " + n1(pct(units, u => u.maxDry >= 4)) + "%");
 line("  giver turns, most minus fewest     " + n1(giverGap));
@@ -749,8 +770,14 @@ checkMin("Drama", "games that finish within two points", closeGames, n1(closeGam
       22, 14, "a runaway is not a game — look at the size of the biggest rounds");
 check("Drama", "the halfway leader goes on to win", leadHolds, n1(leadHolds) + "%",
       [45, 75], [38, 82], "below is a coin toss, above is a procession");
-checkMax("Drama", "rounds a player sits out with nothing", dryShare, n1(dryShare) + "%",
-      60, 70, "with three players one of two guessers loses every race — consider paying the near-miss");
+/* Not the raw share: at eight players U−2 of the table cannot score whatever
+   the rules say, so a flat threshold would only be measuring the guest list. */
+checkMin("Drama", "dead rounds relieved below what the seats allow", relief,
+      n1(relief) + " points below the " + n1(floorDry) + "% floor", 1, 0,
+      "Blind pays the whole table and Partners pays two — a board with too few of either leaves everyone waiting");
+checkMax("Drama", "the longest a player waits without scoring", longDry,
+      n1(longDry) + " rounds", 5, 6,
+      "a run of nothing is what a player actually feels — more Partners and Blind squares shorten it");
 checkMax("Fairness", "giver turns, most minus fewest", giverGap, n1(giverGap) + " turns",
       1.5, 2.5, "the game ends mid-rotation; ending on a completed round would even it");
 checkMax("Fairness", "players finishing on nothing at all", zeroFinish, n1(zeroFinish) + "%",
@@ -817,5 +844,107 @@ line(bad.length
 line("Re-run after any change: npm run playtest   (--players 3, --gameMode quick, --map chaos, --json)");
 rule("─");
 
+/* ---------------- the same audit, as a page ----------------
+   Everything above is already computed; this only gathers it into one object
+   so game/playtest-report.js can lay it out. The folder is ignored by git —
+   the reports are a record of runs, not of the repo. */
+const sliceObj = (name, a) => {
+  if(!a.length) return null;
+  return { name, games:a.length, rounds:avg(a, g => g.rounds), min:avg(a, g => g.minutes),
+    med:med(a, g => g.minutes), p90:p90(a, g => g.minutes),
+    short:pct(a, g => g.rounds <= 4),
+    unsolved:100 * sum(a, g => g.unsolved) / Math.max(1, sum(a, g => g.rounds)),
+    margin:avg(a, g => g.margin), close:pct(a, g => g.margin <= 2) };
+};
+const sliceNote = (function(){
+  const only = [];
+  if(new Set(runs.map(g => g.cfg.players)).size === 1) only.push(runs[0].cfg.players + " players");
+  if(new Set(runs.map(g => g.cfg.gameMode)).size === 1) only.push(runs[0].cfg.gameMode);
+  if(new Set(runs.map(g => g.cfg.map)).size === 1) only.push(runs[0].cfg.map);
+  return only.length ? "a slice, not the whole sweep — " + only.join(" · ") : null;
+})();
+
+const AUDIT = {
+  meta: { seed:SEED, when:new Date().toISOString().slice(0, 16).replace("T", " "),
+          games:TOT.games, rounds:TOT.rounds, hours:TOT.hours, secs:n1(TOT.secs), slice:sliceNote },
+  sitting: {
+    rounds:{ avg:avg(runs, g => g.rounds), med:med(runs, g => g.rounds), p90:p90(runs, g => g.rounds),
+             min:Math.min(...runs.map(g => g.rounds)), max:Math.max(...runs.map(g => g.rounds)) },
+    minutes:{ avg:avg(runs, g => g.minutes), med:med(runs, g => g.minutes), p90:p90(runs, g => g.minutes),
+              min:Math.min(...runs.map(g => g.minutes)), max:Math.max(...runs.map(g => g.minutes)) },
+    shortPct:shortGames, longPct:longGames,
+    minPerRound:avg(runs, g => g.minutes) / Math.max(1, avg(runs, g => g.rounds))
+  },
+  slices: {
+    mode: MODES.map(m => sliceObj(m, runs.filter(g => g.cfg.gameMode === m))).filter(Boolean),
+    map:  MAPS.map(m => sliceObj(m, runs.filter(g => g.cfg.map === m))).filter(Boolean),
+    size: wantPlayers.map(n => sliceObj(n + " players", runs.filter(g => g.cfg.players === n))).filter(Boolean),
+    seat: [sliceObj("every player for themselves", soloRuns), sliceObj("in pairs", teamRuns)].filter(Boolean)
+  },
+  modKeys: ALL_MODS,
+  modNames: ALL_MODS.map(k => MOD_NAME[k]),
+  squaresByMap: MAPS.map(m => {
+    const a = runs.filter(g => g.cfg.map === m);
+    if(!a.length) return null;
+    const d = merge(a, g => g.mods), o = {};
+    ALL_MODS.forEach(k => o[k] = shareOf(d, k));
+    return { name:m, dist:o };
+  }).filter(Boolean),
+  round: {
+    rounds:TOT.rounds, solvedPct:100 * TOT.solved / Math.max(1, TOT.rounds), unsolvedPct,
+    buzzes:TOT.buzzes, wrongPct:100 * TOT.wrong / Math.max(1, TOT.buzzes), wrongPer,
+    bands:{ early:bandsAll.early || 0, mid:bandsAll.mid || 0, late:bandsAll.late || 0 },
+    challengeLine: share(merge(runs, g => g.challenges)).join("  ·  "),
+    giverPay: sum(runs, g => g.giverPts) / Math.max(1, sum(runs, g => g.giverRounds)),
+    squares: ALL_MODS.map(k => ({ k:MOD_NAME[k], v:shareOf(modsAll, k),
+      note: shareOf(modsAll, k) < 2 ? "barely ever met" : "" })).sort((x, y) => y.v - x.v)
+  },
+  ground: {
+    avg:stepAvg, max:Math.max(...runs.map(g => g.bigRound)),
+    hist: stepKeys.filter(k => k <= 9).map(k => ({ k, pct:100 * stepHist[k] / stepTot })),
+    boardMin:Math.min(...runs.map(g => g.rowsNeeded)), boardMax:Math.max(...runs.map(g => g.rowsNeeded)),
+    sharePct:100 * stepAvg / avg(runs, g => g.rowsNeeded)
+  },
+  cards: ALL_CARDS.map(k => {
+    const d = cardsDrawn[k] || 0, pl = cardsPlayed[k] || 0;
+    return { key:k, drawn:d, share:shareOf(cardsDrawn, k), played:pl, rate:d ? 100 * pl / d : 0,
+             note: d === 0 ? "never drawn" : (pl === 0 ? "never played" : "") };
+  }),
+  cardStats: { perGame:cardsPerGame, nonePct:noCardGames, somePct:someoneNoCard,
+               sourceLine: share(merge(runs, g => g.cardSource)).join("  ·  ") },
+  wild: { perGame:avg(runs, g => g.wildHits), metPct:wildMet,
+          kindLine: share(merge(runs, g => g.wilds)).join("  ·  ") },
+  drama: { marginAvg:avg(runs, g => g.margin), marginMed:med(runs, g => g.margin),
+           closePct:closeGames, leadHolds, dryPct:dryShare, longDry,
+           dry4Pct:pct(units, u => u.maxDry >= 4), giverGap, zeroPct:zeroFinish },
+  content: { distinct:avg(runs, g => g.words.length), repeats,
+             topicsSeen:ALL_TOPICS.length - unseenTopics.length, topicsAll:ALL_TOPICS.length,
+             unseen:unseenTopics },
+  rules: { swapStalls, insightPadded:sum(runs, g => g.insightOnCold), swLate, swPlays },
+  checks: CHECKS,
+  hard: [...new Set(hard)].slice(0, 20)
+};
+
+let wrote = null;
+if(!has("no-report")){
+  const fs = require("fs"), pathmod = require("path");
+  const report = require("./playtest-report");
+  const dir = arg("out", pathmod.join(__dirname, "..", "reports"));
+  fs.mkdirSync(dir, { recursive: true });
+  const stamp = new Date().toISOString().slice(0, 16).replace(/[-:]/g, "").replace("T", "-");
+  const tag = sliceNote ? "-" + sliceNote.split("— ")[1].replace(/[^a-z0-9]+/gi, "-") : "-sweep";
+  const base = stamp + tag;
+  fs.writeFileSync(pathmod.join(dir, base + ".html"),
+    report.render(AUDIT, { title: "Asimon playtest · " + AUDIT.meta.when }));
+  fs.writeFileSync(pathmod.join(dir, base + ".json"), JSON.stringify(AUDIT, null, 1));
+  const n = report.writeIndex(dir);
+  wrote = { file: pathmod.join(dir, base + ".html"), index: pathmod.join(dir, "index.html"), n };
+}
+
 console.log(R.join("\n"));
+if(wrote){
+  console.log("");
+  console.log("Report written · " + wrote.file);
+  console.log("All " + wrote.n + " reports · " + wrote.index);
+}
 process.exit(hard.length ? 1 : 0);

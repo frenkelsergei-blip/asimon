@@ -104,7 +104,10 @@ function createEngine(){
                reweighChance:0.35, modWeights:{ S:6, F:3, O:1, D:1, T:1, M:0, B:0 }, win:"first" },
    regular:  { id:"regular",   timer:{ normal:90,  fast:45 }, rowsDelta:0,
                reweighChance:0,    modWeights:null, win:"first" },
-   slow:     { id:"slow",      timer:{ normal:120, fast:60 }, rowsDelta:2,
+   /* Slow is mostly the long clock — two minutes a round is already a longer
+      evening. It carries one extra row rather than the four it used to, which
+      had run a quarter of those games past forty minutes. */
+   slow:     { id:"slow",      timer:{ normal:120, fast:60 }, rowsDelta:1,
                reweighChance:0.35, modWeights:{ S:6, F:1, O:1, D:1, T:1, M:0, B:0 }, win:"first" },
    challenge:{ id:"challenge", timer:{ normal:75,  fast:35 }, rowsDelta:0,
                reweighChance:0.5,  modWeights:{ S:1, F:1, O:3, M:3, B:3, D:2, T:1 }, win:"score", scoreTarget:20 }
@@ -464,25 +467,32 @@ function createEngine(){
    classic:{ id:"classic", themeId:"classic", rowsDelta:0,
      pattern:{ 0:["S","S","T","S","S","S"], 1:["S","F","S","O","S","F"],
                2:["O","D","S","T","D","S"], 3:["B","M","D","B","M","B"] },
-     cardRule:{ col:1, every:3 }, wildRule:{ col:3, every:7 } },
+     cardRule:{ col:1, every:3 }, wildRule:{ col:3, every:5 } },
    twist:{ id:"twist", themeId:"twist", rowsDelta:0,
      pattern:{ 0:["S","S","S","T","S","S"], 1:["F","S","O","S","F","T"],
                2:["S","D","T","D","S","O"], 3:["M","B","B","D","M","B"] },
-     cardRule:{ col:2, every:4 }, wildRule:{ col:0, every:7 } },
+     cardRule:{ col:2, every:4 }, wildRule:{ col:0, every:5 } },
    storm:{ id:"storm", themeId:"storm", rowsDelta:2,
      pattern:{ 0:["S","T","S","S","T","S"], 1:["F","O","F","D","O","F"],
                2:["D","B","T","B","D","B"], 3:["M","B","M","B","M","D"] },
-     cardRule:{ col:1, every:4 }, wildRule:{ col:2, every:6 } },
+     cardRule:{ col:1, every:4 }, wildRule:{ col:2, every:4 } },
    sprint:{ id:"sprint", themeId:"sprint", rowsDelta:-3,
      pattern:{ 0:["S","S","S","S","S","S"], 1:["S","F","S","F","S","T"],
                2:["F","S","D","S","F","O"], 3:["O","T","S","D","O","S"] },
-     cardRule:{ col:0, every:3 }, wildRule:{ col:3, every:6 } },
+     cardRule:{ col:0, every:3 }, wildRule:{ col:3, every:4 } },
    chaos:{ id:"chaos", themeId:"chaos", rowsDelta:0,
      pattern:{ 0:["S","T","D","S","T","S"], 1:["O","D","T","F","D","O"],
                2:["D","T","B","T","D","M"], 3:["B","M","B","M","B","D"] },
-     cardRule:{ col:3, every:3 }, wildRule:{ col:1, every:5 } }
+     cardRule:{ col:3, every:3 }, wildRule:{ col:1, every:4 } }
   };
-  function baseRowsForN(n){ return n <= 5 ? 16 : (n === 6 ? 14 : 12); }
+  /* How long the board is, by how many units are racing on it. A unit scores
+     when it gives or when it gets the word, so the fewer of them there are the
+     more often each one moves and the longer the board has to be. Four players
+     in pairs are two racers, and two racers on the sixteen-row board meant for
+     five crossed it in nine rounds. */
+  function baseRowsForN(n){
+    return n <= 2 ? 20 : n === 3 ? 17 : n <= 5 ? 16 : n === 6 ? 14 : 12;
+  }
   /* Two dials shorten the board — the mode and the map — and they used to
      subtract at once: Quick on Sprint came to nine rows, which is three good
      rounds, over before the table had met the board it was playing on. A
@@ -538,8 +548,10 @@ function createEngine(){
     const rule = (S && S.cardRule) || MAPS.classic.cardRule;
     return c === rule.col && r % rule.every === 0;
   }
-  /* the wildcard square: rarer than a card square, and always in a different
-     lane, so the two rules can never claim the same node */
+  /* The wildcard square: still rarer than a card square, and always in a
+     different lane so the two rules can never claim the same node. It used to
+     sit every six or seven rows, which put it on four boards out of five that
+     no table ever reached — a whole system nobody met. */
   function isWildNode(r,c){
     if(r <= 0 || r > ROWS()) return false;
     if(isCardNode(r,c)) return false;
