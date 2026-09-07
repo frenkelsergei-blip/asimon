@@ -1,0 +1,21 @@
+{
+  "artboards": [
+    { "file": "Main.dc.html",        "x": 0,    "y": 0,    "w": 390, "h": 844, "title": "A · One phone, several names" },
+    { "file": "Huddle.dc.html",      "x": 490,  "y": 0,    "w": 390, "h": 844, "title": "B · The huddle" },
+    { "file": "Meanwhile.dc.html",   "x": 980,  "y": 0,    "w": 390, "h": 844, "title": "C · Meanwhile, everyone else" },
+    { "file": "WhoSaidIt.dc.html",   "x": 1470, "y": 0,    "w": 390, "h": 844, "title": "D · Who said it" },
+    { "file": "Standings.dc.html",   "x": 1960, "y": 0,    "w": 390, "h": 844, "title": "E · Two scoreboards, one panel" },
+    { "file": "HuddleRules.dc.html", "x": 0,    "y": 1000, "w": 820, "h": 660, "title": "F · The huddle, ruled" },
+    { "file": "Bench.dc.html",       "x": 920,  "y": 1000, "w": 820, "h": 680, "title": "G · The bench, ruled" }
+  ],
+  "annotations": [
+    {
+      "id": "brief",
+      "x": 0,
+      "y": -210,
+      "w": 660,
+      "text": "Groups — one phone, three people.\nThe two mechanics that are actually new each get a screen and a rule sheet: the huddle (B, C, F) and the bench (B, G). Everything else is the game exactly as it already plays.\n\nTwo arguments the boards are making. The huddle runs on its own 45-second clock and never borrows from the round clock — the giver is scored on a fraction of that clock, so time spent dithering would pay them. And the buzz asks which person said it (D), which is the one addition that keeps aiming at a person alive, makes a wrong shout cost one head instead of three, and gives E its second layer for free.\n\nG is the one to check. If the cycle strip doesn't teach the bench rule at a glance, the rule is too complicated and should go back to plain round-robin."
+    }
+  ],
+  "launch": { "view": "canvas" }
+}

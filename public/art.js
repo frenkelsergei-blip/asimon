@@ -22,6 +22,18 @@ function coinSvg(css, milled){
       'transform="rotate(-30 50 50)"/></svg>';
 }
 
+/* the same token as a shape inside somebody else's 40x40 drawing */
+function coin(cx, cy, r, milled){
+  const k = r / 50;
+  return '<g transform="translate('+(cx - r)+','+(cy - r)+') scale('+k.toFixed(4)+')">'+
+    '<circle cx="50" cy="50" r="50" fill="'+COIN_RIM+'"/>'+
+    (milled ? '<circle cx="50" cy="50" r="47" fill="none" stroke="'+COIN_INK+'" stroke-width="6" '+
+              'stroke-dasharray="3 6.2285" stroke-linecap="butt" opacity=".85"/>' : '')+
+    '<circle cx="50" cy="50" r="'+(milled ? 42 : 43)+'" fill="'+COIN_FACE+'"/>'+
+    '<rect x="26" y="41" width="48" height="18" rx="9" fill="'+COIN_INK+'" '+
+      'transform="rotate(-30 50 50)"/></g>';
+}
+
 /* the token on its own, at a pixel size */
 function coinMark(px){
   return coinSvg("width:"+px+"px;height:"+px+"px;display:block", px >= 40);
@@ -38,30 +50,142 @@ function wordmark(lg){
 }
 
 /* ---------------- card faces ---------------- */
-const ICONS = {
-  stopwatch:'<circle cx="12" cy="13.5" r="7.5"/><path d="M12 9.5v4l2.5 2"/><path d="M9.5 2h5"/>'+
-            '<path d="M12 2v3"/><path d="M19.4 6.6L21 5"/>',
-  insight:  '<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
-  veto:     '<path d="M21 11.5a8.5 8.5 0 0 1-12 7.7L3 21l1.8-6A8.5 8.5 0 1 1 21 11.5z"/><path d="M8.5 8.5l7 7"/>',
-  mime:     '<path d="M4.5 14.5c2.3 1.8 5 2.7 7.5 2.7s5.2-.9 7.5-2.7"/><circle cx="8.5" cy="9" r="1.1"/>'+
-            '<circle cx="15.5" cy="9" r="1.1"/><path d="M3 3l18 18"/>',
-  double:   '<path d="M5 7l7 10M12 7L5 17"/><path d="M15.5 8.5a2.6 2.6 0 1 1 4.4 1.9L15.5 16h5"/>',
-  swap:     '<path d="M3.5 8.5h13l-3.6-3.6"/><path d="M20.5 15.5h-13l3.6 3.6"/>',
-  blindfold:'<path d="M9.9 5.2A9.9 9.9 0 0 1 12 5c6 0 10 7 10 7a17.6 17.6 0 0 1-3.2 4"/>'+
-            '<path d="M6.5 6.6A17.6 17.6 0 0 0 2 12s4 7 10 7c1.5 0 2.9-.3 4.1-.8"/><path d="M3 3l18 18"/>'
+/* The seven cards, drawn the way the fifteen faces are: a 40x40 box of flat
+   shapes on a coloured disc, no hairlines, so one drawing serves a 200px card
+   face, a 34px banner tile and a 23px pip in a card's corner.               */
+
+const CARD_ART = {
+  /* a white dial on the red field — the one shape that survives 23px */
+  stopwatch:
+    '<rect x="16.2" y="1.6" width="7.6" height="4.6" rx="2.3" fill="#17161C"/>'+
+    '<rect x="17.9" y="5.4" width="4.2" height="4" fill="#17161C"/>'+
+    '<rect x="29.6" y="6.2" width="6.4" height="3.8" rx="1.9" fill="#17161C" transform="rotate(42 32.8 8.1)"/>'+
+    '<circle cx="20" cy="23.6" r="14.6" fill="#17161C"/>'+
+    '<circle cx="20" cy="23.6" r="11.4" fill="#FFFFFF"/>'+
+    '<rect x="18.4" y="14" width="3.2" height="11.2" rx="1.6" fill="#17161C"/>'+
+    '<circle cx="20" cy="23.6" r="2.4" fill="#17161C"/>'+
+    '<rect x="19" y="11.4" width="2" height="2.6" rx="1" fill="#17161C"/>'+
+    '<rect x="30" y="22.6" width="2.6" height="2" rx="1" fill="#17161C"/>'+
+    '<rect x="7.4" y="22.6" width="2.6" height="2" rx="1" fill="#17161C"/>',
+
+  /* the four words, face up. Each card is cut clear of its neighbour by a
+     ring of the field colour, or they merge into one white blob. */
+  insight: (function(){
+    const F = "#7A5AF8";
+    const card = (rot) =>
+      '<g transform="rotate('+rot+')">'+
+        '<rect x="-9.9" y="-27.4" width="19.8" height="24.8" rx="4.8" fill="'+F+'"/>'+
+        '<rect x="-7.3" y="-24.8" width="14.6" height="19.6" rx="3" fill="#FFFFFF"/>'+
+        '<rect x="-7.3" y="-24.8" width="14.6" height="7" rx="3" fill="#5E3FDB"/>'+
+        '<rect x="-7.3" y="-21.8" width="14.6" height="4" fill="#5E3FDB"/>'+
+        '<rect x="-4.6" y="-14.2" width="9.2" height="2.8" rx="1.4" fill="#C4B5FD"/>'+
+      '</g>';
+    return '<g transform="translate(20 33.4)">'+ card(-25) + card(0) + card(25) + '</g>';
+  })(),
+
+  /* the sentence struck out, a fresh one already rising behind it */
+  veto:
+    '<path d="M19.4 3.4h13.2A5.4 5.4 0 0 1 38 8.8v5.8a5.4 5.4 0 0 1-5.4 5.4h-1.4l.9 4.2-4.7-4.2h-8a5.4 5.4 0 0 1-5.4-5.4V8.8a5.4 5.4 0 0 1 5.4-5.4Z" fill="#B77800"/>'+
+    '<path d="M6.6 11.6h16.8a5.6 5.6 0 0 1 5.6 5.6v8.2a5.6 5.6 0 0 1-5.6 5.6H14l-5.8 5.2 1.1-5.2h-2.7A5.6 5.6 0 0 1 1 25.4v-8.2a5.6 5.6 0 0 1 5.6-5.6Z" fill="#FFFFFF"/>'+
+    '<rect x="7.2" y="19.4" width="15.6" height="3.8" rx="1.9" fill="#17161C" transform="rotate(38 15 21.3)"/>'+
+    '<rect x="7.2" y="19.4" width="15.6" height="3.8" rx="1.9" fill="#17161C" transform="rotate(-38 15 21.3)"/>',
+
+  /* a mime: white face, beret, sealed mouth. The stripes are ink, so the
+     same drawing works on the blue card and the red Mime round. */
+  mime:
+    '<path d="M5.5 40c0-7.6 6.5-11.2 14.5-11.2S34.5 32.4 34.5 40Z" fill="#F8FAFC"/>'+
+    '<rect x="6.4" y="31.4" width="27.2" height="2.8" fill="#17161C"/>'+
+    '<rect x="7.2" y="36.2" width="25.6" height="2.8" fill="#17161C"/>'+
+    '<circle cx="20" cy="18.4" r="11.6" fill="#FFFFFF"/>'+
+    '<ellipse cx="20" cy="8.4" rx="11.8" ry="4.8" fill="#17161C"/>'+
+    '<circle cx="20" cy="4.2" r="2.5" fill="#17161C"/>'+
+    '<circle cx="15.4" cy="17.4" r="2" fill="#17161C"/>'+
+    '<circle cx="24.6" cy="17.4" r="2" fill="#17161C"/>'+
+    '<rect x="16.6" y="24" width="6.8" height="2.4" rx="1.2" fill="#17161C"/>',
+
+  /* two tokens instead of one. A white rim cuts the front coin clear of the
+     back one on any field colour. */
+  double:
+    '<circle cx="11.4" cy="20.6" r="11.4" fill="#FFFFFF"/>'+ coin(11.4, 20.6, 9.6, false)+
+    '<circle cx="28.6" cy="20.6" r="11.4" fill="#FFFFFF"/>'+ coin(28.6, 20.6, 9.6, false),
+
+  /* two arrows, the plainest thing that means "change places" */
+  swap:
+    '<path d="M4 12.4h22.6l-5.6-5.6 4-4 12.4 12.4L25 27.6l-4-4 5.6-5.6H4Z" fill="#FFFFFF"/>'+
+    '<path d="M36 27.6H13.4l5.6 5.6-4 4L2.6 24.8 15 12.4l4 4-5.6 5.6H36Z" fill="#FFB020"/>',
+
+  /* a soft wide band across the eyes; the smile stays visible */
+  blindfold:
+    '<path d="M5.5 40c0-7.6 6.5-11.2 14.5-11.2S34.5 32.4 34.5 40Z" fill="#FFFFFF"/>'+
+    '<circle cx="20" cy="18.6" r="11.8" fill="#F2C79E"/>'+
+    '<path d="M8.4 13.2a11.8 11.8 0 0 1 23.2 0Z" fill="#3B2A1A"/>'+
+    '<path d="M31.6 16.4 36.4 14l-.9 4.4.9 4.4-4.8-2.4Z" fill="#17161C"/>'+
+    '<rect x="5.6" y="14.2" width="27.6" height="8.4" rx="4.2" fill="#17161C"/>'+
+    '<path d="M16 25.8q4 3.4 8 0" stroke="#2A2118" stroke-width="2" fill="none" stroke-linecap="round"/>'
 };
+
+/* the tone each card is set in */
 const CARD_TONE = {
   stopwatch:"guilty", insight:"violet", veto:"blind", mime:"accent",
   double:"good", swap:"ink", blindfold:"violet"
 };
-function cardIcon(key, size){
-  const d = ICONS[key] || ICONS.insight;
-  return '<svg class="cicon" viewBox="0 0 24 24" width="'+(size||26)+'" height="'+(size||26)+'" '+
-         'fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" '+
-         'stroke-linejoin="round" aria-hidden="true">'+d+'</svg>';
+/* the disc each emblem sits on, and the field its card is printed in */
+const CARD_HUE = {
+  stopwatch:"#FF5A3D", insight:"#7A5AF8", veto:"#FFB020", mime:"#2C6BFF",
+  double:"#12B886", swap:"#46445A", blindfold:"#7A5AF8"
+};
+const PC = {
+  guilty:{ deep:"#D8351C", soft:"#FFEDE9", ink:"#D8351C" },
+  violet:{ deep:"#5E3FDB", soft:"#F1EDFE", ink:"#5E3FDB" },
+  blind: { deep:"#D18A08", soft:"#FFF3DB", ink:"#B77800" },
+  accent:{ deep:"#1B4FD1", soft:"#EAF0FF", ink:"#1B4FD1" },
+  good:  { deep:"#0D8F69", soft:"#E6F7F1", ink:"#0D8F69" },
+  ink:   { deep:"#17161C", soft:"#F4F2FA", ink:"#17161C" }
+};
+
+/* the emblem alone, on its disc */
+function cardEmblem(key, px){
+  const a = CARD_ART[key] || CARD_ART.insight, s = px || 40;
+  return '<svg class="em" viewBox="0 0 40 40" width="'+s+'" height="'+s+'" aria-hidden="true">'+
+         '<circle cx="20" cy="20" r="20" fill="'+(CARD_HUE[key]||"#2C6BFF")+'"/>'+
+         '<g clip-path="url(#lsface)">'+a+'</g></svg>';
 }
+/* the small form, wherever a card is named in a row or a banner */
 function cardTile(key, size){
-  return '<span class="ctile t-'+(CARD_TONE[key]||"accent")+'">'+cardIcon(key, size)+'</span>';
+  return '<span class="ctile t-'+(CARD_TONE[key]||"accent")+'">'+cardEmblem(key, size || 46)+'</span>';
+}
+
+/* ---------------- a card, as a card ---------------- */
+/* Portrait, five by seven. A field in the card's own tone, a paler panel
+   inside it, the emblem large, the name beneath, and the emblem again small
+   in two opposite corners — the index a playing card carries.               */
+function cardFace(key, name, w, opts){
+  const o = opts || {}, t = PC[CARD_TONE[key]] || PC.accent;
+  const h = Math.round(w * 7 / 5), pad = Math.max(5, Math.round(w * .055));
+  const pip = (rot) => '<span class="pcx" style="'+rot+'">'+cardEmblem(key, Math.round(w * .105))+'</span>';
+  return '<span class="pcard'+(o.cls ? " " + o.cls : "")+'"'+(o.attr || "")+
+    ' style="width:'+w+'px;height:'+h+'px;border-radius:'+Math.round(w*.1)+'px;background:'+t.deep+';'+
+    'padding:'+pad+'px'+(o.style ? ";" + o.style : "")+'">'+
+    '<span class="pcf" style="border-radius:'+Math.round(w*.062)+'px;background:'+t.soft+';'+
+      'gap:'+Math.round(w*.06)+'px">'+
+      pip('inset-inline-start:'+Math.round(w*.055)+'px;top:'+Math.round(w*.055)+'px')+
+      pip('inset-inline-end:'+Math.round(w*.055)+'px;bottom:'+Math.round(w*.055)+'px;transform:rotate(180deg)')+
+      cardEmblem(key, Math.round(w * .44))+
+      '<span class="pcn" style="font-size:'+Math.max(11, Math.round(w * .118))+'px;color:'+t.ink+'">'+
+        name+'</span>'+
+    '</span></span>';
+}
+/* one back for every card, so a row of them reads as a deck at a glance */
+function cardBack(w, opts){
+  const o = opts || {}, h = Math.round(w * 7 / 5), pad = Math.max(5, Math.round(w * .055));
+  const dot = Math.max(7, Math.round(w * .075));
+  return '<span class="pcard'+(o.cls ? " " + o.cls : "")+'"'+(o.attr || "")+
+    ' style="width:'+w+'px;height:'+h+'px;border-radius:'+Math.round(w*.1)+'px;background:'+COIN_INK+';'+
+    'padding:'+pad+'px'+(o.style ? ";" + o.style : "")+'">'+
+    '<span class="pcb" style="border-radius:'+Math.round(w*.062)+'px;'+
+      'background-size:'+dot+'px '+dot+'px">'+
+      '<svg viewBox="0 0 40 40" width="'+Math.round(w*.42)+'" height="'+Math.round(w*.42)+'" aria-hidden="true">'+
+      coin(20, 20, 16.5, true)+'</svg></span></span>';
 }
 
 /* ---------------- the clock, as a draining ring ---------------- */
@@ -144,6 +268,26 @@ function burst(opts){
     else { ctx.clearRect(0, 0, w, h); cancelAnimationFrame(raf); }
   }
   step();
+}
+
+/* the card you just played, thrown into the middle of the screen. Drawn from
+   the element you tapped, so it leaves from where your thumb was.          */
+function throwCard(el){
+  if(REDUCED || !el) return;
+  const r = el.getBoundingClientRect();
+  if(!r.width) return;
+  const g = document.createElement("div");
+  g.className = "thrown";
+  g.style.cssText = "left:"+r.left+"px;top:"+r.top+"px;width:"+r.width+"px;height:"+r.height+"px";
+  g.innerHTML = el.innerHTML;
+  document.body.appendChild(g);
+  const dx = innerWidth / 2 - (r.left + r.width / 2);
+  const dy = innerHeight * 0.36 - (r.top + r.height / 2);
+  requestAnimationFrame(() => {
+    g.style.transform = "translate("+dx.toFixed(0)+"px,"+dy.toFixed(0)+"px) scale(1.85)";
+    g.style.opacity = "0";
+  });
+  setTimeout(() => g.remove(), 640);
 }
 
 /* a quick coloured flash behind the whole screen — used when a card lands */
@@ -311,4 +455,138 @@ function faceToken(id, x, y, r){
          '<circle cx="20" cy="20" r="20" fill="'+f.bg+'"/>'+
          '<g clip-path="url(#lsface)">'+f.art+'</g></g>'+
          '<circle cx="'+x+'" cy="'+y+'" r="'+r+'" fill="none" stroke="var(--surface)" stroke-width="'+(2.5/k*k).toFixed(2)+'"/>';
+}
+
+/* ============================================================
+   The twelve topics and the seven round twists. Same 40x40 box,
+   same disc, so they drop in anywhere a face already goes.
+   ============================================================ */
+const TOPIC_ART = {
+  home: { bg:"#F97316", art:
+    '<path d="M4.4 20.6 20 6.6l15.6 14-2.6 2.9L20 12.4 7 23.5Z" fill="#C2410C"/>'+
+    '<path d="M8.4 21.2 20 10.8l11.6 10.4V34a1.8 1.8 0 0 1-1.8 1.8H10.2A1.8 1.8 0 0 1 8.4 34Z" fill="#FFF1E8"/>'+
+    '<rect x="12" y="19.4" width="7.4" height="7.4" rx="1.4" fill="#FFB020"/>'+
+    '<path d="M22.6 35.8V27a1.6 1.6 0 0 1 1.6-1.6h3.2A1.6 1.6 0 0 1 29 27v8.8Z" fill="#C2410C"/>' },
+
+  feel: { bg:"#DB2777", art:
+    '<path d="M20 35.4 7.6 23.6a7.7 7.7 0 0 1 .5-11.4 7.7 7.7 0 0 1 10.4.9l1.5 1.6 1.5-1.6a7.7 7.7 0 0 1 10.4-.9 7.7 7.7 0 0 1 .5 11.4Z" fill="#FFFFFF"/>'+
+    '<path d="M14.6 19.2a3.9 3.9 0 0 1 .3-5.5" stroke="#F9A8D4" stroke-width="2.6" fill="none" stroke-linecap="round"/>' },
+
+  move: { bg:"#0891B2", art:
+    '<path d="M14.6 12.4V9.2a2.8 2.8 0 0 1 2.8-2.8h5.2a2.8 2.8 0 0 1 2.8 2.8v3.2h-3.8V10.2h-3.2v2.2Z" fill="#ECFEFF"/>'+
+    '<rect x="5" y="12.4" width="30" height="21.4" rx="3.4" fill="#ECFEFF"/>'+
+    '<rect x="5" y="19" width="30" height="4.6" fill="#0E7490"/>'+
+    '<rect x="11.6" y="17" width="3.4" height="8.6" rx="1.2" fill="#FFB020"/>'+
+    '<rect x="25" y="17" width="3.4" height="8.6" rx="1.2" fill="#FFB020"/>' },
+
+  folk: { bg:"#2C6BFF", art:
+    '<path d="M0 36.6c0-5.4 4.4-8.2 9.8-8.2s9.8 2.8 9.8 8.2Z" fill="#93C5FD"/>'+
+    '<circle cx="9.8" cy="19.4" r="6.6" fill="#93C5FD"/>'+
+    '<path d="M20.4 36.6c0-5.4 4.4-8.2 9.8-8.2s9.8 2.8 9.8 8.2Z" fill="#93C5FD"/>'+
+    '<circle cx="30.2" cy="19.4" r="6.6" fill="#93C5FD"/>'+
+    '<path d="M6.6 38.4c0-7.6 5.6-11 13.4-11s13.4 3.4 13.4 11Z" fill="#2C6BFF"/>'+
+    '<circle cx="20" cy="17.6" r="10" fill="#2C6BFF"/>'+
+    '<path d="M8.4 38.4c0-6.2 5-9.2 11.6-9.2s11.6 3 11.6 9.2Z" fill="#FFFFFF"/>'+
+    '<circle cx="20" cy="17.6" r="8.2" fill="#FFFFFF"/>' },
+
+  now: { bg:"#7A5AF8", art:
+    '<rect x="10.4" y="4.6" width="19.2" height="31" rx="3.6" fill="#FFFFFF"/>'+
+    '<rect x="13" y="8.6" width="14" height="21" rx="1.6" fill="#EDE9FE"/>'+
+    '<circle cx="20" cy="32.4" r="1.8" fill="#C4B5FD"/>'+
+    '<path d="M22.6 1.6h11.8A5.6 5.6 0 0 1 40 7.2v5.2a5.6 5.6 0 0 1-5.6 5.6h-1.2l.8 4-4.4-4h-7a5.6 5.6 0 0 1-5.6-5.6V7.2a5.6 5.6 0 0 1 5.6-5.6Z" fill="#FFB020"/>'+
+    '<circle cx="24.6" cy="9.8" r="1.9" fill="#7A5AF8"/><circle cx="30.2" cy="9.8" r="1.9" fill="#7A5AF8"/>'+
+    '<circle cx="35.8" cy="9.8" r="1.9" fill="#7A5AF8"/>' },
+
+  says: { bg:"#12B886", art:
+    '<path d="M7 6.4h26a4.8 4.8 0 0 1 4.8 4.8v12.6A4.8 4.8 0 0 1 33 28.6H18.4l-8.2 6.6 1.5-6.6H7a4.8 4.8 0 0 1-4.8-4.8V11.2A4.8 4.8 0 0 1 7 6.4Z" fill="#FFFFFF"/>'+
+    '<path d="M11.4 21.6c0-4.4 1.6-7 4.8-8l.9 2.4c-1.5.7-2.3 1.7-2.4 3h2.4v5.4h-5.7Zm10 0c0-4.4 1.6-7 4.8-8l.9 2.4c-1.5.7-2.3 1.7-2.4 3h2.4v5.4h-5.7Z" fill="#0D8F69"/>' },
+
+  face: { bg:"#FACC15", art:
+    '<rect x="6.6" y="5.4" width="26.8" height="29.2" rx="3.2" fill="#FFFFFF"/>'+
+    '<rect x="10" y="8.8" width="20" height="22.4" rx="1.8" fill="#FEF3C7"/>'+
+    '<path d="M12.4 31.2c0-4.6 3.4-7 7.6-7s7.6 2.4 7.6 7Z" fill="#CA8A04"/>'+
+    '<circle cx="20" cy="17.6" r="5.4" fill="#CA8A04"/>' },
+
+  telly: { bg:"#64748B", art:
+    '<rect x="12.4" y="4" width="3.2" height="11.6" rx="1.6" fill="#CBD5E1" transform="rotate(-26 14 9.8)"/>'+
+    '<rect x="24.4" y="4" width="3.2" height="11.6" rx="1.6" fill="#CBD5E1" transform="rotate(26 26 9.8)"/>'+
+    '<rect x="3.8" y="13" width="32.4" height="22.2" rx="4" fill="#F8FAFC"/>'+
+    '<rect x="7" y="16.2" width="21.4" height="15.8" rx="2" fill="#334155"/>'+
+    '<circle cx="32.4" cy="21" r="2" fill="#94A3B8"/>'+
+    '<rect x="30.8" y="25.4" width="3.2" height="6.6" rx="1.6" fill="#94A3B8"/>' },
+
+  sport: { bg:"#4D7C0F", art:
+    '<circle cx="20" cy="21" r="14.6" fill="#FFFFFF"/>'+
+    '<path d="M20 14.2 26.5 18.9 24 26.5h-8L13.5 18.9Z" fill="#1A2E05"/>'+
+    '<path d="M20 14.2 20 7M26.5 18.9 33.3 16.7M24 26.5 28.2 32.3M16 26.5 11.8 32.3M13.5 18.9 6.7 16.7" '+
+      'stroke="#1A2E05" stroke-width="2.6" stroke-linecap="round"/>' },
+
+  music: { bg:"#6366F1", art:
+    '<path d="M17 30V9.6l16-3.6v20.4h-3.6V10.4L20.6 12.4V30Z" fill="#FFFFFF"/>'+
+    '<ellipse cx="13.4" cy="30.2" rx="5.4" ry="4.4" fill="#FFFFFF" transform="rotate(-14 13.4 30.2)"/>'+
+    '<ellipse cx="29.4" cy="26.4" rx="4.6" ry="3.8" fill="#FFFFFF" transform="rotate(-14 29.4 26.4)"/>' },
+
+  world: { bg:"#0D8F69", art:
+    '<circle cx="20" cy="20" r="14.6" fill="#A7F3D0"/>'+
+    '<path d="M8.4 13.8c2.6-.6 4.6.4 5.6 2.2.9 1.6.2 3-1.2 3.8-1.6 1-1.4 2.8-.2 4 1.4 1.4 1.2 3.4-.4 4.6a14.6 14.6 0 0 1-3.8-14.6Z" fill="#047857"/>'+
+    '<path d="M21.6 5.6c3.6.4 6.8 2.4 8.8 5.2-1.6 1.6-4 1.4-5.6 2.8-1.4 1.2-.6 3.2.8 4.2 2 1.4 5 .8 6.6 2.6 1.2 1.4.6 3.6-1 5.4-2 2.2-5.2 1.4-6.2-.8-.8-1.8-.6-4-2.4-5-2-1.2-4.6.4-6-1.4-1.2-1.6-.2-3.8 1.4-5 1.6-1.2 3.8-1.6 3.6-4a3.6 3.6 0 0 0 0-4Z" fill="#047857"/>' },
+
+  lands: { bg:"#FF5A3D", art:
+    '<rect x="9.6" y="4" width="3.8" height="32" rx="1.9" fill="#FFFFFF"/>'+
+    '<path d="M13.4 6.4c5.6-3 11.2 3 16.8 0v13.4c-5.6 3-11.2-3-16.8 0Z" fill="#FFB020"/>'+
+    '<ellipse cx="11.5" cy="35.4" rx="6.6" ry="2.2" fill="#FFFFFF" opacity=".55"/>' }
+};
+
+const MOD_ART = {
+  S: { bg:"#6B6A78", art: coin(20, 20, 14, false) },
+  F: { bg:"#12B886", art:
+    '<path d="M23.4 3 9.6 21.6h7.8L15.4 37 31 17.4h-8.4Z" fill="#FFFFFF"/>' },
+  O: { bg:"#0D8F69", art:
+    '<path d="M7 5.6h26a5 5 0 0 1 5 5v13.2a5 5 0 0 1-5 5H18.6l-8.4 6.8 1.5-6.8H7a5 5 0 0 1-5-5V10.6a5 5 0 0 1 5-5Z" fill="#FFFFFF"/>'+
+    '<circle cx="20" cy="17.2" r="4" fill="#0D8F69"/>' },
+  M: { bg:"#2C6BFF", art: CARD_ART.mime },
+  B: { bg:"#5E3FDB", art: CARD_ART.blindfold },
+  D: { bg:"#B77800", art: CARD_ART.double },
+  T: { bg:"#2C6BFF", art:
+    '<path d="M-1 37c0-6 4.8-9 10.6-9s10.6 3 10.6 9Z" fill="#93C5FD"/>'+
+    '<circle cx="9.6" cy="18.2" r="7.4" fill="#93C5FD"/>'+
+    '<path d="M15.6 38.6c0-7.4 5.4-11 12.6-11s12.6 3.6 12.6 11Z" fill="#2C6BFF"/>'+
+    '<circle cx="28.2" cy="18" r="9.6" fill="#2C6BFF"/>'+
+    '<path d="M17.4 38.6c0-6.2 4.8-9.2 10.8-9.2s10.8 3 10.8 9.2Z" fill="#FFFFFF"/>'+
+    '<circle cx="28.2" cy="18" r="7.8" fill="#FFFFFF"/>' }
+};
+
+const CHOICE_ART = {
+  topic: { bg:"#6B6A78", art:
+    '<path d="M4.4 9.6a3.4 3.4 0 0 1 3.4-3.4h8.4l3.6 4h12.4a3.4 3.4 0 0 1 3.4 3.4v16.8a3.4 3.4 0 0 1-3.4 3.4H7.8a3.4 3.4 0 0 1-3.4-3.4Z" fill="#FFFFFF"/>'+
+    '<rect x="9.4" y="17.4" width="21.2" height="3.2" rx="1.6" fill="#D5D3E0"/>'+
+    '<rect x="9.4" y="23.4" width="14" height="3.2" rx="1.6" fill="#D5D3E0"/>' },
+  open: { bg:"#2C6BFF", art: CARD_ART.insight },
+  cold: { bg:"#0D8F69", art:
+    '<circle cx="20" cy="20" r="14.4" fill="#FFFFFF"/>'+
+    '<rect x="5.6" y="17.6" width="28.8" height="4.8" rx="2.4" fill="#0D8F69" transform="rotate(-38 20 20)"/>' }
+};
+
+/* one drawing, three jobs: a picker tile, a note row, and the ghost behind
+   a word card. Everything below is the same call with a different size. */
+function emblemSvg(set, key, px){
+  const e = set[key];
+  if(!e) return "";
+  const s = px || 40;
+  return '<svg class="em" viewBox="0 0 40 40" width="'+s+'" height="'+s+'" aria-hidden="true">'+
+         '<circle cx="20" cy="20" r="20" fill="'+e.bg+'"/>'+
+         '<g clip-path="url(#lsface)">'+e.art+'</g></svg>';
+}
+const topicSvg  = (k, px) => emblemSvg(TOPIC_ART, k, px);
+const modSvg    = (k, px) => emblemSvg(MOD_ART, k, px);
+const choiceSvg = (k, px) => emblemSvg(CHOICE_ART, k, px);
+
+/* the topic behind a word card. With no topic — an open or cold round — the
+   token stands in, because every round still belongs to the game.          */
+function watermark(key, px, on){
+  const s = px || 88;
+  const art = TOPIC_ART[key]
+    ? topicSvg(key, s)
+    : '<svg viewBox="0 0 40 40" width="'+s+'" height="'+s+'" aria-hidden="true">'+coin(20,20,20,false)+'</svg>';
+  return '<span class="wmk'+(on ? " on" : "")+'">'+art+'</span>';
 }

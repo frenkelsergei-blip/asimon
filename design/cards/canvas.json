@@ -1,0 +1,88 @@
+{
+  "artboards": [
+    {
+      "file": "Main.dc.html",
+      "x": 0,
+      "y": 0,
+      "w": 760,
+      "h": 700,
+      "title": "A · The seven cards"
+    },
+    {
+      "file": "Topics.dc.html",
+      "x": 860,
+      "y": 0,
+      "w": 720,
+      "h": 700,
+      "title": "B · Twelve topics"
+    },
+    {
+      "file": "Mods.dc.html",
+      "x": 1680,
+      "y": 0,
+      "w": 660,
+      "h": 700,
+      "title": "C · Seven round twists"
+    },
+    {
+      "file": "Hand.dc.html",
+      "x": 0,
+      "y": 840,
+      "w": 980,
+      "h": 620,
+      "title": "D · The hand"
+    },
+    {
+      "file": "Deal.dc.html",
+      "x": 1080,
+      "y": 840,
+      "w": 980,
+      "h": 560,
+      "title": "E · Taking a card"
+    },
+    {
+      "file": "Words.dc.html",
+      "x": 2160,
+      "y": 840,
+      "w": 470,
+      "h": 700,
+      "title": "F · The four words"
+    },
+    {
+      "file": "InPlace.dc.html",
+      "x": 0,
+      "y": 1680,
+      "w": 1780,
+      "h": 1010,
+      "title": "G · In place, at real size"
+    },
+    {
+      "file": "Modes.dc.html",
+      "x": 2680,
+      "y": 0,
+      "w": 660,
+      "h": 760,
+      "title": "H · Four game modes"
+    },
+    {
+      "file": "Maps.dc.html",
+      "x": 3390,
+      "y": 0,
+      "w": 660,
+      "h": 760,
+      "title": "I · Five maps"
+    }
+  ],
+  "annotations": [
+    {
+      "id": "brief",
+      "x": 0,
+      "y": -180,
+      "w": 640,
+      "text": "Asimon, drawn.\nSeven power cards with a shared back, twelve topic emblems, seven round twists — all in the same chunky flat style as the fifteen faces the game already draws.\n\nThis is what shipped. Two things were cut along the way: badges on the board nodes (four columns of pills is dense enough on a phone) and a topic watermark behind every word card (the topic is already drawn once, right above them).\n\nBoard G is the one that decided it: everything at 390×844, the size it is actually played at."
+    }
+  ],
+  "launch": {
+    "view": "canvas"
+  }
+}
