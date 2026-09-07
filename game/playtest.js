@@ -52,8 +52,13 @@ const MODEL = {
      floor that rises with the word, and a long tail out to the end of the
      clock. `whenSkew` above 1 pulls the mass earlier, below 1 pushes it late. */
   whenFloor: 0.04, whenFloorPerValue: 0.055, whenSkew: 1.55, cheapestWord: 1,
-  /* somebody shouts the wrong thing */
+  /* Somebody shouts the wrong thing. A Double round says so on the buzzer
+     screen — "a wrong buzz costs 2" — and a table that reads it waits for
+     more before shouting: the confidence a shout needs goes from about one
+     in five to one in four when the cost doubles and the word is only half
+     again as dear. Not a halving, but not nothing. */
   wrongBuzz: 0.11,               /* per guesser, per round */
+  wrongBuzzOnDouble: 0.75,       /* how much of that a doubled penalty leaves */
   /* a held card is thrown this often, per round it is held */
   playCard: 0.42,
   /* the giver's taste in words: greedy takes the dearest, safe the cheapest */
@@ -292,7 +297,8 @@ function playOne(cfg){
 
       /* a wrong shout, first */
       const early = aliveNow();
-      if(!blind && early.length > 1 && chance(1 - Math.pow(1 - MODEL.wrongBuzz, early.length))){
+      const rash = MODEL.wrongBuzz * (R.mod === "D" ? MODEL.wrongBuzzOnDouble : 1);
+      if(!blind && early.length > 1 && chance(1 - Math.pow(1 - rash, early.length))){
         const who = pick(early).id;
         const at = Math.max(0.02, Math.min(0.9, 0.10 + rnd() * 0.5));
         R.acc = Math.round(at * R.total * 1000); R.startedAt = Date.now();
