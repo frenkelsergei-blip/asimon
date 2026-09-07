@@ -86,7 +86,7 @@ function createEngine(){
    O:{n:"One word", s:"ONE", d:"The giver&rsquo;s clue must be a single word. Not two."},
    M:{n:"Mime",     s:"MIME", d:"No speaking at all &mdash; the giver acts it out. And the clock flips: here the giver wants it read <em>fast</em>, not late."},
    B:{n:"Blind",    s:"BLIND", d:"Everything turns around. The giver becomes the guesser, everybody else sees the word, and you each give one word until they crack it."},
-   D:{n:"Double",   s:"\u00d72", d:"Every word is worth double this round. A wrong buzz costs 2."},
+   D:{n:"Double",   s:"\u00d72", d:"Every word is worth double this round. A wrong buzz costs 2 &mdash; and if nobody gets it at all, the giver loses one. Everybody has something on this table."},
    T:{n:"Partners", s:"PAIR", d:"The game draws the giver a partner. If that partner gets it, they both score."},
    U:{n:"Duel",     s:"DUEL", d:"The giver names one person out loud, and only that person may answer. Everybody else watches. One shout, right or wrong, and the round is over."},
    W:{n:"Two words", s:"TWO", d:"The giver holds two words and gets one sentence for both. Each is worth a point less, and the round runs until both are found or the clock stops. Whoever says one takes it."},
@@ -98,7 +98,7 @@ function createEngine(){
    O:{n:"מילה אחת", s:"מילה", d:"הרמז של הנותן חייב להיות מילה אחת. לא שתיים."},
    M:{n:"פנטומימה", s:"מחזה", d:"בלי לדבר בכלל &mdash; הנותן ממחיז. והשעון מתהפך: כאן הנותן רוצה שיקלטו <em>מהר</em>, לא מאוחר."},
    B:{n:"עיוור",    s:"עיוור", d:"הכול מתהפך. הנותן הופך למנחש, כל השאר רואים את המילה, וכל אחד אומר מילה אחת עד שהוא קולט."},
-   D:{n:"כפול",     s:"\u00d72", d:"כל מילה שווה כפול בסבב הזה. באזה שגוי עולה 2."},
+   D:{n:"כפול",     s:"\u00d72", d:"כל מילה שווה כפול בסבב הזה. באזה שגוי עולה 2 &mdash; ואם אף אחד לא קולט בכלל, הנותן מאבד נקודה. לכולם יש מה להפסיד כאן."},
    T:{n:"שותפים",   s:"זוג", d:"המשחק מגריל לנותן שותף. אם השותף קולט — שניהם מקבלים."},
    U:{n:"דו־קרב",   s:"קרב", d:"הנותן בוחר אדם אחד בקול, ורק הוא יכול לענות. כל השאר מסתכלים. צעקה אחת, נכונה או לא, והסבב נגמר."},
    W:{n:"שתי מילים", s:"שתיים", d:"הנותן מחזיק שתי מילים ומקבל משפט אחד לשתיהן. כל אחת שווה נקודה פחות, והסבב רץ עד ששתיהן נמצאו או שהשעון נגמר. מי שאומר מילה לוקח אותה."},
@@ -186,7 +186,7 @@ function createEngine(){
    blind_got:"{0} got it",
    w_word:"the word +{0}", w_wrong:"wrong shout &minus;{0}", w_early:"solved too fast +1",
    w_mid:"landed well +{0}", w_late:"landed late +{0}", w_helped:"helped +1", w_half:"half of it +1", w_both:"both of them +1", w_shot:"called the shot +{0}", w_partner:"partner got it +{0}", w_double:"doubled to {0}",
-   w_fast:"read instantly +{0}", w_ok:"got through +{0}", w_slow:"only just +{0}", w_none:"nobody got it",
+   w_fast:"read instantly +{0}", w_ok:"got through +{0}", w_slow:"only just +{0}", w_none:"nobody got it", w_none_x2:"nobody got it &minus;1",
    board_k:"The board &mdash; {0} rows to the end",
    col_0:"Plain", col_1:"Cards", col_2:"Mixed", col_3:"Wild",
    card_node:"CARD", card_node_d:"a card", plain_square:"nothing special", the_end:"the finish", row_n:"Row {0}",
@@ -289,7 +289,7 @@ function createEngine(){
    blind_got:"{0} קלט/ה",
    w_word:"המילה {0}+", w_wrong:"צעקה שגויה {0}&minus;", w_early:"נפתר מהר מדי 1+",
    w_mid:"נחת יפה {0}+", w_late:"נחת מאוחר {0}+", w_helped:"עזרו 1+", w_half:"חצי מזה 1+", w_both:"שתיהן נחתו 1+", w_shot:"כיוון נכון {0}+", w_partner:"השותף/ה קלט/ה {0}+", w_double:"הוכפל ל&#8209;{0}",
-   w_fast:"נקרא מיד {0}+", w_ok:"עבר {0}+", w_slow:"בקושי {0}+", w_none:"אף אחד לא קלט",
+   w_fast:"נקרא מיד {0}+", w_ok:"עבר {0}+", w_slow:"בקושי {0}+", w_none:"אף אחד לא קלט", w_none_x2:"אף אחד לא קלט 1&minus;",
    board_k:"הלוח &mdash; {0} שורות לסוף",
    col_0:"רגיל", col_1:"קלפים", col_2:"מעורב", col_3:"פרוע",
    card_node:"קלף", card_node_d:"קלף", plain_square:"שום דבר מיוחד", the_end:"הסוף", row_n:"שורה {0}",
@@ -1037,6 +1037,12 @@ function createEngine(){
         bump(gu.id, band.n, band.w);
         if(R.shot && R.shot === R.solvedBy) bump(gu.id, shotBonus(R), t("w_shot", shotBonus(R)));
       }
+    } else if(R.mod === "D"){
+      /* Double raises everybody's stake but the giver's: the word is worth two
+         more to whoever gets it, the wrong shout costs two — and the giver had
+         nothing of their own on the table. A round nobody gets costs them one,
+         so the square is a gamble rather than a free upgrade. */
+      bump(gu.id, -1, t("w_none_x2"));
     } else {
       bump(gu.id, 0, t("w_none"));
     }

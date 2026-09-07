@@ -419,7 +419,58 @@ function linkRound(n){
   }
 }
 
-/* ---- 5. the podium names whoever won, not whoever counted highest ---- */
+/* ---- 5. Double: the giver has something on the table too ---- */
+/* classic lane 2 is O,D,L,T,D,O — row 2 is a Double square. */
+{
+  const r = room(4), e = r.engine;
+  let found = null;
+  for(let i = 0; i < 40 && !found; i++){
+    e.S.units.forEach(u => { u.pos = { r:2, c:2 }; });
+    e.S.giverIdx = i; e.newRound();
+    if(e.S.r.mod === "D"){ r.phase = "giver"; found = true; }
+  }
+  ok(!!found, "no Double round could be dealt from a Double square");
+  if(found){
+    const R = e.S.r, g = R.giver;
+    const other = r.players.find(p => p.id !== g);
+    play.applyAction(r, P(r, g), { type:"challenge", k:"open" }, CTX);
+    play.applyAction(r, P(r, g), { type:"pick", i:3 }, CTX);
+    if(!R.shotFixed) play.applyAction(r, P(r, g), { type:"aim", target:other.id }, CTX);
+    /* the word really is worth two more */
+    ok(e.wordValue(R, R.words[3]) === R.words[3].value + 2,
+       "a Double round's word was worth " + e.wordValue(R, R.words[3]) +
+       " against a plain " + R.words[3].value);
+    play.applyAction(r, P(r, g), { type:"ready" }, CTX);
+
+    /* nobody gets it, and the giver pays for having stood there */
+    play.applyAction(r, P(r, g), { type:"nobody" }, CTX);
+    ok(r.phase === "reveal", "the round did not end");
+    const giverRow = e.S.result.rows.find(x => x.giver);
+    ok(giverRow.pts === -1,
+       "an unsolved Double round paid the giver " + giverRow.pts + ", not minus one");
+    ok(giverRow.why.some(w => /1/.test(w)), "the reason does not name what it cost");
+    /* a loss is not a step: nobody moves backwards on the board */
+    ok(!(e.S.steps || {})[e.unitOf(g).id], "a giver who lost a point was still given steps");
+    ok(e.unitOf(g).score >= 0, "a score went below nothing");
+  }
+}
+
+/* and an ordinary round still costs the giver nothing */
+{
+  const r = room(4), e = r.engine;
+  while(e.S.r.mod !== "S"){ e.S.giverIdx++; e.newRound(); }
+  r.phase = "giver";
+  const R = e.S.r, g = R.giver;
+  play.applyAction(r, P(r, g), { type:"challenge", k:"open" }, CTX);
+  play.applyAction(r, P(r, g), { type:"pick", i:1 }, CTX);
+  if(!R.shotFixed) play.applyAction(r, P(r, g), { type:"aim", target:r.players.find(p => p.id !== g).id }, CTX);
+  play.applyAction(r, P(r, g), { type:"ready" }, CTX);
+  play.applyAction(r, P(r, g), { type:"nobody" }, CTX);
+  ok(e.S.result.rows.find(x => x.giver).pts === 0,
+     "an unsolved ordinary round cost the giver something");
+}
+
+/* ---- 6. the podium names whoever won, not whoever counted highest ---- */
 /* Points are steps you spend, but a wrong shout costs points without costing
    ground — so the score column and the finish line disagree about one game in
    five, and the phone crowns the head of that list. */
@@ -460,5 +511,6 @@ function linkRound(n){
 
 console.log(bad.length ? "FAIL (" + bad.length + "):\n" + [...new Set(bad)].join("\n")
   : "round ok — a blind verdict belongs to the table, a Duel belongs to one name, "+
-    "Two words pays each of them, a Link keeps its own back, and the podium names the winner");
+    "Two words pays each of them, a Link keeps its own back, a Double round costs the "+
+    "giver too, and the podium names the winner");
 process.exit(bad.length ? 1 : 0);

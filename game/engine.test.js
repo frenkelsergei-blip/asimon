@@ -82,7 +82,11 @@ for(const mode of ["solo","teams"]){
         const grow = e.S.result.rows.find(r => r.id === gu);
         if(!solved){
           giverZeroes++;
-          ok(grow.pts === 0, "nobody solved yet the giver took " + grow.pts);
+          /* A round nobody gets pays the giver nothing — except on a Double
+             square, where they had a point of their own on the table. */
+          const owed = R.mod === "D" ? -1 : 0;
+          ok(grow.pts === owed,
+             "nobody solved on a " + R.mod + " round yet the giver took " + grow.pts);
         } else if(frac > 0.70 && R.mod !== "B" && R.mod !== "M" && R.mod !== "W" &&
                   e.unitOf(R.solvedBy).id !== gu){
           lateWins++;
@@ -122,6 +126,6 @@ ok(e2.S.r.pick === null, "a word was pre-picked before the giver chose");
 console.log(bad.length
   ? "FAIL (" + bad.length + "):\n" + [...new Set(bad)].slice(0,8).join("\n")
   : "engine ok — " + games + " games, " + rounds + " rounds, "
-    + giverZeroes + " unsolved (giver took 0 every time), "
+    + giverZeroes + " unsolved (the giver was paid what the square owed, every time), "
     + lateWins + " late solves (giver paid every time)");
 process.exit(bad.length ? 1 : 0);
