@@ -1,5 +1,5 @@
 # fly launch --no-deploy  then  fly deploy
-app = "last-second"
+app = "asimon"
 primary_region = "cdg"
 
 [build]

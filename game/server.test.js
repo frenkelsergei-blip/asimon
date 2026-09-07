@@ -8,9 +8,9 @@ const { spawn } = require("child_process");
 const path = require("path");
 
 const PORT = 3999;
-/* point it at a deployed server with LS_BASE=https://… — otherwise it starts
+/* point it at a deployed server with ASIMON_BASE=https://… — otherwise it starts
    one here and tests that */
-const REMOTE = process.env.LS_BASE || "";
+const REMOTE = process.env.ASIMON_BASE || "";
 const BASE = REMOTE || ("http://127.0.0.1:" + PORT);
 const bad = [];
 const ok = (c, m) => { if(!c) bad.push(m); };

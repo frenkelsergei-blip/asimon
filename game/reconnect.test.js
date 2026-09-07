@@ -6,7 +6,7 @@ const path = require("path");
 const play = require("./play");
 
 const PORT = 3998;
-const REMOTE = process.env.LS_BASE || "";
+const REMOTE = process.env.ASIMON_BASE || "";
 const BASE = REMOTE || ("http://127.0.0.1:" + PORT);
 /* a deployed server runs the real 12s grace; a local one is told to use a short one */
 const GRACE = REMOTE ? 12000 : 1200;

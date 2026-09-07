@@ -2,7 +2,7 @@
 # The free plan is one instance by definition, which is exactly what we want.
 services:
   - type: web
-    name: last-second
+    name: asimon
     runtime: docker
     plan: free
     region: frankfurt          # closest of Render's regions to Israel
