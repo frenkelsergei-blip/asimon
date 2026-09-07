@@ -77,6 +77,86 @@ const giverPhone = play.phoneOf(room, S.r.giver);
 ok(play.peopleOf(room, giverPhone).length === 3,
    "the giver's two group-mates are on the phone that holds the words");
 
+/* ---- the turn goes round the groups, and round the people inside them ----
+   Nobody solves, so no unit ever leaves the start line and every round stays
+   Standard: the giving order is the only thing moving. */
+function nobodyGetsIt(room){
+  const e = room.engine, S = e.S;
+  const phone = room.players.find(p => play.owns(room, p.id, S.r.giver));
+  const gu = e.unitOf(S.r.giver);
+  const away = S.players.find(p => gu.members.indexOf(p.id) < 0);
+  const say = a => play.applyAction(room, phone, a, ctx);
+  say({ type:"challenge", k:"open" });
+  say({ type:"pick", i:0 });
+  if(!S.r.shotPublic) say({ type:"aim", target: away.id });
+  say({ type:"ready" });
+  say({ type:"nobody" });
+  say({ type:"next" });
+}
+
+/* aiming at somebody around your own phone is telling them, not aiming */
+const mate = S.units.find(u => u.members.indexOf(S.r.giver) >= 0)
+               .members.find(id => id !== S.r.giver);
+const giverPhoneObj = room.players.find(p => p.id === giverPhone);
+play.applyAction(room, giverPhoneObj, { type:"challenge", k:"open" }, ctx);
+play.applyAction(room, giverPhoneObj, { type:"pick", i:0 }, ctx);
+ok(play.applyAction(room, giverPhoneObj, { type:"aim", target:mate }, ctx).error === "bad_choice",
+   "a giver may not aim at their own group");
+ok(!play.applyAction(room, giverPhoneObj,
+     { type:"aim", target:S.players.find(p => unitOfPerson(p.id) !== unitOfPerson(S.r.giver)).id },
+     ctx).error, "but may aim anywhere else at the table");
+
+const gave = [];
+for(let i = 0; i < 9; i++){ gave.push(S.r.giver); nobodyGetsIt(room); }
+const byGroup = gave.map(unitOfPerson);
+ok(byGroup.join() === "Frogs,Squids,Ants,Frogs,Squids,Ants,Frogs,Squids,Ants",
+   "nine rounds go round the three groups three times each");
+S.units.forEach(u => {
+  const mine = gave.filter(id => u.members.indexOf(id) >= 0);
+  ok(mine.length === 3, u.name + " gave three times");
+  ok(new Set(mine).size === 3, "and a different person each time — " + u.name +
+     " spoke " + mine.length + " times through " + new Set(mine).size + " people");
+});
+ok(new Set(gave).size === 9, "over one full pass every person at the table has given once");
+
+/* ---- pairs, and the three ways of asking for a seating ----
+   room.seating always holds a value, so it must not be allowed to swallow the
+   older mode:"teams" that the pass-and-play build and playtest.js still send. */
+function four(seating){
+  const r = { players:[], people:[], seating, lang:"he", mapId:"classic", phase:"lobby" };
+  ["Dana","Yoav","Michal","Ron"].forEach((n, i) => {
+    r.players.push({ id:"p"+i, name:n, face:"boy", online:true });
+    play.addPerson(r, "p"+i, n, "boy");
+  });
+  return r;
+}
+const seatedAs = (seating, opts) => { const r = four(seating); play.startGame(r, opts); return r.engine.S; };
+
+let S2 = seatedAs("solo", { mode:"teams" });
+ok(S2.seating === "pairs" && S2.mode === "teams", "the older mode:\"teams\" still asks for pairs");
+ok(S2.units.length === 2 && S2.units.every(u => u.members.length === 2), "and pairs really pairs up");
+
+S2 = seatedAs("solo", { seating:"pairs" });
+ok(S2.seating === "pairs" && S2.units.length === 2, "so does asking for pairs by name");
+
+S2 = seatedAs("pairs", {});
+ok(S2.seating === "pairs" && S2.units.length === 2, "and so does the lobby having settled on it");
+
+S2 = seatedAs("groups", { seating:"solo" });
+ok(S2.seating === "solo" && S2.units.length === 4, "an explicit ask beats what the lobby held");
+
+S2 = seatedAs("solo", {});
+ok(S2.seating === "solo" && S2.units.length === 4, "and asking for nothing is still every player alone");
+
+/* three people cannot be paired, and must not crash trying */
+const three = { players:[], people:[], seating:"pairs", lang:"he", mapId:"classic", phase:"lobby" };
+["A","B","C"].forEach((n, i) => {
+  three.players.push({ id:"q"+i, name:n, online:true });
+  play.addPerson(three, "q"+i, n, "boy");
+});
+play.startGame(three, {});
+ok(three.engine.S.seating === "solo", "pairs falls back to solo below four people");
+
 /* ---------------- over HTTP: the lobby keeps the roster ---------------- */
 const post = async (p, body) => {
   const r = await fetch(BASE + p, { method:"POST", headers:{ "content-type":"application/json" },
