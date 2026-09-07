@@ -13,6 +13,12 @@ function room(names){
     players: names.map((n,i) => ({ id:"p"+i, name:n, online:true }))
   };
   play.startGame(r, {});
+  /* the play order goes up before round one — everyone taps in */
+  r.players.forEach(p => play.applyAction(r, p, { type:"order_ok" }, CTX));
+  /* kickoff deals one player a card at random; these tests each set up the
+     hand they mean to test, so start them all empty (the opening deal has a
+     test of its own below) */
+  r.engine.S.units.forEach(u => { u.cards = []; });
   return r;
 }
 const P = (r,i) => r.players[i];
@@ -37,6 +43,27 @@ function give(r, pid, key){
   u.cards = u.cards || [];
   u.cards.push(key);
   return u;
+}
+
+/* ---- 0. the opening card: one player, one card, and nobody else told ---- */
+{
+  const r = {
+    code:"TEST", lang:"en", hostId:"p0", phase:"lobby", lanUrl:"x",
+    players: ["A","B","C","D"].map((n,i) => ({ id:"p"+i, name:n, online:true }))
+  };
+  play.startGame(r, {});
+  const dealt = r.engine.S.units.filter(u => (u.cards || []).length);
+  ok(dealt.length === 1, "the opening card went to " + dealt.length + " units, not one");
+  ok(dealt[0].cards.length === 1, "the opening deal handed out more than one card");
+  const holder = dealt[0].members[0];
+  const mine = play.viewFor(r, holder);
+  ok(mine.opening && mine.opening.key === dealt[0].cards[0],
+     "the holder was not told which card they were dealt");
+  const stranger = r.engine.S.units.find(u => u.id !== dealt[0].id).members[0];
+  ok(!play.viewFor(r, stranger).opening, "LEAK: the opening card was named to another phone");
+  /* and it is only news until the game is properly under way */
+  r.players.forEach(p => play.applyAction(r, p, { type:"order_ok" }, CTX));
+  ok(!play.viewFor(r, holder).opening, "the opening card was still being announced mid-game");
 }
 
 /* ---- 1. a hand is private; only its size is public ---- */

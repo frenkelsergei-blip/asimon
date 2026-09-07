@@ -99,6 +99,9 @@ async function post(p, body){
     /* ---- 3. the seat survives; the room is rejoinable mid-game ---- */
     await a.act({ type:"start" });
     await wait(250);
+    /* the play order goes up first — every phone taps in to deal round one */
+    for(const p of [a,b,c]) await p.act({ type:"order_ok" });
+    await wait(250);
     const giverPid = a.state.giver;
     const giverPhone = [a,b,c].find(p => p.pid === giverPid);
     const others = [a,b,c].filter(p => p.pid !== giverPid);

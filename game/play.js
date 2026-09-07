@@ -29,13 +29,23 @@ function uiPack(lang){
    and draw it themselves; only the tokens and the lit squares change. */
 function boardLayout(room){
   const e = room.engine;
-  if(room.boardCache && room.boardCache.rows === e.ROWS()) return room.boardCache;
+  const mapId = e.S.mapId;
+  if(room.boardCache && room.boardCache.rows === e.ROWS() && room.boardCache.mapId === mapId) return room.boardCache;
   const rows = e.ROWS(), nodes = [];
   for(let r = 1; r <= rows; r++)
     for(let c = 0; c < 4; c++)
-      nodes.push({ r, c, t: e.isCardNode(r,c) ? "CARD" : e.nodeTypeAt(r,c) });
-  room.boardCache = { rows, cols:4, nodes };
+      nodes.push({ r, c, t: e.isCardNode(r,c) ? "CARD" : e.isWildNode(r,c) ? "WILD" : e.nodeTypeAt(r,c) });
+  room.boardCache = { rows, cols:4, mapId, themeId: (e.MAPS[mapId] || e.MAPS.classic).themeId, nodes };
   return room.boardCache;
+}
+
+/* the ids modes/maps are known by, for validating whatever a phone sends in */
+const MODE_IDS = Object.keys(createEngine().MODES);
+const MAP_IDS = Object.keys(createEngine().MAPS);
+function randomMapId(exclude){
+  const pool = exclude ? MAP_IDS.filter(id => id !== exclude) : MAP_IDS;
+  const list = pool.length ? pool : MAP_IDS;
+  return list[Math.floor(Math.random() * list.length)];
 }
 
 /* ---------------- starting ---------------- */
@@ -44,9 +54,16 @@ function startGame(room, opts){
   e.S = e.freshState();
   e.S.lang = room.lang;
   e.S.mode = (opts && opts.mode === "teams" && room.players.length >= 4) ? "teams" : "solo";
+  e.S.modeId = (opts && MODE_IDS.indexOf(opts.gameMode) >= 0) ? opts.gameMode : "regular";
+  e.S.mapId = (room.mapId && MAP_IDS.indexOf(room.mapId) >= 0) ? room.mapId : "classic";
+  room.mode = e.S.modeId;
+  room.mapId = e.S.mapId;
   e.applyLang();
 
-  e.S.players = room.players.map(p => ({ id:p.id, name:p.name }));
+  /* Giving the first clue is the hardest seat at the table, and seat order
+     alone would hand it to the same person every game. Shuffled once, here,
+     it holds for the rest of the game. */
+  e.S.players = e.shuffle(room.players.map(p => ({ id:p.id, name:p.name })));
   if(e.S.mode === "teams"){
     const shuffled = e.shuffle(e.S.players.map(p => p.id));
     e.S.units = [];
@@ -65,14 +82,35 @@ function startGame(room, opts){
       members:[p.id], color:e.UNIT_COLORS[i % e.UNIT_COLORS.length]
     }));
   }
-  e.setBoard(e.S.players.length);
+  e.setBoard(e.S.players.length, e.S.modeId, e.S.mapId);
   e.S.giverIdx = 0; e.S.round = 0; e.S.used = [];
-  e.newRound();
+  dealOpeningCard(e);
 
   room.engine = e;
   room.movePick = null;
-  room.phase = phaseFor(e);
+  /* Round 1 is not dealt yet: everyone watches the order come up first and
+     taps in. Only then does newRound() run — so no word can leak early. */
+  room.accepted = [];
+  room.phase = "order";
   return room;
+}
+
+/* one player, one card, nobody told — a little swing before the first word */
+function dealOpeningCard(e){
+  const keys = e.packs().CARDKEYS;
+  const u = e.S.units[Math.floor(Math.random() * e.S.units.length)];
+  const key = keys[Math.floor(Math.random() * keys.length)];
+  u.cards = u.cards || [];
+  u.cards.push(key);
+  e.S.opening = { unitId:u.id, key };
+}
+
+/* everyone has tapped in (or the room skipped past someone): deal round 1 */
+function beginFirstRound(room){
+  const e = room.engine;
+  room.accepted = [];
+  e.newRound();
+  room.phase = phaseFor(e);
 }
 
 /* the engine's own screen names, mapped to what a room is doing */
@@ -109,7 +147,13 @@ function viewFor(room, pid){
     taken: room.players.map(p => p.face).filter(Boolean)
   };
   const e = room.engine;
-  if(!e || room.phase === "lobby") return base;
+  if(!e || room.phase === "lobby"){
+    /* the map is rolled the moment the room exists, so the lobby can show a
+       preview (and offer a reroll) before anybody has pressed start */
+    base.mapId = room.mapId || "classic";
+    base.gameMode = room.mode || "regular";
+    return base;
+  }
 
   const S = e.S, R = S.r;
   const MODS = e.packs().MODS;
@@ -119,6 +163,8 @@ function viewFor(room, pid){
   base.round   = S.round;
   base.rows    = e.ROWS();
   base.mode    = S.mode;
+  base.gameMode = S.modeId;
+  base.mapId    = S.mapId;
   const faceOfPlayer = pid => (room.players.find(x => x.id === pid) || {}).face;
   base.units   = S.units.map(u => ({
     id:u.id, name:u.name, score:u.score, pos:u.pos, color:u.color,
@@ -126,7 +172,7 @@ function viewFor(room, pid){
     faces: u.members.map(faceOfPlayer).filter(Boolean),
     members:u.members, cards:(u.cards||[]).length, mine:u.id === (myUnit && myUnit.id)
   }));
-  base.winner  = (S.units.find(u => e.atFinish(u)) || {}).id || null;
+  base.winner  = (e.winnerUnit() || {}).id || null;
 
   if(R){
     const isGiver = R.giver === pid;
@@ -136,6 +182,8 @@ function viewFor(room, pid){
     base.mod       = { key:R.mod, name:MODS[R.mod].n, desc:MODS[R.mod].d };
     base.challenge = R.challenge;
     base.topic     = R.topic ? e.packs().TOPICS[R.topic].n : null;
+    /* the key as well as the name — the phone draws an emblem off it */
+    base.topicKey  = R.topic || null;
     base.lockedOut = R.lockedOut.slice();
     base.iAmOut    = R.lockedOut.indexOf(pid) >= 0;
     base.total     = R.total;
@@ -220,6 +268,31 @@ function viewFor(room, pid){
     }
   }
 
+  if(room.phase === "order"){
+    const accepted = room.accepted || [];
+    base.order = {
+      seats: S.players.map(p => ({ id:p.id, name:p.name, in:accepted.indexOf(p.id) >= 0 })),
+      mineIn: accepted.indexOf(pid) >= 0,
+      left: S.players.length - accepted.length
+    };
+  }
+
+  if(room.phase === "wild" && S.wild){
+    const u = e.unitById(S.wild.unitId), CARDS = e.packs().CARDS;
+    base.wild = Object.assign({}, S.wild, {
+      mine: !!(u && u.members.indexOf(pid) >= 0),
+      cardName: S.wild.card ? CARDS[S.wild.card].n : null,
+      cardDesc: S.wild.card ? CARDS[S.wild.card].d : null
+    });
+  }
+
+  /* the free card dealt at kickoff — told to its holder alone, and only until
+     the first round begins */
+  if(room.phase === "order" && S.opening && myUnit && myUnit.id === S.opening.unitId){
+    const CARDS = e.packs().CARDS;
+    base.opening = { key:S.opening.key, n:CARDS[S.opening.key].n, d:CARDS[S.opening.key].d };
+  }
+
   const blocked = blockedBy(room);
   if(blocked) base.blocked = blocked;
   base.idleMs = IDLE_MS;          /* the phones count the same wait the server does */
@@ -240,6 +313,7 @@ function viewFor(room, pid){
 function squareType(e, p){
   if(p.r > e.ROWS()) return { key:"END", name:null };
   if(e.isCardNode(p.r, p.c)) return { key:"CARD", name:null };
+  if(e.isWildNode(p.r, p.c)) return { key:"WILD", name:null };
   const ty = e.nodeTypeAt(p.r, p.c);
   const MODS = e.packs().MODS;
   return { key:ty, name:MODS[ty].n, desc:MODS[ty].d };
@@ -254,13 +328,18 @@ const IDLE_SLACK_MS = 2500;
 /* the phones whose turn it is — nobody else can act until one of them does */
 function awaitedIds(room){
   const e = room.engine;
-  if(!e || !e.S.r) return [];
+  if(!e) return [];
+  /* the order screen runs before round one exists, so it is answered first */
+  if(room.phase === "order")
+    return e.S.players.filter(p => (room.accepted || []).indexOf(p.id) < 0).map(p => p.id);
+  if(!e.S.r) return [];
   const S = e.S, R = S.r;
   const members = uid => { const u = e.unitById(uid); return u ? u.members.slice() : []; };
   switch(room.phase){
     case "giver": case "judge": case "swap": return [R.giver];
     case "move":  return members(moveOrder(e)[S.moveSeat]);
     case "award": return members(S.awardFor);
+    case "wild":  return members(S.wild && S.wild.unitId);
     case "blind": return S.players.filter(p => p.id !== R.giver).map(p => p.id);
     default:      return [];
   }
@@ -269,13 +348,18 @@ function awaitedIds(room){
 /* who the game cannot proceed without, present or not */
 function waitingOn(room){
   const e = room.engine;
-  if(!e || !e.S.r) return null;
-  const S = e.S, R = S.r;
+  if(!e) return null;
   const who = id => {
     const p = room.players.find(x => x.id === id) || {};
     return { id, name:p.name || "?", face:p.face, online:!!p.online,
              forMs: Math.max(0, Date.now() - (room.phaseAt || Date.now())) };
   };
+  if(room.phase === "order"){
+    const late = awaitedIds(room);
+    return late.length ? who(late[0]) : null;
+  }
+  if(!e.S.r) return null;
+  const S = e.S, R = S.r;
   const firstOf = uid => {
     const u = e.unitById(uid);
     if(!u) return null;
@@ -287,21 +371,29 @@ function waitingOn(room){
     case "blind":  return null;                  /* anyone but the giver may act */
     case "move":   return firstOf(moveOrder(e)[S.moveSeat]);
     case "award":  return firstOf(S.awardFor);
+    case "wild":   return firstOf(S.wild && S.wild.unitId);
     default:       return null;
   }
 }
 
 function blockedBy(room){
   const e = room.engine;
-  if(!e || !e.S.r) return null;
-  const S = e.S, R = S.r;
+  if(!e) return null;
   const on = id => { const p = room.players.find(x => x.id === id); return !!(p && p.online); };
   const who = id => { const p = room.players.find(x => x.id === id) || {}; return { id, name:p.name || "?" }; };
+  const stalled = () => (Date.now() - (room.phaseAt || Date.now())) > (IDLE_MS - IDLE_SLACK_MS);
+  if(room.phase === "order"){
+    const late = awaitedIds(room);
+    if(!late.length) return null;
+    const gone = late.find(id => !on(id));
+    return gone ? who(gone) : (stalled() ? who(late[0]) : null);
+  }
+  if(!e.S.r) return null;
+  const S = e.S, R = S.r;
   const unitBlocked = uid => {
     const u = e.unitById(uid);
     return (u && !u.members.some(on)) ? who(u.members[0]) : null;
   };
-  const stalled = () => (Date.now() - (room.phaseAt || Date.now())) > (IDLE_MS - IDLE_SLACK_MS);
   switch(room.phase){
     case "giver": case "judge": case "swap":
       return (!on(R.giver) || stalled()) ? who(R.giver) : null;
@@ -309,6 +401,7 @@ function blockedBy(room){
       return (!S.players.some(p => p.id !== R.giver && on(p.id)) || stalled()) ? who(R.giver) : null;
     case "move":  return unitBlocked(moveOrder(e)[S.moveSeat]) || (stalled() ? waitingOn(room) : null);
     case "award": return unitBlocked(S.awardFor)               || (stalled() ? waitingOn(room) : null);
+    case "wild":  return unitBlocked(S.wild && S.wild.unitId)  || (stalled() ? waitingOn(room) : null);
     default:      return null;          /* the host can always move these on */
   }
 }
@@ -322,9 +415,19 @@ function moveOrder(e){
    that phone is entitled to do, whatever it sends.                          */
 function applyAction(room, me, body, ctx){
   const e = room.engine;
+  const type = body.type;
+
+  /* rerolling the map is a lobby-only affair — there is no engine yet to
+     hang the "not_started" check off, so it is handled before that check */
+  if(type === "reroll_map"){
+    if(room.phase !== "lobby") return { error:"already_started" };
+    if(room.hostId !== me.id) return { error:"host_only" };
+    room.mapId = randomMapId(room.mapId);
+    return { ok:true };
+  }
+
   if(!e) return { error:"not_started" };
   const S = e.S, R = S.r;
-  const type = body.type;
   const isGiver = R && R.giver === me.id;
 
   switch(type){
@@ -454,7 +557,7 @@ function applyAction(room, me, body, ctx){
   case "next": {
     if(room.phase !== "reveal") return { error:"not_now" };
     if(!isGiver && room.hostId !== me.id) return { error:"not_your_turn" };
-    if(S.units.some(u => e.atFinish(u))){ S.screen = "over"; room.phase = "over"; return { ok:true }; }
+    if(e.isGameOver()){ S.screen = "over"; room.phase = "over"; return { ok:true }; }
     S.moveSeat = 0; room.movePick = null;
     if(!moveOrder(e).length){ e.newRound(); room.phase = phaseFor(e); return { ok:true }; }
     S.awardFor = null; S.offers = null;
@@ -491,7 +594,33 @@ function applyAction(room, me, body, ctx){
       room.phase = "award";
       return { ok:true };
     }
+    if(e.isWildNode(u.pos.r, u.pos.c) && !e.atFinish(u)){
+      S.wild = e.rollWild(u);
+      room.phase = "wild";
+      return { ok:true };
+    }
     advanceMove(room);
+    return { ok:true };
+  }
+
+  /* the wildcard square: rolled and applied already, this is the phone that
+     landed on it saying it has read what happened */
+  case "wildok": {
+    if(room.phase !== "wild" || !S.wild) return { error:"not_now" };
+    const u = e.unitById(S.wild.unitId);
+    if(!u || u.members.indexOf(me.id) < 0) return { error:"not_your_turn" };
+    S.wild = null;
+    advanceMove(room);
+    return { ok:true };
+  }
+
+  /* the play order is up on every phone: each one taps in, and the first
+     round is dealt only once they all have */
+  case "order_ok": {
+    if(room.phase !== "order") return { error:"not_now" };
+    if(!S.players.some(p => p.id === me.id)) return { error:"not_your_turn" };
+    if((room.accepted || []).indexOf(me.id) < 0) (room.accepted = room.accepted || []).push(me.id);
+    if(S.players.every(p => room.accepted.indexOf(p.id) >= 0)) beginFirstRound(room);
     return { ok:true };
   }
 
@@ -561,8 +690,10 @@ function applyAction(room, me, body, ctx){
     /* anyone still holding a phone may carry on — except the person the room
        is waiting for, who would otherwise skip their own turn */
     if(awaitedIds(room).indexOf(me.id) >= 0) return { error:"your_turn" };
+    if(room.phase === "order"){ beginFirstRound(room); return { ok:true }; }
     if(room.phase === "move"){ advanceMove(room); return { ok:true }; }
     if(room.phase === "award"){ S.awardFor = null; S.offers = null; advanceMove(room); return { ok:true }; }
+    if(room.phase === "wild"){ S.wild = null; advanceMove(room); return { ok:true }; }
     e.pauseClock(); ctx.clearClock();
     R.solvedBy = null; R.solveMs = null; R.judging = null;
     /* the round can be abandoned before a word was ever chosen, and the
@@ -576,8 +707,13 @@ function applyAction(room, me, body, ctx){
   case "again": {
     if(room.phase !== "over" || room.hostId !== me.id) return { error:"not_your_turn" };
     S.units.forEach(u => { u.score = 0; u.cards = []; u.pos = e.startPos(); });
-    S.round = 0; S.giverIdx = 0; S.used = []; S.moveSeat = 0; room.movePick = null;
-    e.newRound(); room.phase = phaseFor(e);
+    S.round = 0; S.giverIdx = 0; S.used = []; S.moveSeat = 0; S.wild = null; room.movePick = null;
+    /* a fresh game earns a fresh order and a fresh opening card, and the
+       table gets the same reveal it got the first time */
+    S.players = e.shuffle(S.players);
+    dealOpeningCard(e);
+    room.accepted = [];
+    room.phase = "order";
     return { ok:true };
   }
 
@@ -591,7 +727,7 @@ function advanceMove(room){
   S.moveSeat += 1;
   room.movePick = null;
   if(S.moveSeat >= moveOrder(e).length){
-    if(S.units.some(x => e.atFinish(x))){ S.screen = "over"; room.phase = "over"; }
+    if(e.isGameOver()){ S.screen = "over"; room.phase = "over"; }
     else { e.newRound(); room.phase = phaseFor(e); }
   } else {
     S.screen = "move"; room.phase = "move";
@@ -617,4 +753,5 @@ function cardFace(lang, key){
 }
 
 module.exports = { startGame, applyAction, viewFor, timeUp, armClock, clearClock,
-                   moveOrder, blockedBy, waitingOn, awaitedIds, uiPack, cardFace, IDLE_MS, MIN_PLAYERS };
+                   moveOrder, blockedBy, waitingOn, awaitedIds, uiPack, cardFace, IDLE_MS, MIN_PLAYERS,
+                   randomMapId, MODE_IDS, MAP_IDS };

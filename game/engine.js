@@ -92,6 +92,24 @@ function createEngine(){
    T:{n:"שותפים",   s:"זוג", d:"המשחק מגריל לנותן שותף. אם השותף קולט — שניהם מקבלים."}
   };
 
+  /* ============ game modes ============
+     Every game is played inside a mode: how long the clock runs, how many
+     rows the board carries, how the four column-mods get skewed away from
+     the map's own baseline pattern, and how the game decides its winner.
+     "regular" is deliberately inert on every one of these knobs — a game
+     played with modeId "regular" must come out identical to the game this
+     engine played before modes existed at all. That is the safety net. */
+  const MODES = {
+   quick:    { id:"quick",     timer:{ normal:60,  fast:30 }, rowsDelta:-4,
+               reweighChance:0.35, modWeights:{ S:6, F:3, O:1, D:1, T:1, M:0, B:0 }, win:"first" },
+   regular:  { id:"regular",   timer:{ normal:90,  fast:45 }, rowsDelta:0,
+               reweighChance:0,    modWeights:null, win:"first" },
+   slow:     { id:"slow",      timer:{ normal:120, fast:60 }, rowsDelta:4,
+               reweighChance:0.35, modWeights:{ S:6, F:1, O:1, D:1, T:1, M:0, B:0 }, win:"first" },
+   challenge:{ id:"challenge", timer:{ normal:75,  fast:35 }, rowsDelta:0,
+               reweighChance:0.5,  modWeights:{ S:1, F:1, O:3, M:3, B:3, D:2, T:1 }, win:"score", scoreTarget:20 }
+  };
+
   /* ============ interface strings ============ */
   const EN_UI = {
    lang_k:"Language", kick:"One sentence &middot; one shot", tagline:"Pick a word. Aim a single sentence at one person. Land it as late as you can.",
@@ -423,21 +441,150 @@ function createEngine(){
     const c = VAL_TINT[k];
     return '<span class="wv" style="background:'+c[0]+';color:'+c[1]+'">'+v+'</span>';
   }
-  function boardRows(n){ return n <= 5 ? 16 : (n === 6 ? 14 : 12); }
-  function ROWS(){ return (S && S.rows) || 16; }
-  function setBoard(n){ S.rows = boardRows(n); }
-  const TYPE_PATTERN = {
-    0:["S","S","T","S","S","S"],
-    1:["S","F","S","O","S","F"],
-    2:["O","D","S","T","D","S"],
-    3:["B","M","D","B","M","B"]
+  /* ============ maps ============
+     Five boards. Each one keeps the same 4-column, "step up or drift a lane"
+     shape as the original, but carries its own mod-type cycle (the grid the
+     original TYPE_PATTERN was), its own card-square rule, its own row-count
+     nudge, and a themeId the client repaints the board with. "classic" is
+     byte-for-byte the board this game always had, so mapId "classic" with
+     modeId "regular" reproduces today's game exactly. */
+  const MAPS = {
+   classic:{ id:"classic", themeId:"classic", rowsDelta:0,
+     pattern:{ 0:["S","S","T","S","S","S"], 1:["S","F","S","O","S","F"],
+               2:["O","D","S","T","D","S"], 3:["B","M","D","B","M","B"] },
+     cardRule:{ col:1, every:3 }, wildRule:{ col:3, every:7 } },
+   twist:{ id:"twist", themeId:"twist", rowsDelta:0,
+     pattern:{ 0:["S","S","S","T","S","S"], 1:["F","S","O","S","F","T"],
+               2:["S","D","T","D","S","O"], 3:["M","B","B","D","M","B"] },
+     cardRule:{ col:2, every:4 }, wildRule:{ col:0, every:7 } },
+   storm:{ id:"storm", themeId:"storm", rowsDelta:2,
+     pattern:{ 0:["S","T","S","S","T","S"], 1:["F","O","F","D","O","F"],
+               2:["D","B","T","B","D","B"], 3:["M","B","M","B","M","D"] },
+     cardRule:{ col:1, every:4 }, wildRule:{ col:2, every:6 } },
+   sprint:{ id:"sprint", themeId:"sprint", rowsDelta:-3,
+     pattern:{ 0:["S","S","S","S","S","S"], 1:["S","F","S","F","S","T"],
+               2:["F","S","D","S","F","O"], 3:["O","T","S","D","O","S"] },
+     cardRule:{ col:0, every:3 }, wildRule:{ col:3, every:6 } },
+   chaos:{ id:"chaos", themeId:"chaos", rowsDelta:0,
+     pattern:{ 0:["S","T","D","S","T","S"], 1:["O","D","T","F","D","O"],
+               2:["D","T","B","T","D","M"], 3:["B","M","B","M","B","D"] },
+     cardRule:{ col:3, every:3 }, wildRule:{ col:1, every:5 } }
   };
+  function baseRowsForN(n){ return n <= 5 ? 16 : (n === 6 ? 14 : 12); }
+  function boardRows(n, modeId, mapId){
+    const mode = MODES[modeId] || MODES.regular;
+    const map = MAPS[mapId] || MAPS.classic;
+    return Math.max(8, baseRowsForN(n) + (mode.rowsDelta||0) + (map.rowsDelta||0));
+  }
+  function ROWS(){ return (S && S.rows) || 16; }
+  /* the map's raw pattern, nudged by the mode's weight table. "regular" has
+     no modWeights at all, so it always hands back the map's pattern as-is —
+     no randomness, no regression risk, whatever mapId ends up in play. */
+  function buildPattern(map, modeId){
+    const mode = MODES[modeId] || MODES.regular;
+    const base = map.pattern;
+    if(!mode.modWeights || !mode.reweighChance) return base;
+    const letters = Object.keys(mode.modWeights);
+    const total = letters.reduce((s,l) => s + mode.modWeights[l], 0);
+    const weighted = () => {
+      let r = Math.random() * total;
+      for(const l of letters){ r -= mode.modWeights[l]; if(r <= 0) return l; }
+      return letters[letters.length-1];
+    };
+    const out = {};
+    Object.keys(base).forEach(c => {
+      out[c] = base[c].map(cell => (cell === "S" || Math.random() >= mode.reweighChance) ? cell : weighted());
+    });
+    return out;
+  }
+  function setBoard(n, modeId, mapId){
+    const mode = MODES[modeId] || MODES.regular;
+    const map = MAPS[mapId] || MAPS.classic;
+    S.modeId = mode.id; S.mapId = map.id;
+    S.rows = boardRows(n, mode.id, map.id);
+    S.pattern = buildPattern(map, mode.id);
+    S.cardRule = map.cardRule;
+    S.wildRule = map.wildRule;
+  }
   function nodeTypeAt(r,c){
     if(r <= 0) return "S";
     if(r > ROWS()) return "S";
-    return TYPE_PATTERN[c][(r-1) % 6];
+    const pattern = (S && S.pattern) || MAPS.classic.pattern;
+    const col = pattern[c] || MAPS.classic.pattern[c];
+    return col[(r-1) % col.length];
   }
-  function isCardNode(r,c){ return r > 0 && r <= ROWS() && c === 1 && r % 3 === 0; }
+  function isCardNode(r,c){
+    if(r <= 0 || r > ROWS()) return false;
+    const rule = (S && S.cardRule) || MAPS.classic.cardRule;
+    return c === rule.col && r % rule.every === 0;
+  }
+  /* the wildcard square: rarer than a card square, and always in a different
+     lane, so the two rules can never claim the same node */
+  function isWildNode(r,c){
+    if(r <= 0 || r > ROWS()) return false;
+    if(isCardNode(r,c)) return false;
+    const rule = (S && S.wildRule) || MAPS.classic.wildRule;
+    return c === rule.col && r % rule.every === 0;
+  }
+  /* Landing on one rolls a single outcome and applies it on the spot. The new
+     position is never re-examined afterwards — a leap onto another wildcard
+     stops there, which keeps one unlucky roll from cascading. */
+  const WILD_ODDS = [
+    { kind:"card",    w:35 }, { kind:"leap", w:20 }, { kind:"slip",    w:15 },
+    { kind:"steal",   w:10 }, { kind:"swap", w:10 }, { kind:"jackpot", w:10 }
+  ];
+  function rollWildKind(){
+    const total = WILD_ODDS.reduce((s,o) => s + o.w, 0);
+    let r = Math.random() * total;
+    for(const o of WILD_ODDS){ r -= o.w; if(r <= 0) return o.kind; }
+    return WILD_ODDS[0].kind;
+  }
+  function applyWild(u, kind){
+    const out = { unitId:u.id, unitName:u.name, kind:kind };
+    if(kind === "card"){
+      const key = CARDKEYS[Math.floor(Math.random() * CARDKEYS.length)];
+      u.cards = u.cards || []; u.cards.push(key);
+      out.card = key;
+    } else if(kind === "leap"){
+      const to = Math.min(ROWS(), u.pos.r + 2);
+      out.fromRow = u.pos.r; out.toRow = to;
+      u.pos = { r:to, c:u.pos.c };
+    } else if(kind === "slip"){
+      const to = Math.max(1, u.pos.r - 1);
+      out.fromRow = u.pos.r; out.toRow = to;
+      u.pos = { r:to, c:u.pos.c };
+    } else if(kind === "steal"){
+      const lead = S.units.filter(x => x.id !== u.id && x.score > 0)
+                          .sort((a,b) => b.score - a.score)[0];
+      if(lead){ lead.score = Math.max(0, lead.score - 1); u.score = Math.max(0, u.score + 1); }
+      out.from = lead ? lead.name : null;
+    } else if(kind === "swap"){
+      /* only with someone genuinely out on the board: trading with a unit
+         still on the start line would be a harsher punishment than any
+         outcome here is meant to be */
+      const others = S.units.filter(x => x.id !== u.id && posOf(x).r >= 1 && !atFinish(x));
+      const other = others[Math.floor(Math.random() * others.length)];
+      if(other){ const mine = u.pos; u.pos = other.pos; other.pos = mine; }
+      out.with = other ? other.name : null;
+    } else if(kind === "jackpot"){
+      u.score = Math.max(0, u.score + 2);
+    }
+    return out;
+  }
+  function rollWild(u){ return applyWild(u, rollWildKind()); }
+  /* who wins, and when: "first" is the board itself — first unit to cross
+     the finish line. "score" (Challenge) targets a score, but the finish
+     line still stands as a safety net so a stalled game cannot run forever. */
+  function winnerUnit(){
+    const mode = MODES[(S && S.modeId)] || MODES.regular;
+    const atEnd = S.units.find(u => atFinish(u));
+    if(mode.win === "score"){
+      const target = mode.scoreTarget || 20;
+      return S.units.find(u => u.score >= target) || atEnd || null;
+    }
+    return atEnd || null;
+  }
+  function isGameOver(){ return !!winnerUnit(); }
   function colColor(c){ return ["var(--accent)","var(--good)","var(--blind)","var(--guilty)"][c]; }
   function colSoft(c){ return ["var(--accent-soft)","var(--good-soft)","var(--blind-soft)","var(--guilty-soft)"][c]; }
   function colInk(c){ return ["var(--accent-ink)","var(--good-ink)","var(--blind-ink)","var(--guilty-ink)"][c]; }
@@ -486,6 +633,7 @@ function createEngine(){
   function freshState(){
     return { screen:"setup", lang:(typeof S!=="undefined"&&S&&S.lang)||"en",
              names:["Dana","Savta","Ilan","Yoni"], mode:"solo",
+             modeId:"regular", mapId:"classic", pattern:null, cardRule:null,
              players:[], units:[], giverIdx:0, round:0, used:[], r:null, result:null,
              rows:16, steps:{}, moveSeat:0, offers:null, boardBack:null, cardsWho:null };
   }
@@ -515,8 +663,9 @@ function createEngine(){
       shot = others[Math.floor(Math.random()*others.length)].id; shotPublic = true;
     }
     if(S.forceBlind){ S.forceBlind = false; }
+    const modeTimer = (MODES[S.modeId] || MODES.regular).timer;
     S.r = { giver, words, pick:null, challenge: (mod==="B" ? "open" : null), topic:null, shot: (mod==="B"?null:shot), shotPublic: (mod==="B"?false:shotPublic), mod,
-            total: (mod==="F") ? 45 : 90,
+            total: (mod==="F") ? modeTimer.fast : modeTimer.normal,
             acc:0, startedAt:null, lockedOut:[], solvedBy:null, solveMs:null,
             judging:null, doubles:[], insight:false, veto:false, mimeCard:false, swapped:false };
     S.round += 1; S.result = null; S.steps = {}; S.moveSeat = 0; S.offers = null;
@@ -617,6 +766,8 @@ function createEngine(){
     boardRows,
     nodeTypeAt,
     isCardNode,
+    isWildNode,
+    rollWild,
     colColor,
     startPos,
     posOf,
@@ -626,10 +777,13 @@ function createEngine(){
     modOf,
     nodeXY,
     key,
+    winnerUnit,
+    isGameOver,
     get CHALLENGES(){ return CHALLENGES; },
     get UNIT_COLORS(){ return UNIT_COLORS; },
     get COLS(){ return COLS; },
-    get TYPE_PATTERN(){ return TYPE_PATTERN; },
+    get MODES(){ return MODES; },
+    get MAPS(){ return MAPS; },
     packs(){ return { W, CARDS, MODS, TOPICS, TIER, CARDKEYS, D }; }
   };
 }

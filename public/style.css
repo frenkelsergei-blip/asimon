@@ -9,7 +9,14 @@
   --good:#12B886;   --good-deep:#0D8F69;   --good-soft:#E6F7F1;   --good-ink:#0D8F69;
   --blind:#FFB020;  --blind-deep:#D18A08;  --blind-soft:#FFF3DB;  --blind-ink:#B77800;
   --guilty:#FF5A3D; --guilty-deep:#D8351C; --guilty-soft:#FFEDE9; --guilty-ink:#D8351C;
-  --violet:#7A5AF8;
+  --violet:#7A5AF8; --violet-soft:#EFEAFF; --violet-ink:#5B3FD1;
+  /* per-map board palettes — four lane colours each, "classic" matching the
+     game's original accent/good/blind/guilty lanes exactly */
+  --map-classic-0:var(--accent); --map-classic-1:var(--good); --map-classic-2:var(--blind); --map-classic-3:var(--guilty);
+  --map-twist-0:#7A5AF8;  --map-twist-1:#12B886;  --map-twist-2:#DB2777;  --map-twist-3:#D97706;
+  --map-storm-0:#0891B2;  --map-storm-1:#4D7C0F;  --map-storm-2:#FF5A3D;  --map-storm-3:#7A5AF8;
+  --map-sprint-0:#12B886; --map-sprint-1:#2C6BFF; --map-sprint-2:#0891B2; --map-sprint-3:#4D7C0F;
+  --map-chaos-0:#DB2777;  --map-chaos-1:#D97706;  --map-chaos-2:#7A5AF8;  --map-chaos-3:#FF5A3D;
   --tone:var(--accent); --tone-soft:var(--accent-soft); --tone-ink:var(--accent-ink); --wash:.12;
   --display:"Suez One",Georgia,serif;
   --logo:"Rubik",system-ui,"Segoe UI",Arial,sans-serif;
@@ -79,9 +86,15 @@ input.code{font-family:var(--display);font-weight:400;font-size:34px;text-align:
 .av{width:34px;height:34px;flex:0 0 34px;border-radius:50%;display:grid;place-items:center;
   font-size:11px;font-weight:800;letter-spacing:.04em;color:#fff;direction:ltr}
 .av.sm{width:26px;height:26px;flex:0 0 26px;font-size:9.5px}
+/* for the screens that hold nothing but a face and a line of text */
+.av.big{width:min(46vw,132px);height:min(46vw,132px);flex:0 0 auto;font-size:40px;
+  box-shadow:0 10px 30px -18px rgba(23,22,28,.55)}
 
 /* receipts: the room code, the revealed word, the secret */
-.hero{background:var(--ink);color:#fff;border-radius:18px 18px 4px 4px;padding:22px;overflow:clip}
+.hero{position:relative;background:var(--ink);color:#fff;border-radius:18px 18px 4px 4px;
+  padding:22px;overflow:clip}
+.hero .kicker,.hero .bigword,.hero .herorow{position:relative;z-index:1}
+.hero .wmk{opacity:.17;inset-inline-end:-16px}
 .hero.good{background:var(--good)}
 .hero.secret{background:var(--blind);color:#221700}
 .hero.none{background:var(--sunk);color:var(--ink)}
@@ -216,16 +229,26 @@ input.code{font-family:var(--display);font-weight:400;font-size:34px;text-align:
 .gcard .cn{font-size:17px;font-weight:800}
 .gcard .cd{font-size:13.5px;line-height:1.45;color:var(--muted)}
 .gcard .cw{font-size:11px;letter-spacing:.06em;font-weight:800;color:var(--tone-ink)}
-.topicgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
-.topic{padding:13px 10px;min-height:58px;display:grid;place-items:center;text-align:center;
-  font-size:14.5px;font-weight:800;line-height:1.2}
-.wordcard{padding:0 16px;height:66px;display:flex;align-items:center;justify-content:space-between;gap:14px}
-.wordcard .wt{font-size:20px;font-weight:800;line-height:1.15}
-.wordcard .wv{width:30px;height:30px;flex:0 0 30px;border-radius:50%;display:grid;place-items:center;
-  font-size:14px;font-weight:800;font-variant-numeric:tabular-nums;direction:ltr}
+.topicgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.topic{padding:11px 6px 10px;min-height:92px;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:7px}
+.topic .tn{font-size:13px;font-weight:800;line-height:1.15;text-align:center}
+.topic.on{background:var(--accent-soft);border-color:var(--accent)}
+.wordcard{position:relative;overflow:hidden;padding:0 14px;height:70px;display:flex;align-items:center;
+  justify-content:space-between;gap:14px}
+.wordcard .wt{position:relative;font-size:20px;font-weight:800;line-height:1.15}
+.wordcard .wv{position:relative;flex:none;display:flex;flex-direction:column;align-items:center;gap:2px;
+  border-radius:10px;padding:5px 9px 6px;min-width:34px}
+.wordcard .wv b{font-family:var(--display);font-weight:400;font-size:19px;line-height:1;direction:ltr}
+.wordcard .wv i{width:14px;height:14px;line-height:0;display:block}
 .wordcard.on{background:var(--blind);border-color:var(--blind-deep)}
 .wordcard.on .wt{color:#221700}
 .wordcard.on .wv{background:#221700!important;color:var(--blind)!important}
+
+/* the topic, drawn once and large, behind the word when it is finally read out */
+.wmk{position:absolute;inset-inline-end:-18px;top:50%;transform:translateY(-50%);
+  opacity:.16;line-height:0;pointer-events:none;z-index:0}
+.wmk svg{display:block}
 .suslist{display:flex;flex-direction:column;gap:8px}
 .sus{display:flex;align-items:center;gap:12px;padding:13px 14px;font-size:17px;font-weight:800}
 .sus .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -238,6 +261,8 @@ input.code{font-family:var(--display);font-weight:400;font-size:34px;text-align:
 .sentence,.mod{background:var(--surface);border:1px solid var(--rule);border-radius:14px;
   padding:13px 16px 14px;display:flex;flex-direction:column;gap:4px;
   box-shadow:0 1px 2px rgba(23,22,28,.04)}
+.sentence.art,.mod.art{flex-direction:row;align-items:center;gap:12px;padding:11px 14px 12px}
+.sentence.art .mt,.mod.art .mt{min-width:0;flex:1;display:flex;flex-direction:column;gap:3px}
 .sentence .sl,.mod .sl{font-size:10.5px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;
   color:var(--muted)}
 .sentence .sw{font-family:var(--display);font-weight:400;font-size:23px;line-height:1.22;color:var(--ink)}
@@ -260,7 +285,9 @@ input.code{font-family:var(--display);font-weight:400;font-size:34px;text-align:
 .payoff .best{background:var(--good-soft);color:var(--good-ink)}
 .payoff .meh{background:var(--sunk)}
 .payoff .none{background:var(--guilty-soft);color:var(--guilty-ink)}
-.band div{font-size:12.5px;font-weight:700;line-height:1.25}
+.band div{font-size:12.5px;font-weight:700;line-height:1.25;align-items:center;gap:4px}
+.band .bg{opacity:.55}
+.band .hit .bg{opacity:1}
 .band .hit{color:#fff}
 .band .hit.great{background:var(--good)}
 .band .hit.ok{background:var(--accent)}
@@ -292,14 +319,9 @@ input.code{font-family:var(--display);font-weight:400;font-size:34px;text-align:
    ============================================================ */
 
 /* ---- card faces ---- */
-.ctile{width:46px;height:46px;flex:0 0 46px;border-radius:14px;display:grid;place-items:center}
-.ctile.sm{width:34px;height:34px;flex:0 0 34px;border-radius:11px}
-.ctile.t-accent{background:var(--accent-soft);color:var(--accent)}
-.ctile.t-good  {background:var(--good-soft);color:var(--good-ink)}
-.ctile.t-blind {background:var(--blind-soft);color:var(--blind-ink)}
-.ctile.t-guilty{background:var(--guilty-soft);color:var(--guilty)}
-.ctile.t-violet{background:#F1EDFE;color:var(--violet)}
-.ctile.t-ink   {background:var(--sunk);color:var(--ink)}
+.ctile{width:46px;height:46px;flex:0 0 46px;display:grid;place-items:center}
+.ctile.sm{width:34px;height:34px;flex:0 0 34px}
+.ctile svg,.em{display:block}
 .gcard.card{flex-direction:row;align-items:center;gap:13px}
 .gcard.card .ctext{min-width:0;display:flex;flex-direction:column;gap:3px}
 
@@ -348,7 +370,7 @@ input.code{font-family:var(--display);font-weight:400;font-size:34px;text-align:
   animation:drop .3s cubic-bezier(.2,.9,.3,1) both;max-width:400px}
 .banner .bn{font-weight:800;font-size:15px}
 .banner .bw{font-size:12.5px;opacity:.75}
-.banner .ctile{width:34px;height:34px;flex:0 0 34px;border-radius:11px}
+.banner .ctile{width:34px;height:34px;flex:0 0 34px}
 @keyframes drop{from{opacity:0;transform:translateY(-16px)}to{opacity:1;transform:none}}
 .banner.out .in{animation:lift .3s ease both}
 @keyframes lift{to{opacity:0;transform:translateY(-16px)}}
@@ -452,6 +474,7 @@ input.code{font-family:var(--display);font-weight:400;font-size:34px;text-align:
 .keyrow .kd em{font-style:normal;font-weight:800;color:var(--second)}
 .lgswatch{width:16px;height:16px;border-radius:5px;margin-top:3px}
 .lgmini{width:40px;height:22px;flex:0 0 40px}
+.lgbadge{display:flex;align-items:center;gap:7px;margin-top:2px}
 .lgtag{display:inline-grid;place-items:center;min-width:42px;height:19px;padding:0 8px;
   border:1.4px solid;border-radius:9.5px;background:var(--surface);
   font-size:10.5px;font-weight:800;line-height:1;margin-top:2px}
@@ -459,3 +482,174 @@ input.code{font-family:var(--display);font-weight:400;font-size:34px;text-align:
 .lgdiag{display:block;flex:none;width:min(100%,232px);aspect-ratio:220/104;height:auto;margin:0 auto}
 
 @media(prefers-reduced-motion:reduce){ .sheet,.sheetcard{animation:none!important} }
+
+/* ============================================================
+   Cards that behave like cards. A face, one shared back, a hand
+   you hold in a fan, and the turn-over when you win one.
+   ============================================================ */
+.pcard{position:relative;display:block;box-sizing:border-box;flex:none;
+  box-shadow:var(--shadow)}
+.pcard .pcf,.pcard .pcb{position:relative;width:100%;height:100%;overflow:hidden;
+  display:flex;flex-direction:column;align-items:center;justify-content:center}
+.pcard .pcn{font-family:var(--display);font-weight:400;line-height:1.1;text-align:center;
+  max-width:84%;overflow-wrap:anywhere}
+.pcard .pcx{position:absolute;line-height:0}
+/* the back: the token struck on a milled field, one for every card */
+.pcard .pcb{background-color:#1F1D26;
+  background-image:radial-gradient(circle,rgba(255,176,32,.20) 1.5px,transparent 1.6px);
+  box-shadow:inset 0 0 0 2px rgba(255,252,246,.92),inset 0 0 0 3.5px #1F1D26,
+             inset 0 0 0 5px rgba(255,176,32,.55);
+  display:grid;place-items:center}
+
+/* shut, the hand is a few backs peeking out of its own button */
+.handbtn{display:flex;align-items:center;justify-content:center;gap:12px}
+.handbtn .mini{position:relative;flex:none;display:block}
+.handbtn .mb{position:absolute;top:0;line-height:0;transform-origin:50% 120%}
+
+/* a card you can tap: the button is bare, the card is the whole control */
+.pcbtn{padding:0;background:none;border:0;box-shadow:none;width:auto;line-height:0;
+  cursor:pointer;-webkit-tap-highlight-color:transparent}
+
+/* ---- the hand, held in a fan ---- */
+.fan{position:relative;width:100%;margin-top:6px}
+.fan .pcbtn{position:absolute;left:50%;top:0;transform-origin:50% 128%;
+  transition:transform .22s cubic-bezier(.2,.8,.3,1)}
+.fan .pcbtn.up .pcard{box-shadow:0 1px 2px rgba(23,22,28,.06),0 26px 40px -18px rgba(23,22,28,.6)}
+.fanwrap{display:flex;flex-direction:column;gap:10px}
+/* the card standing clear of the others, with what it does and a way to play it */
+.raised{background:var(--surface);border:1px solid var(--rule);border-radius:14px;
+  padding:12px 15px 13px;display:flex;flex-direction:column;gap:3px}
+.raised .rn{font-size:16px;font-weight:800}
+.raised .rd{font-size:13px;line-height:1.5;color:var(--muted)}
+
+/* ---- winning a card: three off the deck, turned over one after another ---- */
+.deal{display:flex;gap:9px;justify-content:center;align-items:flex-start;padding:4px 0 2px}
+.deal .pcbtn{perspective:900px}
+.deal .flip{position:relative;display:block;transform-style:preserve-3d}
+.deal .side{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden}
+.deal .side.front{transform:rotateY(180deg)}
+.deal .side.back{transform:rotateY(0deg)}
+.deal.run .slide{display:block;animation:dealin .36s cubic-bezier(.2,.9,.3,1) both;
+  animation-delay:calc(var(--i) * .08s)}
+.deal.run .flip{animation:flipup .46s cubic-bezier(.3,.75,.35,1) both;
+  animation-delay:calc(.42s + var(--i) * .14s)}
+.deal .flip{transform:rotateY(180deg)}
+@keyframes dealin{from{opacity:0;transform:translate(var(--dx),-26px) rotate(var(--dr))}
+                  to{opacity:1;transform:none}}
+@keyframes flipup{from{transform:rotateY(0deg)}to{transform:rotateY(180deg)}}
+.deal .pcbtn.dim{opacity:.5}
+
+/* ---- the card you just threw down ---- */
+.thrown{position:fixed;z-index:48;pointer-events:none;line-height:0;
+  transition:transform .55s cubic-bezier(.2,.8,.3,1),opacity .4s ease .2s}
+
+/* ---- the end: who is standing on what ---- */
+.podium{display:flex;align-items:flex-end;justify-content:center;gap:12px;margin:2px 0 4px}
+.podium .pcol{display:flex;flex-direction:column;align-items:center;gap:8px}
+.podium .pav{border-radius:50%;overflow:hidden;display:grid;place-items:center;color:#fff;
+  font-weight:800;letter-spacing:.04em;direction:ltr;flex:none}
+.podium .pav svg{display:block;width:100%;height:100%}
+.podium .pstep{border-radius:12px 12px 4px 4px;background:var(--sunk);display:grid;place-items:center;
+  font-family:var(--display);font-weight:400;color:var(--muted);direction:ltr}
+.podium .win .pav{box-shadow:0 0 0 5px var(--blind),0 14px 30px -12px rgba(23,22,28,.5)}
+.podium .win .pstep{background:var(--blind);color:#221700}
+.podium .crown{position:absolute;inset-inline-end:-8px;top:-8px;line-height:0}
+.podium .pcol .hold{position:relative;line-height:0}
+
+/* ---- a phone waiting on somebody else's phone ---- */
+.spin{line-height:0;animation:turn 3.6s linear infinite}
+@keyframes turn{from{transform:rotateY(0)}to{transform:rotateY(360deg)}}
+
+/* ---- a seat nobody is sitting in yet ---- */
+.seat{width:34px;height:34px;flex:0 0 34px;border-radius:50%;border:2px dashed var(--rule)}
+.prow.empty .pname{color:var(--faint);font-weight:700}
+
+@media(prefers-reduced-motion:reduce){
+  .fan .pcbtn,.deal.run .slide,.deal.run .flip,.spin{animation:none!important;transition:none!important}
+  .thrown{display:none}
+}
+
+/* ---- lobby: the 4-way game-mode selector ---- */
+.modesw{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:4px;border-radius:12px;
+  background:var(--surface);border:1px solid var(--rule)}
+.modesw button{width:auto;border-radius:9px;background:transparent;color:var(--muted);font-weight:700;
+  font-size:12.5px;padding:10px 4px;box-shadow:none;line-height:1.25}
+.modesw button.on{background:var(--accent);color:#fff}
+
+/* ---- lobby: the map preview chip + reroll ---- */
+.mapchip{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:14px;
+  background:var(--surface);border:1px solid var(--rule)}
+.mapswatch{width:38px;height:38px;flex:0 0 38px;border-radius:11px;display:grid;
+  grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;overflow:hidden}
+.mapswatch i{display:block}
+.mapchip .mt{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.mapchip .mn{font-size:14.5px;font-weight:800}
+.mapchip .md{font-size:12px;color:var(--muted);line-height:1.4}
+.mapchip .reroll{width:auto;flex:0 0 auto;padding:9px 13px;border-radius:10px;background:var(--sunk);
+  color:var(--ink);font-weight:700;font-size:13px;box-shadow:none}
+.mapchip .reroll:active{transform:scale(.96)}
+
+/* ---- in-game HUD: mode/map badge, next to the round chip ---- */
+.mmbadge{font-size:11px;font-weight:700;color:var(--muted);background:var(--sunk);
+  border-radius:999px;padding:5px 11px;white-space:nowrap}
+
+/* ---- the modes explainer sheet ---- */
+.modelist{display:flex;flex-direction:column;gap:8px}
+.modecard{display:flex;align-items:center;gap:12px;padding:12px 13px;border-radius:14px;
+  background:var(--surface);border:1px solid var(--rule)}
+.modecard .mi{flex:0 0 34px;width:34px;height:34px;border-radius:11px;background:var(--accent-soft);
+  color:var(--accent-ink);display:grid;place-items:center;font-size:13px;font-weight:800}
+.modecard .mt{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+.modecard .mt b{font-size:14.5px;font-weight:800}
+.modecard .mt span{font-size:12.5px;font-weight:600;color:var(--muted);line-height:1.4}
+
+/* ---- the play order, drawn in front of the whole table ---- */
+.ordrow{display:flex;justify-content:center;align-items:flex-start;gap:10px;flex-wrap:wrap;
+  padding:20px 0 8px;min-height:calc(var(--sz) + 56px);overflow:hidden}
+.ordtok{display:flex;flex-direction:column;align-items:center;gap:6px;width:var(--sz)}
+.ordtok .ordav{position:relative;display:block}
+.ordtok .av{width:var(--sz);height:var(--sz);flex:0 0 var(--sz);
+  font-size:calc(var(--sz) * .34);box-shadow:0 8px 22px -16px rgba(23,22,28,.6)}
+.ordtok .ordseat{font-size:11px;font-weight:800;letter-spacing:.02em;color:var(--accent-ink);
+  background:var(--accent-soft);border-radius:100px;padding:2px 8px;white-space:nowrap}
+.ordtok .ordname{font-size:12.5px;font-weight:700;color:var(--second);max-width:var(--sz);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ordtok .ordtick{position:absolute;inset-inline-end:-2px;bottom:-2px;
+  width:calc(var(--sz) * .32);height:calc(var(--sz) * .32);
+  border-radius:50%;background:var(--good);color:#fff;font-size:calc(var(--sz) * .18);
+  font-weight:800;font-style:normal;display:grid;place-items:center;border:2.5px solid var(--paper)}
+.ordtok:not(.rolling){animation:land .34s cubic-bezier(.2,.9,.3,1) both}
+.ordtok.rolling{animation:ordshuffle 2.1s cubic-bezier(.45,.05,.4,1) both}
+@keyframes ordshuffle{
+  0%  {transform:translateX(var(--a)) scale(.94);opacity:.55}
+  24% {transform:translateX(var(--b)) scale(1.02);opacity:1}
+  48% {transform:translateX(var(--c)) scale(.94)}
+  72% {transform:translateX(var(--d)) scale(1.02)}
+  88% {transform:translateX(0) scale(1.08)}
+  100%{transform:translateX(0) scale(1)}
+}
+.giftrow{display:flex;align-items:center;gap:12px;padding:13px;border-radius:14px;
+  background:var(--sunk);border:1px solid var(--rule);animation:rise .34s .1s both}
+.giftrow>span{display:flex;flex-direction:column;gap:2px;min-width:0}
+.giftrow b{font-size:14px;font-weight:800}
+.giftrow span span{font-size:12.5px;font-weight:600;color:var(--muted);line-height:1.4}
+.giftrow .giftname{color:var(--second);font-weight:700}
+
+/* ---- the wildcard square ---- */
+.wildcard{display:flex;flex-direction:column;align-items:center;gap:7px;text-align:center;
+  padding:28px 20px 26px;border-radius:20px;background:var(--surface);
+  border:1.5px dashed var(--violet);animation:land .4s cubic-bezier(.2,.9,.3,1) both}
+.wildcard .wildface{position:relative;display:block;margin-bottom:6px}
+.wildcard .wildmark{position:absolute;inset-inline-end:-4px;bottom:2px;
+  width:40px;height:40px;border-radius:50%;background:var(--violet);color:#fff;
+  font-family:var(--display);font-size:22px;font-style:normal;line-height:40px;
+  border:3px solid var(--surface);animation:tick 1.6s ease-in-out infinite}
+.wildcard .wildwho{font-size:12.5px;font-weight:700;color:var(--muted)}
+.wildcard .wildtitle{font-family:var(--display);font-weight:400;font-size:26px;line-height:1.1}
+.wildcard .wildline{font-size:14px;font-weight:600;color:var(--second);line-height:1.45;max-width:30ch}
+.wildcard .wildgot{display:inline-flex;align-items:center;gap:9px;margin-top:6px;padding:8px 12px;
+  border-radius:12px;background:var(--violet-soft);color:var(--violet-ink);
+  font-size:13.5px;font-weight:800}
+@media (prefers-reduced-motion:reduce){
+  .ordtok.rolling,.wildcard,.wildcard .wildmark,.giftrow{animation:none!important}
+}

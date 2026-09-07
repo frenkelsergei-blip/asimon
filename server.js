@@ -77,6 +77,8 @@ function makeRoom(){
     lang: "he",
     lanUrl: LAN_URL,          /* replaced by the public address when there is one */
     engine: null,                       // the rules, once the game starts
+    mode: "regular",                    // quick | regular | slow | challenge — chosen at start
+    mapId: play.randomMapId(),          // rolled the moment the room exists; rerollable pre-game
     movePick: null,
     clockTimer: null
   };
@@ -328,7 +330,7 @@ const server = http.createServer(async (req, res) => {
         if(room.hostId !== me.id) return sendJSON(res, 403, { error:"host_only" });
         if(room.phase !== "lobby") return sendJSON(res, 409, { error:"already_started" });
         if(room.players.length < play.MIN_PLAYERS) return sendJSON(res, 409, { error:"need_3" });
-        play.startGame(room, { mode: body.mode });
+        play.startGame(room, { mode: body.mode, gameMode: body.gameMode });
         broadcast(room);
         return sendJSON(res, 200, { ok:true });
       }

@@ -1,0 +1,78 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><script src="./support.js"></script></head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700;800&family=Rubik:wght@800&family=Suez+One&display=swap">
+  <style>
+    body{margin:0;background:#FFFCF6}
+    a{color:#2C6BFF}a:hover{color:#1B4FD1}
+  </style>
+</helmet>
+<div dir="rtl" style="width:660px;height:760px;background:#FFFCF6;font-family:'Assistant',system-ui,sans-serif;color:#17161C;box-sizing:border-box;padding:28px 28px 30px;display:flex;flex-direction:column;gap:20px;overflow:hidden">
+
+  <div style="display:flex;flex-direction:column;gap:5px">
+    <div style="font-family:'Suez One',Georgia,serif;font-size:30px;line-height:1.05">הלוח הפעם</div>
+    <div style="font-size:14.5px;color:#6B6A78">חמישה לוחות &mdash; צורה, מיקום קלפים ותמהיל סבבים שונים, וצבע משלהם. אחד מוגרל כשהחדר נפתח; המארח יכול להגריל שוב לפני שמתחילים.</div>
+  </div>
+
+  <!-- the lobby control: the map preview chip, with a reroll for the host -->
+  <div style="display:flex;flex-direction:column;gap:8px">
+    <p style="font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#6B6A78;margin:0;display:flex;align-items:center;gap:10px">בלובי, מתחת לרשימת השחקנים<span style="flex:1;height:1px;background:#E7E4F0"></span></p>
+    <div style="display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:14px;background:#FFFFFF;border:1px solid #E7E4F0">
+      <span style="width:38px;height:38px;flex:0 0 38px;border-radius:11px;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;overflow:hidden">
+        <i style="background:#0891B2;display:block"></i><i style="background:#4D7C0F;display:block"></i><i style="background:#FF5A3D;display:block"></i><i style="background:#7A5AF8;display:block"></i>
+      </span>
+      <span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px">
+        <span style="font-size:14.5px;font-weight:800">סופה</span>
+        <span style="font-size:12px;color:#6B6A78;line-height:1.4">לוח ארוך יותר, עמוס בסבבים קשים.</span>
+      </span>
+      <span style="width:auto;flex:0 0 auto;padding:9px 13px;border-radius:10px;background:#F4F2FA;color:#17161C;font-weight:700;font-size:13px">להגריל לוח אחר</span>
+    </div>
+  </div>
+
+  <!-- the in-game HUD: the badge riding next to the round chip in the topbar -->
+  <div style="display:flex;flex-direction:column;gap:8px">
+    <p style="font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#6B6A78;margin:0;display:flex;align-items:center;gap:10px">התג במסך המשחק, ליד שם נותן הרמז<span style="flex:1;height:1px;background:#E7E4F0"></span></p>
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;background:#FFFFFF;border:1px solid #E7E4F0;border-radius:14px;padding:12px 14px">
+      <p style="font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#6B6A78;margin:0">סבב 3</p>
+      <span style="font-size:11px;font-weight:700;color:#6B6A78;background:#F4F2FA;border-radius:999px;padding:5px 11px;white-space:nowrap">אתגר &middot; סופה</span>
+      <span style="display:inline-flex;align-items:center;gap:7px;padding:4px 11px 4px 4px;border-radius:999px;background:#F4F2FA;font-size:12.5px;font-weight:700;color:#6B6A78">
+        <span style="width:26px;height:26px;border-radius:50%;background:#12B886"></span>נועה
+      </span>
+    </div>
+  </div>
+
+  <!-- the five palettes, each a map's own board colours -->
+  <div style="display:flex;flex-direction:column;gap:8px">
+    <p style="font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#6B6A78;margin:0;display:flex;align-items:center;gap:10px">חמשת ערכות הצבע<span style="flex:1;height:1px;background:#E7E4F0"></span></p>
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px">
+      <div style="display:flex;flex-direction:column;gap:6px;align-items:center">
+        <span style="width:100%;height:14px;border-radius:7px;overflow:hidden;display:flex"><i style="flex:1;background:#2C6BFF"></i><i style="flex:1;background:#12B886"></i><i style="flex:1;background:#FFB020"></i><i style="flex:1;background:#FF5A3D"></i></span>
+        <span style="font-size:12px;font-weight:700">קלאסי</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px;align-items:center">
+        <span style="width:100%;height:14px;border-radius:7px;overflow:hidden;display:flex"><i style="flex:1;background:#7A5AF8"></i><i style="flex:1;background:#12B886"></i><i style="flex:1;background:#DB2777"></i><i style="flex:1;background:#D97706"></i></span>
+        <span style="font-size:12px;font-weight:700">תפנית</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px;align-items:center">
+        <span style="width:100%;height:14px;border-radius:7px;overflow:hidden;display:flex"><i style="flex:1;background:#0891B2"></i><i style="flex:1;background:#4D7C0F"></i><i style="flex:1;background:#FF5A3D"></i><i style="flex:1;background:#7A5AF8"></i></span>
+        <span style="font-size:12px;font-weight:700">סופה</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px;align-items:center">
+        <span style="width:100%;height:14px;border-radius:7px;overflow:hidden;display:flex"><i style="flex:1;background:#12B886"></i><i style="flex:1;background:#2C6BFF"></i><i style="flex:1;background:#0891B2"></i><i style="flex:1;background:#4D7C0F"></i></span>
+        <span style="font-size:12px;font-weight:700">ספרינט</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px;align-items:center">
+        <span style="width:100%;height:14px;border-radius:7px;overflow:hidden;display:flex"><i style="flex:1;background:#DB2777"></i><i style="flex:1;background:#D97706"></i><i style="flex:1;background:#7A5AF8"></i><i style="flex:1;background:#FF5A3D"></i></span>
+        <span style="font-size:12px;font-weight:700">תוהו ובוהו</span>
+      </div>
+    </div>
+  </div>
+
+  <div style="font-size:12.5px;color:#6B6A78">&laquo;קלאסי&raquo; משתמש באותם ארבעה צבעי מסלול שהלוח תמיד צייר &mdash; אין רגרסיה ויזואלית במשחק &laquo;רגיל&raquo; על לוח &laquo;קלאסי&raquo;.</div>
+</div>
+</x-dc>
+</body>
+</html>

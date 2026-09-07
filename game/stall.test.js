@@ -13,6 +13,8 @@ function room(names){
               players: names.map((n,i) => ({ id:"p"+i, name:n, online:true,
                                              face:["boy","girl","fox","owl"][i % 4] })) };
   play.startGame(r, {});
+  /* the play order goes up before round one — everyone taps in */
+  r.players.forEach(p => play.applyAction(r, p, { type:"order_ok" }, CTX));
   r.phaseAt = Date.now();
   return r;
 }

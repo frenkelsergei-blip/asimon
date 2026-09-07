@@ -26,6 +26,9 @@ const L = {
     someone:"{0} לחץ/ה", judging:"{0} בודק/ת את התשובה…", waitjudge:"מחכים לנותן/ת הרמז.",
     aim_at:"כוונו לאדם אחד", pass_note:"הטלפון נשאר אצלכם — אף אחד אחר לא רואה את המילים.",
     mode_k:"איך משחקים?", mode_solo:"כל אחד לעצמו", mode_teams:"בזוגות",
+    gm_k:"באיזו מהירות?", gm_teaser:"מהיר, רגיל, רגוע או אתגר — לכל אחד קצב אחר.",
+    gm_title:"אופני משחק", gm_close:"סגירה",
+    map_k:"הלוח הפעם", reroll:"להגריל לוח אחר", mm_fmt:"{0} · {1}",
     winner:"{0} מנצח/ת", wins_p:"{0} מנצחים", playagain:"עוד משחק",
     waitmove:"{0} זז/ה על הלוח.", waitmove_p:"{0} זזים על הלוח.",
     hand_k:"הקלפים שלכם", playcard:"להפעיל קלף", closehand:"סגירה",
@@ -80,9 +83,25 @@ const L = {
     lg_key_k:"מה יש על הלוח",
     lg_dot:"משבצת ריקה", lg_dot_d:"סבב רגיל. תשעים שניות, משפט אחד.",
     lg_card:"משבצת קלף", lg_card_d:"נחיתה עליה נותנת לכם קלף לבחירה.",
+    lg_wild:"משבצת הפתעה", lg_wild_d:"נדירה. נחיתה עליה מגלגלת משהו — לרוב לטובתכם.",
     lg_end:"הסוף", lg_end_d:"הראשון שמגיע מנצח.",
     lg_twist_k:"התוויות הצבעוניות",
     lg_you:"אתם כאן",
+    free_seat:"מקום פנוי", pick_card:"בחרו קלף מהיד", play_it:"לשחק את הקלף", take_it:"לקחת את הקלף",
+    ord_k:"סדר המשחק", ord_rolling:"מגרילים סדר…", ord_title:"זה הסדר",
+    ord_d:"מי נותן רמז ראשון, ומי אחרון. הסדר נקבע בהגרלה ונשאר ככה כל המשחק.",
+    ord_ok:"אני מוכן/ה", ord_in:"מוכן/ה", ord_wait:"מחכים לעוד {0}",
+    ord_first:"ראשון/ה", ord_last:"אחרון/ה",
+    ord_gift:"קלף מתנה — רק לכם", ord_gift_d:"התחלתם עם קלף. אף אחד לא יודע שהוא אצלכם.",
+    wild_k:"משבצת הפתעה", wild_hit:"{0} נחת/ה על הפתעה", wild_go:"ממשיכים",
+    wild_card:"קלף חינם", wild_card_d:"{0} — ישר ליד.",
+    wild_leap:"קפיצה קדימה", wild_leap_d:"שתי משבצות קדימה, בחינם.",
+    wild_slip:"מעידה", wild_slip_d:"משבצת אחת אחורה.",
+    wild_steal:"גניבת נקודה", wild_steal_d:"נקודה אחת עוברת מ{0} אליכם.",
+    wild_steal_none:"אין ממי לגנוב — לאף אחד אין עדיין נקודות.",
+    wild_swap:"החלפת מקומות", wild_swap_d:"החלפתם מקום עם {0}.",
+    wild_swap_none:"לא נמצא מישהו להחליף איתו.",
+    wild_jackpot:"ג׳קפוט", wild_jackpot_d:"שתי נקודות, כאן ועכשיו.",
     e_dummy:"" },
   en:{ title:"Asimon", tag:"one sentence · one shot",
     yourname:"What is your name?", nameph:"Your name", create:"Open a new room",
@@ -100,6 +119,9 @@ const L = {
     someone:"{0} buzzed", judging:"{0} is checking the answer…", waitjudge:"Waiting for the giver.",
     aim_at:"Aim at one person", pass_note:"The phone stays with you — nobody else can see these.",
     mode_k:"How are you playing?", mode_solo:"Every player for themselves", mode_teams:"In pairs",
+    gm_k:"How fast do you want it?", gm_teaser:"Quick, Regular, Slow, or Challenge — each its own pace.",
+    gm_title:"Game modes", gm_close:"Close",
+    map_k:"Tonight's board", reroll:"Roll a new board", mm_fmt:"{0} · {1}",
     winner:"{0} wins", wins_p:"{0} win", playagain:"Play again",
     waitmove:"{0} is moving on the board.", waitmove_p:"{0} are moving on the board.",
     hand_k:"Your cards", playcard:"Play a card", closehand:"Close",
@@ -154,14 +176,73 @@ const L = {
     lg_key_k:"What is on the board",
     lg_dot:"An empty square", lg_dot_d:"An ordinary round. Ninety seconds, one sentence.",
     lg_card:"A card square", lg_card_d:"Landing here lets you take a card.",
+    lg_wild:"A wildcard square", lg_wild_d:"Rare. Landing here rolls something — usually in your favour.",
     lg_end:"The end", lg_end_d:"First one there wins.",
     lg_twist_k:"The coloured tags",
     lg_you:"You are here",
+    free_seat:"A free seat", pick_card:"Tap a card in your hand", play_it:"Play it", take_it:"Take it",
+    ord_k:"Play order", ord_rolling:"Drawing the order…", ord_title:"Here is the order",
+    ord_d:"Who gives the first clue, and who gives the last. Drawn at random, and it holds all game.",
+    ord_ok:"I'm ready", ord_in:"ready", ord_wait:"Waiting on {0} more",
+    ord_first:"first", ord_last:"last",
+    ord_gift:"A card, just for you", ord_gift_d:"You start holding this. Nobody knows you have it.",
+    wild_k:"Wildcard square", wild_hit:"{0} hit a wildcard", wild_go:"Carry on",
+    wild_card:"A free card", wild_card_d:"{0} — straight into your hand.",
+    wild_leap:"Leap ahead", wild_leap_d:"Two squares forward, for nothing.",
+    wild_slip:"Slipped back", wild_slip_d:"One square backwards.",
+    wild_steal:"Stole a point", wild_steal_d:"One point off {0} and onto you.",
+    wild_steal_none:"Nobody had a point to take yet.",
+    wild_swap:"Swapped places", wild_swap_d:"You traded squares with {0}.",
+    wild_swap_none:"There was nobody to swap with.",
+    wild_jackpot:"Jackpot", wild_jackpot_d:"Two points, right now.",
     e_dummy:"" }
 };
 
+/* the four game modes: how fast/hard a game plays. Same {n,s,d} shape the
+   engine's own EN_MODS/HE_MODS use, so this stays in step with them. */
+const MODES_COPY = {
+  he:{
+    quick:    {n:"מהיר",  s:"מהיר",  d:"לוח קצר, שעון קצר — סבב שלם בפחות מדקה."},
+    regular:  {n:"רגיל",  s:"רגיל",  d:"ברירת המחדל — תשעים שניות, הלוח שאתם מכירים."},
+    slow:     {n:"רגוע",  s:"רגוע",  d:"לוח ארוך, שעון ארוך, פחות לחץ בכל סבב."},
+    challenge:{n:"אתגר",  s:"אתגר",  d:"רוב הסבבים קשים, והניצחון נקבע לפי ניקוד — לא רק מי שמגיע ראשון לסוף."}
+  },
+  en:{
+    quick:    {n:"Quick",     s:"QUICK", d:"A short board, a short clock — a whole round in under a minute."},
+    regular:  {n:"Regular",   s:"REG",   d:"The default — ninety seconds, the board you already know."},
+    slow:     {n:"Slow",      s:"SLOW",  d:"A longer board, a longer clock, less pressure each round."},
+    challenge:{n:"Challenge", s:"HARD",  d:"Mostly hard rounds, and the win goes by score — not just who reaches the end first."}
+  }
+};
+const MODE_IDS = ["quick","regular","slow","challenge"];
+
+/* the five maps: different board shapes, card placement, and colour theme.
+   Picked randomly per game; the host may reroll before starting. */
+const MAPS_COPY = {
+  he:{
+    classic:{n:"קלאסי",     d:"הלוח המוכר — תמהיל אחיד של הכול."},
+    twist:  {n:"תפנית",     d:"אותם סוגי סבבים, סידור אחר על הלוח."},
+    storm:  {n:"סופה",      d:"לוח ארוך יותר, עמוס בסבבים קשים."},
+    sprint: {n:"ספרינט",    d:"לוח קצר וזורם, כמעט בלי סיבוכים."},
+    chaos:  {n:"תוהו ובוהו", d:"בלי דפוס קבוע — כל מסלול מפתיע."}
+  },
+  en:{
+    classic:{n:"Classic", d:"The board you already know — an even mix of everything."},
+    twist:  {n:"Twist",   d:"The same kinds of rounds, laid out differently."},
+    storm:  {n:"Storm",   d:"A longer board, thick with the hard rounds."},
+    sprint: {n:"Sprint",  d:"A short, flowing board with barely a snag."},
+    chaos:  {n:"Chaos",   d:"No fixed pattern — every lane keeps you guessing."}
+  }
+};
+/* four lane colours per map theme, read off the CSS custom properties so a
+   redesign of the palette only ever has to happen in style.css */
+function themeColc(themeId){
+  const id = (themeId && MAPS_COPY.en[themeId]) ? themeId : "classic";
+  return [0,1,2,3].map(i => "var(--map-"+id+"-"+i+")");
+}
+
 let lang = "he", pack = null, state = null, es = null, me = null;
-let screen = "name", error = "", online = false, mode = "solo";
+let screen = "name", error = "", online = false, mode = "solo", gameMode = "regular";
 let clockAt = 0, clockMs = 0, ticker = null;
 let myFace = null, taken = [], pickingFace = false;
 /* what is typed lives here, not only in the DOM — picking a face re-renders,
@@ -354,6 +435,11 @@ const TONE = { giver:"secret", blind:"secret", reveal:"scored", over:"scored" };
 function on(id, fn){ const el = document.getElementById(id); if(el) el.onclick = fn; }
 function each(sel, fn){ app.querySelectorAll(sel).forEach(fn); }
 const errBox = () => error ? '<div class="err">'+esc(error)+'</div>' : '';
+let handUp = null, awardUp = null, dealtFor = "";
+/* the order reveal runs on a clock of its own: when this phone first saw it,
+   the route each avatar takes through the shuffle, and the repaint that ends it */
+let orderAt = 0, orderPath = null, orderTimer = null;
+
 function stuckBar(s){
   const w = s.waiting;
   if(!w) return "";
@@ -469,6 +555,18 @@ function vJoin(){
     }catch(e){ error = errText(e); render(); }
   });
 }
+/* the map preview: a small four-colour swatch off the active theme, the
+   map's name and one-line description, and — for the host — a reroll */
+function mapChipHTML(s, withReroll){
+  const mapId = s.mapId || "classic";
+  const info = (MAPS_COPY[lang] && MAPS_COPY[lang][mapId]) || MAPS_COPY.en[mapId] || { n:mapId, d:"" };
+  const swatch = '<span class="mapswatch" aria-hidden="true">'+
+    themeColc(mapId).map(c => '<i style="background:'+c+'"></i>').join("")+'</span>';
+  return '<div class="mapchip">'+swatch+
+    '<span class="mt"><span class="mn">'+esc(info.n)+'</span><span class="md">'+esc(info.d)+'</span></span>'+
+    (withReroll ? '<button class="reroll" id="reroll">'+t("reroll")+'</button>' : '')+
+    '</div>';
+}
 function vLobby(){
   const s = state, list = s.players;
   const rows = list.map(p =>
@@ -476,7 +574,11 @@ function vLobby(){
     '<span class="pname">'+esc(p.name)+
       (p.host ? '<span class="tag host">'+t("host")+'</span>' : '')+
       (p.id === s.you ? '<span class="tag you">'+t("you")+'</span>' : '')+'</span>'+
-    '<span class="dot'+(p.online?'':' off')+'"></span></div>').join("");
+    '<span class="dot'+(p.online?'':' off')+'"></span></div>').join("")+
+    /* the seats still to be filled, so the wait has a shape */
+    Array.from({ length: Math.max(0, 3 - list.length) }, () =>
+      '<div class="prow empty"><span class="seat"></span>'+
+      '<span class="pname">'+t("free_seat")+'</span><span class="dot off"></span></div>').join("");
   h('<div class="stack grow">'+offBox()+
     '<div><div class="hero" style="display:flex;align-items:center;justify-content:space-between;gap:14px">'+
       '<div><p class="kicker">'+t("room_k")+'</p><div class="roomcode">'+esc(s.code)+'</div></div>'+
@@ -490,8 +592,15 @@ function vLobby(){
       : '<button class="ghost" id="facebtn">'+t("face_change")+'</button>')+
     errBox()+'<div class="grow"></div>'+
     learnBtn("howto", t("howto"), t("hw_teaser"))+
+    learnBtn("modeinfo", t("gm_title"), t("gm_teaser"))+
+    '<p class="kicker">'+t("map_k")+'</p>'+mapChipHTML(s, s.isHost)+
     (s.isHost
       ? (list.length < 3 ? '<p class="note">'+t("waiting")+'</p>' : '')+
+        '<p class="kicker">'+t("gm_k")+'</p>'+
+        '<div class="modesw">'+MODE_IDS.map(id => {
+          const info = (MODES_COPY[lang] && MODES_COPY[lang][id]) || MODES_COPY.en[id];
+          return '<button data-gm="'+id+'" class="'+(gameMode===id?"on":"")+'">'+esc(info.n)+'</button>';
+        }).join("")+'</div>'+
         '<p class="kicker">'+t("mode_k")+'</p>'+
         '<div class="langsw"><button id="msolo" class="'+(mode==="solo"?"on":"")+'">'+t("mode_solo")+'</button>'+
         '<button id="mteam" class="'+(mode==="teams"?"on":"")+'"'+(list.length<4?" disabled":"")+'>'+t("mode_teams")+'</button></div>'+
@@ -505,7 +614,9 @@ function vLobby(){
     on("len", () => act({ type:"lang", lang:"en" }));
     on("msolo", () => { mode="solo"; render(); });
     on("mteam", () => { mode="teams"; render(); });
-    on("start", () => act({ type:"start", mode }));
+    each("[data-gm]", b => b.onclick = () => { gameMode = b.dataset.gm; render(); });
+    on("reroll", () => act({ type:"reroll_map" }));
+    on("start", () => act({ type:"start", mode, gameMode }));
   }
   on("facebtn", () => { pickingFace = true; render(); });
   on("facedone", () => { pickingFace = false; render(); });
@@ -520,29 +631,50 @@ function vLobby(){
 /* ---------------- pieces ---------------- */
 function modBlock(s){
   if(!s.mod || s.mod.key === "S") return "";
-  return '<div class="mod"><span class="sl">'+t("table_k", s.round)+'</span>'+
-         '<span class="sw">'+s.mod.name+'</span><span class="sr">'+s.mod.desc+'</span></div>';
+  return '<div class="mod art">'+modSvg(s.mod.key, 40)+
+         '<span class="mt"><span class="sl">'+t("table_k", s.round)+'</span>'+
+         '<span class="sw">'+s.mod.name+'</span><span class="sr">'+s.mod.desc+'</span></span></div>';
 }
 function notes(s){
   let out = "";
-  if(s.topic) out += '<div class="sentence"><span class="sl">'+t("topic_is")+'</span><span class="sw">'+s.topic+'</span></div>';
+  if(s.topic) out += '<div class="sentence art">'+topicSvg(s.topicKey, 36)+
+    '<span class="mt"><span class="sl">'+t("topic_is")+'</span>'+
+    '<span class="sw">'+s.topic+'</span></span></div>';
   if(s.partner) out += '<div class="sentence"><span class="sl">'+t("partner_k")+'</span><span class="sw">'+esc(s.partner.name)+'</span></div>';
-  if(s.insight) out += '<div class="sentence"><span class="sl">'+t("insight_k")+'</span><span class="sw" style="font-size:17px">'+s.insight.map(esc).join(" · ")+'</span></div>';
-  if(s.veto)     out += '<div class="mod"><span class="sl">'+t("veto_k")+'</span><span class="sr">'+t("veto_d")+'</span></div>';
-  if(s.mimeCard) out += '<div class="mod"><span class="sl">'+t("mime_k")+'</span><span class="sr">'+t("mime_d")+'</span></div>';
+  if(s.insight) out += '<div class="sentence art">'+cardEmblem("insight", 36)+
+    '<span class="mt"><span class="sl">'+t("insight_k")+'</span>'+
+    '<span class="sw" style="font-size:17px">'+s.insight.map(esc).join(" · ")+'</span></span></div>';
+  if(s.veto)     out += '<div class="mod art">'+cardEmblem("veto", 36)+
+    '<span class="mt"><span class="sl">'+t("veto_k")+'</span><span class="sr">'+t("veto_d")+'</span></span></div>';
+  if(s.mimeCard) out += '<div class="mod art">'+cardEmblem("mime", 36)+
+    '<span class="mt"><span class="sl">'+t("mime_k")+'</span><span class="sr">'+t("mime_d")+'</span></span></div>';
   return out;
+}
+/* The word bank runs to hundreds of words, so a word card is not illustrated
+   word by word. What it gets instead is a proper index: the value set in the
+   display face over a struck token, the way a playing card carries its rank.
+   The topic is drawn once, above these, and not repeated four times.       */
+function valuePip(fill){
+  return '<i>'+'<svg viewBox="0 0 40 40" width="14" height="14" aria-hidden="true">'+
+    '<circle cx="20" cy="20" r="18" fill="currentColor"/>'+
+    '<rect x="9" y="15.6" width="22" height="8" rx="4" fill="'+fill+'" '+
+    'transform="rotate(-30 20 20)"/></svg>'+'</i>';
 }
 function wordCards(s, sel, disabled){
   return '<div class="cardgrid stagger">'+s.secret.words.map((w,i) => {
+    const on = sel === i;
     const tint = VAL_TINT[Math.min(5, Math.max(1, w.value))] || VAL_TINT[5];
-    return '<button class="wordcard'+(sel===i?" on":"")+'" data-w="'+i+'"'+(disabled?" disabled":"")+'>'+
+    return '<button class="wordcard'+(on?" on":"")+'" data-w="'+i+'"'+(disabled?" disabled":"")+'>'+
       '<span class="wt">'+esc(w.text)+'</span>'+
-      '<span class="wv" style="background:'+tint[0]+';color:'+tint[1]+'">'+w.value+'</span></button>';
+      '<span class="wv" style="background:'+tint[0]+';color:'+tint[1]+'">'+
+        '<b>'+w.value+'</b>'+valuePip(on ? "#221700" : tint[0])+'</span></button>';
   }).join("")+'</div>';
 }
 function waitCard(title, sub, who){
+  /* nothing else is on this screen, so the face is the screen */
   return '<div class="panel center grow" style="justify-content:center">'+
-    (who ? pav(who) : "")+'<h2>'+title+'</h2><p class="note">'+sub+'</p></div>';
+    (who ? pav(who, "big") : '<span class="spin">'+coinMark(52)+'</span>')+
+    '<h2>'+title+'</h2><p class="note">'+sub+'</p></div>';
 }
 
 /* ---------------- the giver's turn ---------------- */
@@ -564,8 +696,9 @@ function vGiver(s){
       '<p class="kicker">'+t("chal_pick_k")+'</p>'+
       '<div class="cardgrid stagger">'+["topic","open","cold"].map(k => {
         const col = k==="cold" ? "var(--good-ink)" : (k==="topic" ? "var(--muted)" : "var(--accent-ink)");
-        return '<button class="gcard" data-ch="'+k+'"><span class="cw" style="color:'+col+'">'+t("cw_"+k)+'</span>'+
-          '<span class="cn">'+t("ch_"+k)+'</span><span class="cd">'+t("ch_"+k+"_d")+'</span></button>';
+        return '<button class="gcard card" data-ch="'+k+'">'+choiceSvg(k, 46)+
+          '<span class="ctext"><span class="cw" style="color:'+col+'">'+t("cw_"+k)+'</span>'+
+          '<span class="cn">'+t("ch_"+k)+'</span><span class="cd">'+t("ch_"+k+"_d")+'</span></span></button>';
       }).join("")+'</div>'+errBox()+'</div>');
     each("[data-ch]", b => b.onclick = () => act({ type:"challenge", k:b.dataset.ch }));
     return;
@@ -574,7 +707,8 @@ function vGiver(s){
   if(s.challenge === "topic" && !s.topic){
     h('<div class="stack grow">'+topbar(s)+'<h2>'+t("topic_k")+'</h2>'+
       '<div class="topicgrid stagger">'+(pack.topics||[]).map(x =>
-        '<button class="topic" data-tp="'+x.k+'">'+x.n+'</button>').join("")+'</div>'+errBox()+'</div>');
+        '<button class="topic" data-tp="'+x.k+'">'+topicSvg(x.k, 40)+
+        '<span class="tn">'+x.n+'</span></button>').join("")+'</div>'+errBox()+'</div>');
     each("[data-tp]", b => b.onclick = () => act({ type:"topic", k:b.dataset.tp }));
     return;
   }
@@ -657,19 +791,55 @@ function vTable(s){
     '</div>');
   on("bz", () => act({ type:"buzz" }));
   on("none", () => act({ type:"nobody" }));
-  on("hand", () => { showHand = !showHand; render(); });
+  on("hand", () => { showHand = !showHand; handUp = null; render(); });
   setRing(left / (s.total * 1000));
-  each("[data-card]", b => b.onclick = () => { showHand = false; act({ type:"playcard", key:b.dataset.card }); });
+  each("[data-hand]", b => b.onclick = () => {
+    const i = Number(b.dataset.hand);
+    handUp = (handUp === i) ? null : i;
+    render();
+  });
+  on("playnow", () => {
+    const c = (s.hand || [])[handUp];
+    if(!c) return;
+    throwCard(app.querySelector('[data-hand="' + handUp + '"]'));
+    showHand = false; handUp = null;
+    act({ type:"playcard", key:c.key });
+  });
   startTicker(s);
 }
+/* The hand you are holding. Shut, it is a few backs peeking out of the button.
+   Open, it is a fan — and tapping a card lifts it clear of the others so you
+   can read what it does before you commit to throwing it down.             */
 function handBlock(s){
   const hand = s.hand || [];
   if(!hand.length) return "";
-  if(!showHand) return '<button class="ghost" id="hand">'+t("playcard")+' · '+hand.length+'</button>';
-  return '<p class="kicker">'+t("hand_k")+'</p><div class="cardgrid stagger">'+
-    hand.map(c => '<button class="gcard card" data-card="'+c.key+'">'+cardTile(c.key)+
-      '<span class="ctext"><span class="cn">'+c.n+'</span><span class="cd">'+c.d+'</span></span></button>').join("")+
-    '</div><button class="quiet" id="hand">'+t("closehand")+'</button>';
+  const n = hand.length;
+  if(!showHand){
+    const bw = 26, step = 11;
+    return '<button class="ghost handbtn" id="hand">'+
+      '<span class="mini" style="width:'+(bw + (n - 1) * step)+'px;height:'+Math.round(bw * 1.4)+'px">'+
+      hand.map((c, i) => '<span class="mb" style="inset-inline-start:'+(i * step)+'px;'+
+        'transform:rotate('+((i - (n - 1) / 2) * 7).toFixed(1)+'deg)">'+cardBack(bw)+'</span>').join("")+
+      '</span><span>'+t("playcard")+' · '+n+'</span></button>';
+  }
+  const w = n <= 3 ? 98 : (n <= 5 ? 86 : 74);
+  const mid = (n - 1) / 2, lean = Math.min(9, 26 / n);
+  const up = (handUp !== null && hand[handUp]) ? hand[handUp] : null;
+  const cards = hand.map((c, i) => {
+    const d = i - mid, isUp = handUp === i;
+    const dx = Math.round(d * w * 0.6);
+    const dy = isUp ? -Math.round(w * 0.16) : Math.round(Math.abs(d) * w * 0.07);
+    return '<button class="pcbtn'+(isUp ? " up" : "")+'" data-hand="'+i+'" '+
+      'style="z-index:'+(isUp ? 20 : 10 - Math.round(Math.abs(d)))+';'+
+      'transform:translateX(-50%) translateX('+dx+'px) rotate('+(isUp ? 0 : d * lean).toFixed(1)+'deg) '+
+      'translateY('+dy+'px)">'+cardFace(c.key, esc(c.n), w)+'</button>';
+  }).join("");
+  return '<div class="fanwrap"><p class="kicker">'+t("hand_k")+'</p>'+
+    '<div class="fan" style="height:'+(Math.round(w * 1.4) + Math.round(w * 0.3))+'px">'+cards+'</div>'+
+    (up ? '<div class="raised"><span class="rn">'+up.n+'</span><span class="rd">'+up.d+'</span></div>'+
+          '<button id="playnow">'+t("play_it")+'</button>'
+        : '<p class="note" style="text-align:center">'+t("pick_card")+'</p>')+
+    '<button class="quiet" id="hand">'+t("closehand")+'</button></div>';
 }
 function vAward(s){
   const a = s.award;
@@ -681,16 +851,39 @@ function vAward(s){
     wireSkip();
     return;
   }
+  /* They come off the deck face down and turn over one after another — but
+     only the first time this award is painted, or every push would re-deal. */
+  const stamp = s.round + ":" + a.unitId;
+  const run = dealtFor !== stamp;
+  if(run){ dealtFor = stamp; awardUp = null; }
+  const n = a.offers.length, w = n <= 2 ? 118 : (n === 3 ? 100 : 84), ch = Math.round(w * 7 / 5);
+  const mid = (n - 1) / 2;
+  const up = (awardUp !== null && a.offers[awardUp]) ? a.offers[awardUp] : null;
   h('<div class="stack grow">'+offBox()+
     '<p class="kicker" style="color:var(--good-ink)">'+t("card_won")+'</p>'+
     '<h2>'+t("takeone", esc(a.unitName))+'</h2>'+
-    '<div class="cardgrid stagger">'+a.offers.map(c =>
-      '<button class="gcard card" data-take="'+c.key+'">'+cardTile(c.key)+
-      '<span class="ctext"><span class="cn">'+c.n+'</span>'+
-      '<span class="cd">'+c.d+'</span></span></button>').join("")+'</div>'+
+    '<div class="deal'+(run ? " run" : "")+'">'+a.offers.map((c, i) =>
+      '<button class="pcbtn'+(awardUp !== null && awardUp !== i ? " dim" : "")+'" data-up="'+i+'" '+
+      'style="--i:'+i+';--dx:'+Math.round((i - mid) * -34)+'px;--dr:'+((i - mid) * -8).toFixed(0)+'deg">'+
+      '<span class="slide" style="display:block;width:'+w+'px;height:'+ch+'px">'+
+        '<span class="flip" style="width:'+w+'px;height:'+ch+'px">'+
+          '<span class="side back">'+cardBack(w)+'</span>'+
+          '<span class="side front">'+cardFace(c.key, esc(c.n), w)+'</span>'+
+        '</span></span></button>').join("")+'</div>'+
+    (up ? '<div class="raised"><span class="rn">'+up.n+'</span><span class="rd">'+up.d+'</span></div>'+
+          '<button id="takenow">'+t("take_it")+'</button>'
+        : '<p class="note" style="text-align:center">'+t("pick_card")+'</p>')+
     errBox()+'<div class="grow"></div>'+
     '<p class="note">'+t("cards_secret")+'</p></div>');
-  each("[data-take]", b => b.onclick = () => act({ type:"take", key:b.dataset.take }));
+  each("[data-up]", b => b.onclick = () => {
+    const i = Number(b.dataset.up);
+    awardUp = (awardUp === i) ? null : i;
+    render();
+  });
+  on("takenow", () => {
+    const c = a.offers[awardUp];
+    if(c) act({ type:"take", key:c.key });
+  });
 }
 function vSwap(s){
   if(!s.swap || !s.swap.mine){
@@ -766,7 +959,8 @@ function vReveal(s){
 
   h('<div class="stack grow">'+offBox()+
     '<p class="kicker">'+t("solved_k", s.round)+'</p>'+
-    '<div><div class="hero '+(solved?"good":"none")+'"><p class="kicker">'+t("the_word")+'</p>'+
+    '<div><div class="hero '+(solved?"good":"none")+'">'+watermark(s.topicKey, 132)+
+    '<p class="kicker">'+t("the_word")+'</p>'+
     '<div class="bigword">'+esc(r.word)+'</div>'+
     '<div class="herorow">'+
       (solved
@@ -778,7 +972,8 @@ function vReveal(s){
     '</div></div><div class="perf '+(solved?"good":"none")+'"></div></div>'+
     '<p class="kicker">'+t("band_k")+'</p>'+
     '<div class="band">'+[0,1,2].map(i =>
-      '<div class="'+(bandIdx===i?"hit "+quality[i]:"")+'">'+t(keys[i])+'</div>').join("")+'</div>'+
+      '<div class="'+(bandIdx===i?"hit "+quality[i]:"")+'">'+bandGlyph(i)+
+      '<span>'+t(keys[i])+'</span></div>').join("")+'</div>'+
     '<div class="scores">'+rows.map(row => {
       const u = s.units.find(x => x.id === row.id) || {};
       const won = row.id === winnerUnit;
@@ -804,6 +999,15 @@ function vReveal(s){
   }
 }
 
+/* early, halfway, late — one clock, its hand in three places */
+function bandGlyph(i){
+  const ang = [-58, 26, 138][i];
+  return '<svg class="bg" viewBox="0 0 24 24" width="19" height="19" aria-hidden="true">'+
+    '<circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2.4"/>'+
+    '<rect x="10.9" y="5.8" width="2.2" height="7" rx="1.1" fill="currentColor" '+
+      'transform="rotate('+ang+' 12 12)"/></svg>';
+}
+
 /* ---------------- the board ---------------- */
 function nodeXY(r, c, rows){
   const top = 34, bottom = 534;
@@ -815,6 +1019,9 @@ function nodeXY(r, c, rows){
 const COLC = ["var(--accent)","var(--good)","var(--blind)","var(--guilty)"];
 function boardSVG(s, spots, picked){
   const rows = s.board.rows, lit = {};
+  /* the active map's own palette — "classic" reads back the same four
+     colours COLC always had, so an unmapped board still looks unchanged */
+  const COLC = themeColc(s.board && s.board.themeId);
   (spots||[]).forEach(p => lit[p.r+","+p.c] = p);
   let out = "";
   for(let c = 0; c < 4; c++){
@@ -837,10 +1044,17 @@ function boardSVG(s, spots, picked){
   }
   s.board.nodes.forEach(n => {
     const xy = nodeXY(n.r, n.c, rows), key = n.r+","+n.c, isLit = !!lit[key];
-    const col = n.t === "CARD" ? "var(--good)" : COLC[n.c];
-    const short = n.t === "CARD" ? t("card_node") : ((pack.mods[n.t]||{}).s || "");
+    const col = n.t === "CARD" ? "var(--good)" : n.t === "WILD" ? "var(--violet)" : COLC[n.c];
+    const short = n.t === "CARD" ? t("card_node") : n.t === "WILD" ? "" : ((pack.mods[n.t]||{}).s || "");
     let node;
-    if(short){
+    if(n.t === "WILD"){
+      /* rare enough to be worth its own mark: a dashed ring with a question in it */
+      node = (isLit ? '<circle cx="'+xy.x+'" cy="'+xy.y+'" r="14.5" fill="'+col+'" opacity="0.18"/>' : '')+
+        '<circle cx="'+xy.x+'" cy="'+xy.y+'" r="10" fill="'+(isLit?col:"var(--surface)")+'" stroke="'+col+
+        '" stroke-width="'+(isLit?1.9:1.5)+'" stroke-dasharray="3 2.4"/>'+
+        '<text x="'+xy.x+'" y="'+(xy.y+3.6)+'" text-anchor="middle" font-family="Suez One,Georgia,serif" '+
+        'font-size="11" fill="'+(isLit?"#FFFFFF":col)+'">?</text>';
+    } else if(short){
       const ink = n.c === 2 && n.t !== "CARD" ? "#2A1B00" : "#FFFFFF";
       node = (isLit ? '<circle cx="'+xy.x+'" cy="'+xy.y+'" r="13.5" fill="'+col+'" opacity="0.18"/>' : '')+
         '<rect x="'+(xy.x-17)+'" y="'+(xy.y-8.5)+'" width="34" height="17" rx="8.5" fill="'+
@@ -920,7 +1134,8 @@ function vMove(s){
   const readout = sel
     ? '<div class="sentence"><span class="sl">'+t("move_sel_k")+'</span>'+
       '<span class="sw">'+(sel.type.key === "END" ? t("the_end")
-        : sel.type.key === "CARD" ? t("card_node_d") : sel.type.name)+'</span>'+
+        : sel.type.key === "CARD" ? t("card_node_d")
+        : sel.type.key === "WILD" ? t("lg_wild") : sel.type.name)+'</span>'+
       '<span class="sr">'+t("move_cost", sel.type.key==="END" ? t("the_end") : t("row_n", sel.r), sel.d+"/"+mv.steps)+
       (sel.type.desc ? ' · '+sel.type.desc : '')+'</span></div>'
     : '<p class="note">'+t("move_tap", mv.spots.length)+'</p>';
@@ -949,11 +1164,32 @@ function vMove(s){
     on("go", () => { movePickLocal = null; act({ type:"moveconfirm" }); });
   }
 }
+function podium(s){
+  const top = (s.standings || []).slice(0, 3);
+  if(!top.length) return "";
+  /* second, first, third — the winner in the middle, standing highest */
+  const order = top.length >= 3 ? [1, 0, 2] : (top.length === 2 ? [1, 0] : [0]);
+  const size = [96, 60, 52], step = [86, 56, 40];
+  return '<div class="podium">'+order.map(k => {
+    const u = top[k];
+    const unit = s.units.find(x => x.id === u.id) || {};
+    return '<div class="pcol'+(k === 0 ? " win" : "")+'">'+
+      '<span class="hold">'+
+        '<span class="pav" style="width:'+size[k]+'px;height:'+size[k]+'px;background:'+
+          unitColor(unit)+';font-size:'+(k === 0 ? 26 : 15)+'px">'+
+          (unit.face ? faceSvg(unit.face, size[k]) : esc(initials(u.name)))+'</span>'+
+        (k === 0 ? '<span class="crown">'+coinMark(40)+'</span>' : '')+
+      '</span>'+
+      '<span class="pstep" style="width:'+(size[k] + 8)+'px;height:'+step[k]+'px;'+
+        'font-size:'+(k === 0 ? 34 : 22)+'px">'+(k + 1)+'</span></div>';
+  }).join("")+'</div>';
+}
 function vOver(s){
   document.documentElement.dataset.tone = "scored";
   h('<div class="stack grow">'+offBox()+
     '<p class="kicker">'+t("after_rounds", s.round)+'</p>'+
     '<h1>'+tUnit("wins", s.units.find(u=>u.id===(s.standings[0]||{}).id), (s.standings[0]||{}).name)+'</h1>'+
+    podium(s)+
     '<div class="scores">'+s.standings.map((u,i) =>
       '<div class="resrow">'+uav(s.units.find(x=>x.id===u.id)||{name:u.name})+
       '<span class="who"><span class="nm">'+(i+1)+'. '+esc(u.name)+'</span></span>'+
@@ -963,10 +1199,118 @@ function vOver(s){
     '<button class="quiet" id="leave">'+t("leave")+'</button></div>');
   on("again", () => act({ type:"again" }));
   on("leave", async () => { await act({ type:"leave" }); forget(); render(); });
+  if(burstFor !== "over"){ burstFor = "over"; setTimeout(() => burst({ y: innerHeight * 0.3 }), 260); }
 }
 
+/* ---------------- the play order, drawn in front of everyone ---------------- */
+const SHUFFLE_MS = 2100;
+/* the fewer the players, the bigger their faces get to be */
+function orderSize(n){ return n <= 4 ? 84 : (n <= 6 ? 64 : 48); }
+function orderPaths(n, pitch){
+  /* one stable set of offsets per phone: the tokens have to take the same
+     route through the shuffle on every repaint, or a phone tapping in
+     mid-animation would send everybody else's avatars somewhere new */
+  if(orderPath && orderPath.length === n) return orderPath;
+  /* every offset lands the token squarely on another seat's slot, so the row
+     never grows wider than it started */
+  orderPath = Array.from({length:n}, (_, i) => {
+    const at = k => ((i + k * 2 + 1) % n - i) * pitch;
+    return [at(1), at(2), at(3), at(4)];
+  });
+  return orderPath;
+}
+function vOrder(s){
+  document.documentElement.dataset.tone = "live";
+  const o = s.order;
+  if(!o){ h('<div class="stack grow">'+offBox()+waitCard("…","")+'</div>'); return; }
+  if(!orderAt) orderAt = Date.now();
+  const elapsed = Date.now() - orderAt;
+  const rolling = elapsed < SHUFFLE_MS;
+  const n = o.seats.length, sz = orderSize(n);
+  const paths = orderPaths(n, sz + 10);
+
+  const seats = o.seats.map((p, i) => {
+    const seat = i === 0 ? t("ord_first") : (i === o.seats.length - 1 ? t("ord_last") : (i + 1) + "");
+    const path = paths[i];
+    const style = rolling
+      ? 'animation-delay:'+(-elapsed)+'ms;--a:'+path[0]+'px;--b:'+path[1]+'px;--c:'+path[2]+'px;--d:'+path[3]+'px'
+      : '';
+    return '<div class="ordtok'+(rolling ? " rolling" : "")+(p.in ? " in" : "")+'" style="'+style+'">'+
+      '<span class="ordav">'+pav(p.id)+(!rolling && p.in ? '<i class="ordtick">✓</i>' : '')+'</span>'+
+      (rolling ? '' :
+        '<span class="ordseat">'+esc(seat)+'</span><span class="ordname">'+esc(p.name)+'</span>')+
+    '</div>';
+  }).join("");
+
+  const gift = (!rolling && s.opening)
+    ? '<div class="giftrow">'+cardTile(s.opening.key, 44)+
+      '<span><b>'+t("ord_gift")+'</b><span>'+t("ord_gift_d")+'</span>'+
+      '<span class="giftname">'+esc(s.opening.n)+' — '+s.opening.d+'</span></span></div>'
+    : '';
+
+  h('<div class="stack grow">'+offBox()+
+    '<div class="topbar"><p class="kicker">'+t("ord_k")+'</p>'+modeMapBadge(s)+'</div>'+
+    '<h2>'+(rolling ? t("ord_rolling") : t("ord_title"))+'</h2>'+
+    (rolling ? '' : '<p class="note">'+t("ord_d")+'</p>')+
+    '<div class="ordrow" style="--sz:'+sz+'px">'+seats+'</div>'+
+    gift+(rolling ? '' : stuckBar(s))+errBox()+'<div class="grow"></div>'+
+    (rolling ? '' :
+      (o.mineIn
+        ? '<p class="note" style="text-align:center">'+t("ord_wait", o.left)+'</p>'
+        : '<button id="ordok">'+t("ord_ok")+'</button>'))+
+    '</div>');
+
+  if(rolling){
+    clearTimeout(orderTimer);
+    orderTimer = setTimeout(render, SHUFFLE_MS - elapsed + 30);
+  } else {
+    wireSkip();
+    on("ordok", () => act({ type:"order_ok" }));
+  }
+}
+
+/* ---------------- the wildcard square ---------------- */
+function wildLines(w){
+  if(w.kind === "card")  return [t("wild_card"), t("wild_card_d", esc(w.cardName || ""))];
+  if(w.kind === "leap")  return [t("wild_leap"), t("wild_leap_d")];
+  if(w.kind === "slip")  return [t("wild_slip"), t("wild_slip_d")];
+  if(w.kind === "steal") return [t("wild_steal"), w.from ? t("wild_steal_d", esc(w.from)) : t("wild_steal_none")];
+  if(w.kind === "swap")  return [t("wild_swap"), w.with ? t("wild_swap_d", esc(w.with)) : t("wild_swap_none")];
+  return [t("wild_jackpot"), t("wild_jackpot_d")];
+}
+function vWild(s){
+  document.documentElement.dataset.tone = "live";
+  const w = s.wild;
+  if(!w){ h('<div class="stack grow">'+offBox()+waitCard("…","")+'</div>'); return; }
+  const u = s.units.find(x => x.id === w.unitId) || { name:w.unitName };
+  const [title, line] = wildLines(w);
+  h('<div class="stack grow">'+offBox()+
+    '<div class="topbar"><p class="kicker">'+t("wild_k")+'</p></div>'+
+    '<div class="wildcard wild-'+esc(w.kind)+'">'+
+      '<span class="wildface">'+uav(u, "big")+'<i class="wildmark">?</i></span>'+
+      '<span class="wildwho">'+esc(t("wild_hit", w.unitName))+'</span>'+
+      '<b class="wildtitle">'+title+'</b>'+
+      '<span class="wildline">'+line+'</span>'+
+      (w.kind === "card" && w.mine && w.cardName
+        ? '<span class="wildgot">'+cardTile(w.card, 40)+'<span>'+esc(w.cardName)+'</span></span>' : '')+
+    '</div>'+
+    stuckBar(s)+errBox()+'<div class="grow"></div>'+
+    (w.mine ? '<button id="wildgo">'+t("wild_go")+'</button>'
+            : '<p class="note" style="text-align:center">'+t("yourturn", esc(w.unitName))+'</p>')+
+    '</div>');
+  wireSkip();
+  on("wildgo", () => act({ type:"wildok" }));
+}
+
+function modeMapBadge(s){
+  const gm = (MODES_COPY[lang] && MODES_COPY[lang][s.gameMode]) || MODES_COPY.en[s.gameMode];
+  const mp = (MAPS_COPY[lang] && MAPS_COPY[lang][s.mapId]) || MAPS_COPY.en[s.mapId];
+  if(!gm || !mp) return "";
+  return '<span class="mmbadge">'+esc(t("mm_fmt", gm.n, mp.n))+'</span>';
+}
 function topbar(s){
   return '<div class="topbar"><p class="kicker">'+t("table_k", s.round)+'</p>'+
+         modeMapBadge(s)+
          '<span class="qchip">'+pav(s.giver, "sm")+esc(s.giverName)+'</span></div>';
 }
 
@@ -986,6 +1330,7 @@ function learnBtn(id, label, teaser){
 function wireLearn(){
   on("howto", () => { openSheet("rules"); });
   on("boardhelp", () => { openSheet("legend"); });
+  on("modeinfo", () => { openSheet("modes"); });
 }
 function openSheet(which){ sheet = which; sheetSeen = false; render(); }
 
@@ -1023,6 +1368,10 @@ function miniNode(kind){
   if(kind === "card") return open+'<rect x="3" y="2.5" width="34" height="17" rx="8.5" fill="var(--good)"/>'+
     '<text x="20" y="14.4" text-anchor="middle" font-family="Assistant,sans-serif" font-size="7.5" '+
     'font-weight="800" fill="#FFFFFF">'+esc(t("card_node"))+'</text></svg>';
+  if(kind === "wild") return open+'<circle cx="20" cy="11" r="9.5" fill="var(--surface)" '+
+    'stroke="var(--violet)" stroke-width="1.6" stroke-dasharray="3 2.4"/>'+
+    '<text x="20" y="14.8" text-anchor="middle" font-family="Suez One,Georgia,serif" '+
+    'font-size="11" fill="var(--violet)">?</text></svg>';
   return open+'<circle cx="20" cy="11" r="10.5" fill="var(--ink)"/>'+
     '<text x="20" y="14.2" text-anchor="middle" font-family="Assistant,sans-serif" font-size="8" '+
     'font-weight="800" fill="#FFFFFF">'+(lang === "he" ? "סוף" : "END")+'</text></svg>';
@@ -1032,12 +1381,13 @@ function legendBody(){
   const lanes = [0,1,2,3].map(i =>
     '<div class="keyrow"><span class="lgswatch" style="background:'+COLC[i]+'"></span>'+
     '<span class="kd">'+t("lg_lane_"+i)+'</span></div>').join("");
-  const key = ["dot","card","end"].map(k =>
+  const key = ["dot","card","wild","end"].map(k =>
     '<div class="keyrow">'+miniNode(k)+'<span class="kd"><b>'+t("lg_"+k)+'</b> — '+t("lg_"+k+"_d")+'</span></div>').join("");
   const tags = Object.keys(MOD_LANE).filter(k => mods[k]).map(k => {
     const col = COLC[MOD_LANE[k]];
-    return '<div class="keyrow"><span class="lgtag" style="border-color:'+col+';color:'+col+'">'+
-      esc(mods[k].s)+'</span><span class="kd"><b>'+esc(mods[k].n)+'</b> — '+mods[k].d+'</span></div>';
+    return '<div class="keyrow"><span class="lgbadge">'+modSvg(k, 28)+
+      '<span class="lgtag" style="border-color:'+col+';color:'+col+'">'+esc(mods[k].s)+'</span></span>'+
+      '<span class="kd"><b>'+esc(mods[k].n)+'</b> — '+mods[k].d+'</span></div>';
   }).join("");
   return '<p class="kicker">'+t("lg_step_k")+'</p>'+stepDiagram()+
     '<p class="note">'+t("lg_step_d")+'</p>'+
@@ -1048,16 +1398,30 @@ function legendBody(){
     '<p class="note">'+t("lg_why_d")+'</p>'+
     (tags ? '<p class="kicker">'+t("lg_twist_k")+'</p><div class="keylist">'+tags+'</div>' : '');
 }
+/* the modes explainer: every game mode, one card each, same {n,s,d} shape
+   the engine's own mods copy uses so English/Hebrew stay lined up */
+function modesBody(){
+  const copy = MODES_COPY[lang] || MODES_COPY.en;
+  const cards = MODE_IDS.map((id,i) =>
+    '<div class="modecard"><span class="mi">'+(i+1)+'</span>'+
+    '<span class="mt"><b>'+esc(copy[id].n)+'</b><span>'+esc(copy[id].d)+'</span></span></div>').join("");
+  return '<p class="lead">'+t("gm_teaser")+'</p><div class="modelist">'+cards+'</div>';
+}
+const SHEETS = {
+  rules:  { title:"hw_k", close:"hw_got", body:rulesBody },
+  legend: { title:"lg_k", close:"lg_close", body:legendBody },
+  modes:  { title:"gm_title", close:"gm_close", body:modesBody }
+};
 function paintSheet(){
-  const rules = sheet === "rules";
+  const cfg = SHEETS[sheet] || SHEETS.rules;
   const html = '<div class="sheet'+(sheetSeen ? " still" : "")+'" id="sheet">'+
-    '<div class="sheetcard" role="dialog" aria-modal="true" aria-label="'+t(rules?"hw_k":"lg_k")+'">'+
-      '<div class="sheethead"><h2>'+t(rules ? "hw_k" : "lg_k")+'</h2>'+
+    '<div class="sheetcard" role="dialog" aria-modal="true" aria-label="'+t(cfg.title)+'">'+
+      '<div class="sheethead"><h2>'+t(cfg.title)+'</h2>'+
         '<button class="sheetx" id="sheetx" aria-label="'+t("hw_close")+'">'+
         '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" '+
         'stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>'+
-      '<div class="sheetbody">'+(rules ? rulesBody() : legendBody())+'</div>'+
-      '<div class="sheetfoot"><button id="sheetdone">'+t(rules ? "hw_got" : "lg_close")+'</button></div>'+
+      '<div class="sheetbody">'+cfg.body()+'</div>'+
+      '<div class="sheetfoot"><button id="sheetdone">'+t(cfg.close)+'</button></div>'+
     '</div></div>';
   const holder = document.createElement("div");
   holder.innerHTML = html;
@@ -1084,8 +1448,11 @@ function paint(){
   if(state.phase === "lobby"){ document.documentElement.dataset.tone = "live"; vLobby(); return; }
   if(!pack){ h('<div class="stack"><h1>'+wordmark(lang)+'</h1><p class="sub">…</p></div>'); return; }
   document.documentElement.dataset.tone = TONE[state.phase] || "live";
-  const f = { giver:vGiver, blind:vBlind, table:vTable, judge:vJudge,
-              reveal:vReveal, move:vMove, award:vAward, swap:vSwap, over:vOver }[state.phase];
+  /* the order reveal is a one-off: once the game is under way, the next one
+     starts its shuffle from scratch */
+  if(state.phase !== "order" && orderAt){ orderAt = 0; orderPath = null; clearTimeout(orderTimer); }
+  const f = { order:vOrder, giver:vGiver, blind:vBlind, table:vTable, judge:vJudge,
+              reveal:vReveal, move:vMove, award:vAward, swap:vSwap, wild:vWild, over:vOver }[state.phase];
   if(f) f(state); else vLobby();
 }
 

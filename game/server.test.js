@@ -97,6 +97,17 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
     /* ---- host starts ---- */
     await dana.act({ type:"start" });
     await wait(200);
+    ok(dana.state.phase === "order", "the play order was not shown before round one");
+    ok(dana.state.order && dana.state.order.seats.length === 3,
+       "the order screen did not carry all three seats");
+
+    /* ---- every phone taps in before round one is dealt ---- */
+    await dana.act({ type:"order_ok" });
+    await wait(120);
+    ok(dana.state.phase === "order", "round one began before everyone tapped in");
+    await savta.act({ type:"order_ok" });
+    await ilan.act({ type:"order_ok" });
+    await wait(200);
     const phase = dana.state.phase;
     ok(phase === "giver" || phase === "blind", "unexpected opening phase: " + phase);
 
