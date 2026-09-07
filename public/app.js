@@ -23,13 +23,15 @@ const L = {
     lookaway:"{0} — תסתובבו", lookaway_d:"כל השאר בוחרים לכם מילה בטלפון שלהם.",
     yourword:"המילה שלכם", buzznow:"יש לי!", buzzsub:"לוחצים ואומרים בקול",
     youout:"אתם בחוץ בסבב הזה", giverwait:"אתם נותנים את הרמז — אין באזר.",
-    someone:"{0} לחצו", judging:"{0} בודק/ת את התשובה…", waitjudge:"מחכים לנותן/ת הרמז.",
+    someone:"{0} לחץ/ה", judging:"{0} בודק/ת את התשובה…", waitjudge:"מחכים לנותן/ת הרמז.",
     aim_at:"כוונו לאדם אחד", pass_note:"הטלפון נשאר אצלכם — אף אחד אחר לא רואה את המילים.",
     mode_k:"איך משחקים?", mode_solo:"כל אחד לעצמו", mode_teams:"בזוגות",
-    winner:"{0} מנצח/ת", playagain:"עוד משחק", waitmove:"{0} זזים על הלוח.",
+    winner:"{0} מנצח/ת", wins_p:"{0} מנצחים", playagain:"עוד משחק",
+    waitmove:"{0} זז/ה על הלוח.", waitmove_p:"{0} זזים על הלוח.",
     hand_k:"הקלפים שלכם", playcard:"להפעיל קלף", closehand:"סגירה",
     nocards:"אין לכם קלפים.", cardsq:"משבצת קלף", takeone:"{0} — קחו קלף",
-    waitcard:"{0} בוחרים קלף.", swap_wait:"{0} מחליף/ה מילה…", swap_pick:"בחרו מילה אחרת",
+    waitcard:"{0} בוחר/ת קלף.", waitcard_p:"{0} בוחרים קלף.",
+    swap_wait:"{0} מחליף/ה מילה…", swap_pick:"בחרו מילה אחרת",
     played:"הופעל קלף", played_by:"{0} הפעיל/ה", e_no_such_card:"אין לכם את הקלף הזה.",
     stuck:"{0} מנותק/ת והמשחק מחכה.", slow:"עדיין מחכים ל{0}.",
     skip:"לדלג ולהמשיך", e_not_stuck:"אין על מה לדלג.",
@@ -60,10 +62,12 @@ const L = {
     someone:"{0} buzzed", judging:"{0} is checking the answer…", waitjudge:"Waiting for the giver.",
     aim_at:"Aim at one person", pass_note:"The phone stays with you — nobody else can see these.",
     mode_k:"How are you playing?", mode_solo:"Every player for themselves", mode_teams:"In pairs",
-    winner:"{0} wins", playagain:"Play again", waitmove:"{0} is moving on the board.",
+    winner:"{0} wins", wins_p:"{0} win", playagain:"Play again",
+    waitmove:"{0} is moving on the board.", waitmove_p:"{0} are moving on the board.",
     hand_k:"Your cards", playcard:"Play a card", closehand:"Close",
     nocards:"You have no cards.", cardsq:"Card square", takeone:"{0} — take a card",
-    waitcard:"{0} is choosing a card.", swap_wait:"{0} is switching words…", swap_pick:"Pick a different word",
+    waitcard:"{0} is choosing a card.", waitcard_p:"{0} are choosing a card.",
+    swap_wait:"{0} is switching words…", swap_pick:"Pick a different word",
     played:"card played", played_by:"played by {0}", e_no_such_card:"You do not hold that card.",
     stuck:"{0} is offline and the game is waiting.", slow:"Still waiting for {0}.",
     skip:"Skip and carry on", e_not_stuck:"Nothing to skip.",
@@ -109,6 +113,17 @@ function applyLang(){
   document.title = t("title");
 }
 const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+/* a seat is one person in solo and two in pairs, and Hebrew needs the verb
+   to agree — so pick the form from the seat, not from the sentence */
+function tUnit(key, unit, name){
+  const many = !!(unit && unit.members && unit.members.length > 1);
+  return t(many ? key + "_p" : key, esc(name));
+}
+/* "you have one step" / "you have 4 steps", for one player or a pair */
+function moveHead(unit, name, steps){
+  const many = !!(unit && unit.members && unit.members.length > 1);
+  return t((steps === 1 ? "move_h1" : "move_h") + (many ? "_p" : ""), esc(name), steps);
+}
 const initials = n => String(n||"?").trim().slice(0,2).toUpperCase();
 const fmt = ms => { const s = Math.max(0, Math.ceil(ms/1000)); return Math.floor(s/60)+":"+String(s%60).padStart(2,"0"); };
 
@@ -551,8 +566,10 @@ function vTable(s){
     modBlock(s)+notes(s)+yourWord+
     '<div class="grow"></div>'+errBox()+
     (canBuzz
-      ? '<button class="buzz" id="bz">'+t("buzznow")+'<small>'+t("buzzsub")+'</small></button>'
-      : '<button class="buzz" disabled>'+buzzLabel+'</button>')+
+      ? '<div class="buzzwrap"><button class="buzz" id="bz">'+
+        '<span class="bl">'+t("buzznow")+'</span>'+
+        '<span class="bs">'+t("buzzsub")+'</span></button></div>'
+      : '<div class="standby">'+buzzLabel+'</div>')+
     handBlock(s)+
     ((s.isGiver || s.isHost) ? '<button class="quiet" id="none">'+(left<=0?t("time_up_end"):t("end_round"))+'</button>' : '')+
     '</div>');
@@ -578,7 +595,7 @@ function vAward(s){
   if(!a.mine){
     h('<div class="stack grow">'+offBox()+
       '<p class="kicker">'+t("cardsq")+'</p>'+stuckBar(s)+errBox()+
-      waitCard(t("waitcard", esc(a.unitName)), t("cards_secret"))+'</div>');
+      waitCard(tUnit("waitcard", s.units.find(u=>u.id===a.unitId), a.unitName), t("cards_secret"))+'</div>');
     wireSkip();
     return;
   }
@@ -622,7 +639,7 @@ function startTicker(s){
     if(wrap) wrap.classList.toggle("warn", hot);
     setRing(left / (s.total * 1000));
     const bz = document.querySelector(".buzz");
-    if(bz) bz.classList.toggle("hot", hot);
+    if(bz && bz.parentElement) bz.parentElement.classList.toggle("hot", hot);
     document.documentElement.dataset.tone = hot ? "burned" : "live";
     if(left <= 0){
       if(bz) bz.disabled = true;
@@ -827,9 +844,9 @@ function vMove(s){
     '<div class="topbar"><p class="kicker">'+t("move_k", mv.seat+"/"+mv.of)+'</p></div>'+
     (mv.mine
       ? '<h2 style="color:'+unitColor(s.units.find(u=>u.id===mv.unitId)||{})+'">'+
-        t("move_h", esc(mv.unitName), mv.steps)+'</h2><p class="note">'+t("move_d", mv.steps)+'</p>'
+        moveHead(s.units.find(u=>u.id===mv.unitId), mv.unitName, mv.steps)+'</h2><p class="note">'+t("move_d", mv.steps)+'</p>'
       : '<div class="waitrow">'+uav(s.units.find(u=>u.id===mv.unitId)||{name:mv.unitName})+
-        '<span><span class="wt">'+t("waitmove", esc(mv.unitName))+'</span>'+
+        '<span><span class="wt">'+tUnit("waitmove", s.units.find(u=>u.id===mv.unitId), mv.unitName)+'</span>'+
         '<span class="ws">'+t("yourturn", esc(mv.unitName))+'</span></span></div>')+
     queue+stuckBar(s)+
     '<div class="boardwrap">'+boardSVG(s, mv.mine ? mv.spots : [], picked)+'</div>'+
@@ -850,7 +867,7 @@ function vOver(s){
   document.documentElement.dataset.tone = "scored";
   h('<div class="stack grow">'+offBox()+
     '<p class="kicker">'+t("after_rounds", s.round)+'</p>'+
-    '<h1>'+t("wins", esc((s.standings[0]||{}).name))+'</h1>'+
+    '<h1>'+tUnit("wins", s.units.find(u=>u.id===(s.standings[0]||{}).id), (s.standings[0]||{}).name)+'</h1>'+
     '<div class="scores">'+s.standings.map((u,i) =>
       '<div class="resrow">'+uav(s.units.find(x=>x.id===u.id)||{name:u.name})+
       '<span class="who"><span class="nm">'+(i+1)+'. '+esc(u.name)+'</span></span>'+
