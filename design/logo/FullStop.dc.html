@@ -1,0 +1,43 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700;800&family=Rubik:wght@500;700;800&display=swap">
+  <style>
+    body { margin: 0; font-family: "Assistant", system-ui, sans-serif; background: #FFFCF6; color: #17161C; }
+    a { color: #2C6BFF; } a:hover { color: #1B4FD1; }
+    .kick { font-size: 11px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #6B6A78; margin: 0; }
+    .ttl { font-size: 21px; font-weight: 800; margin: 0; letter-spacing: -.015em; }
+    .why { margin: 0; font-size: 14.5px; line-height: 1.55; color: #46445A; text-wrap: pretty; }
+    .cut { margin: 0; font-size: 13px; line-height: 1.5; color: #6B6A78; text-wrap: pretty; }
+    .he { font-family: "Rubik", system-ui, sans-serif; font-weight: 800; direction: rtl; line-height: 1; }
+    .en { font-family: "Rubik", system-ui, sans-serif; font-weight: 800; line-height: 1; letter-spacing: .05em; }
+    .tk { display: inline-block; }
+  </style>
+</helmet>
+
+<div style="padding: 40px 44px; display: flex; flex-direction: column; gap: 30px; min-height: 420px;">
+  <div style="display: flex; flex-direction: column; gap: 5px;"><p class="kick">Direction D</p><h2 class="ttl">The full stop</h2></div>
+
+  <div style="display: flex; flex-direction: column; gap: 30px;">
+    <svg viewBox="0 0 692 80" style="width: 100%; height: 80px;"><circle cx="44" cy="40" r="38" fill="#17161C"></circle><rect x="25.8" y="33.2" width="36.5" height="13.7" rx="6.85" fill="#FFFCF6" transform="rotate(-30 44 40)"></rect><rect x="100" y="34.5" width="560" height="11" rx="5.5" fill="#17161C" opacity=".14"></rect></svg>
+    <div style="display: flex; align-items: baseline; gap: 30px; direction: rtl;">
+      <div class="he" style="font-size: 54px;">אסימון</div>
+      <div class="en" style="font-size: 26px; color: #46445A;">ASIMON</div>
+    </div>
+  </div>
+
+  <p class="why" style="max-width: 620px;">
+    The sentence is the rule; the token is the period that ends it. Nothing more is allowed after it &mdash; which is
+    exactly the rule of the game. The quietest, most editorial of the four.
+  </p>
+  <p class="cut">Tradeoff: it needs width to say anything. Cropped to a square it is just the plain token, so Direction A does the same job with more to hold on to.</p>
+</div>
+</x-dc>
+</body>
+</html>

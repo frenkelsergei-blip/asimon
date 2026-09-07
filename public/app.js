@@ -1,4 +1,4 @@
-/* Last Second — the phone.
+/* Asimon — the phone.
    The server decides everything; this file only draws what this phone was
    sent and posts back what its owner taps.                                  */
 "use strict";
@@ -10,7 +10,7 @@ const VAL_TINT = { 1:["var(--accent-soft)","var(--accent)"], 2:["var(--accent-so
 
 /* copy that only exists once you are playing across phones */
 const L = {
-  he:{ title:"שנייה אחרונה", tag:"משפט אחד · הזדמנות אחת",
+  he:{ title:"אסימון", tag:"משפט אחד · הזדמנות אחת",
     yourname:"איך קוראים לכם?", nameph:"השם שלכם", create:"לפתוח חדר חדש",
     joinbtn:"להצטרף עם קוד", join_k:"קוד החדר", codeph:"ABCD", go:"להצטרף", back:"חזרה",
     lang_k:"שפה", room_k:"קוד החדר", players_k:"מי בפנים", host:"מארח/ת", you:"אתם",
@@ -84,7 +84,7 @@ const L = {
     lg_twist_k:"התוויות הצבעוניות",
     lg_you:"אתם כאן",
     e_dummy:"" },
-  en:{ title:"Last Second", tag:"one sentence · one shot",
+  en:{ title:"Asimon", tag:"one sentence · one shot",
     yourname:"What is your name?", nameph:"Your name", create:"Open a new room",
     joinbtn:"Join with a code", join_k:"Room code", codeph:"ABCD", go:"Join", back:"Back",
     lang_k:"Language", room_k:"Room code", players_k:"Who is in", host:"host", you:"you",
@@ -386,7 +386,7 @@ const offBox = () => online ? '' : '<div class="err">'+t("offline")+'</div>';
 /* ---------------- lobby-side screens ---------------- */
 function vName(){
   h('<div class="stack grow">'+
-    '<div><p class="kicker">'+t("tag")+'</p><h1>'+t("title")+'</h1></div>'+
+    '<div><p class="kicker">'+t("tag")+'</p><h1>'+wordmark(lang)+'</h1></div>'+
     learnBtn("howto", t("howto"), t("hw_teaser"))+
     '<p class="kicker">'+t("lang_k")+'</p>'+
     '<div class="langsw"><button id="lhe" class="'+(lang==="he"?"on":"")+'">עברית</button>'+
@@ -1080,9 +1080,9 @@ function paint(){
   if(screen !== "game") stopTicker();
   if(screen === "join"){ vJoin(); return; }
   if(!me || !me.pid){ vName(); return; }
-  if(!state){ h('<div class="stack"><h1>'+t("title")+'</h1><p class="sub">…</p></div>'); return; }
+  if(!state){ h('<div class="stack"><h1>'+wordmark(lang)+'</h1><p class="sub">…</p></div>'); return; }
   if(state.phase === "lobby"){ document.documentElement.dataset.tone = "live"; vLobby(); return; }
-  if(!pack){ h('<div class="stack"><h1>'+t("title")+'</h1><p class="sub">…</p></div>'); return; }
+  if(!pack){ h('<div class="stack"><h1>'+wordmark(lang)+'</h1><p class="sub">…</p></div>'); return; }
   document.documentElement.dataset.tone = TONE[state.phase] || "live";
   const f = { giver:vGiver, blind:vBlind, table:vTable, judge:vJudge,
               reveal:vReveal, move:vMove, award:vAward, swap:vSwap, over:vOver }[state.phase];

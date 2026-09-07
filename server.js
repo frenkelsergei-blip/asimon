@@ -1,4 +1,4 @@
-/* Last Second — room server.
+/* Asimon — room server.
    No dependencies: Node's http, Server-Sent Events down, POST up.
    Run:  node server.js
    Phones join at http://<this-mac-lan-ip>:3000                        */
@@ -375,7 +375,7 @@ const server = http.createServer(async (req, res) => {
 server.listen(PORT, () => {
   const ip = lanAddress();
   console.log("");
-  console.log("  Last Second — room server");
+  console.log("  Asimon — room server");
   console.log("");
   console.log("  On this Mac:      http://localhost:" + PORT);
   console.log("  On other phones:  http://" + ip + ":" + PORT + "   (same Wi-Fi)");

@@ -1,4 +1,4 @@
-# Last Second — no dependencies, so this is about as small as a server gets.
+# Asimon — no dependencies, so this is about as small as a server gets.
 FROM node:20-alpine
 WORKDIR /app
 COPY package.json ./

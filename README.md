@@ -1,7 +1,10 @@
-# Last Second
+# Asimon
 
 A party game played across phones. One sentence, said once — and you want it
 understood at the last possible moment.
+
+*Asimon* (אסימון) is the old Israeli telephone token. `נפל האסימון` — *the
+token dropped* — is what you say when somebody finally gets it.
 
 Bilingual (Hebrew and English), no dependencies, no build step.
 
@@ -21,6 +24,8 @@ address; once it is hosted, it is the public one.
 | `game/build-engine.js` | lifts that engine out of the pass-and-play build |
 | `game/play.js` | the round across several phones, and who may see what |
 | `public/` | the phone: `index.html`, `app.js`, `art.js`, `style.css` |
+| `public/favicon.svg` | the mark, small cut &mdash; also `icon.svg` for the home screen |
+| `design/logo/` | the logo canvas the mark came out of |
 
 The engine is generated, never edited by hand. When the rules or the words
 change in the pass-and-play build, regenerate:

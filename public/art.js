@@ -1,9 +1,41 @@
-/* Last Second — the drawn bits.
+/* Asimon — the drawn bits.
    Card faces, the draining clock ring, and the burst when someone lands it.
    Everything here checks prefers-reduced-motion before it moves.            */
 "use strict";
 
 const REDUCED = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/* ---------------- the mark ---------------- */
+/* The asimon: a struck token, milled edge, groove inset so it stays a channel
+   and not a prohibition sign. Two cuts of the same coin — the milling closes
+   into a solid ring below about 40px, so small sizes drop it and keep the rim,
+   which is the part that gives an amber disc an edge on paper.               */
+const COIN_FACE = "#FFB020", COIN_RIM = "#D18A08", COIN_INK = "#17161C";
+
+function coinSvg(css, milled){
+  return '<svg viewBox="0 0 100 100" style="'+css+'" aria-hidden="true">'+
+    '<circle cx="50" cy="50" r="50" fill="'+COIN_RIM+'"/>'+
+    (milled ? '<circle cx="50" cy="50" r="47" fill="none" stroke="'+COIN_INK+'" stroke-width="6" '+
+              'stroke-dasharray="3 6.2285" stroke-linecap="butt" opacity=".85"/>' : '')+
+    '<circle cx="50" cy="50" r="'+(milled ? 42 : 43)+'" fill="'+COIN_FACE+'"/>'+
+    '<rect x="26" y="41" width="48" height="18" rx="9" fill="'+COIN_INK+'" '+
+      'transform="rotate(-30 50 50)"/></svg>';
+}
+
+/* the token on its own, at a pixel size */
+function coinMark(px){
+  return coinSvg("width:"+px+"px;height:"+px+"px;display:block", px >= 40);
+}
+
+/* the wordmark: the round letter — ס in Hebrew, O in English — is the token.
+   Set in the logo face; the h1 around it keeps its own size.                 */
+function wordmark(lg){
+  const he = lg === "he";
+  const tok = coinSvg("width:.78em;height:.78em;display:inline-block;vertical-align:"+
+                      (he ? "-.05" : "-.06")+"em", false);
+  return he ? '<span class="wm">א'+tok+'ימון</span>'
+            : '<span class="wm en">ASIM'+tok+'N</span>';
+}
 
 /* ---------------- card faces ---------------- */
 const ICONS = {
