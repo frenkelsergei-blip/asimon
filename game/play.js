@@ -95,10 +95,10 @@ function randomMapId(exclude){
   return list[Math.floor(Math.random() * list.length)];
 }
 
-/* Groups take the giving seat in turn, so the flat rotation the engine walks
-   has to alternate between them. Interleaving the roster does that exactly for
-   equal groups and approximately for ragged ones; step three replaces it with
-   an explicit group seat, and the bench choosing who speaks on top of that. */
+/* The order the table is shown before round one. Interleaving the roster by
+   group makes that reveal say exactly what dealRound() will do — group by
+   group, and round the members inside each — so the schedule the table reads
+   is the schedule it gets. */
 function orderByUnit(e){
   const queues = e.S.units.map(u => u.members.slice());
   const order = [];
@@ -114,9 +114,14 @@ function startGame(room, opts){
   e.S.lang = room.lang;
   /* Three ways to sit. Only "groups" changes what a phone is — solo and pairs
      still put exactly one person behind each. Pairs needs four to split. */
+  /* Asked for explicitly, then the older way of asking (mode:"teams", which
+     the pass-and-play build and the playtest harness still use), then whatever
+     the lobby last settled on. room.seating always holds a value, so it must
+     come after the legacy read or it would swallow it. */
   const asked = (opts && SEATINGS.indexOf(opts.seating) >= 0) ? opts.seating
+              : (opts && opts.mode === "teams")               ? "pairs"
               : (SEATINGS.indexOf(room.seating) >= 0)         ? room.seating
-              : ((opts && opts.mode === "teams") ? "pairs" : "solo");
+              : "solo";
   e.S.seating = (asked === "pairs" && roster(room).length < 4) ? "solo" : asked;
   room.seating = e.S.seating;
   e.S.mode = e.S.seating === "pairs" ? "teams" : "solo";
@@ -163,16 +168,20 @@ function startGame(room, opts){
       members:[p.id], color:e.UNIT_COLORS[i % e.UNIT_COLORS.length]
     }));
   }
-  /* The board is a race between units, so in groups its length comes off the
-     number of groups — nine people in three groups should not be handed the
-     board nine separate players would get. */
-  e.setBoard(e.S.seating === "groups" ? e.S.units.length : e.S.players.length,
-             e.S.modeId, e.S.mapId);
+  /* The board is a race between units, so its length comes off the number of
+     units — nine people in three groups should not be handed the board nine
+     separate players would get, and neither should eight people in four pairs:
+     each pair gives twice as often as a lone player and has two chances to be
+     the one who gets it. Measured by heads, a pairs game ran three rounds short
+     of the same table playing solo. Measured by racers, the two agree. */
+  e.setBoard(e.S.units.length, e.S.modeId, e.S.mapId);
   e.S.giverIdx = 0; e.S.round = 0; e.S.used = [];
   dealOpeningCard(e);
 
   room.engine = e;
   room.movePick = null;
+  room.groupSeat = 0;                 /* which group gives next */
+  room.turns = {};                    /* and how often each has given */
   /* Round 1 is not dealt yet: everyone watches the order come up first and
      taps in. Only then does newRound() run — so no word can leak early. */
   room.accepted = [];
@@ -190,11 +199,44 @@ function dealOpeningCard(e){
   e.S.opening = { unitId:u.id, key };
 }
 
+/* Whose turn it is to give.
+
+   In solo and in pairs the engine's own flat rotation is already right, so
+   this leaves it alone. In groups the turn belongs to a group rather than to
+   a person: the seat walks the units, and inside a group the giving goes
+   round its members, so everyone speaks once before anyone speaks twice.
+
+   Pointing S.giverIdx at that person is the whole trick — newRound() reads
+   the giver off S.players by index and takes the round's twist from that
+   giver's unit, and both are then this group's. */
+function dealRound(room){
+  const e = room.engine, S = e.S;
+  if(S.seating === "groups" && S.units.length){
+    const unit = S.units[(room.groupSeat || 0) % S.units.length];
+    room.turns = room.turns || {};
+    const spoken = room.turns[unit.id] || 0;
+    const at = S.players.findIndex(p => p.id === unit.members[spoken % unit.members.length]);
+    if(at >= 0) S.giverIdx = at;
+    room.turns[unit.id] = spoken + 1;
+    room.groupSeat = ((room.groupSeat || 0) + 1) % S.units.length;
+  }
+  e.newRound();
+  /* Partners draws the giver a partner from the whole table. In groups that
+     can land on somebody sitting beside them holding the same phone, which is
+     no wager at all — redraw from outside the group. */
+  const R = S.r;
+  if(S.seating === "groups" && R && R.mod === "T" && R.shot){
+    const gu = e.unitOf(R.giver);
+    const away = S.players.filter(p => gu.members.indexOf(p.id) < 0);
+    if(away.length) R.shot = away[Math.floor(Math.random() * away.length)].id;
+  }
+}
+
 /* everyone has tapped in (or the room skipped past someone): deal round 1 */
 function beginFirstRound(room){
   const e = room.engine;
   room.accepted = [];
-  e.newRound();
+  dealRound(room);
   room.phase = phaseFor(e);
 }
 
@@ -217,6 +259,198 @@ function armClock(room, onExpire){
 }
 function clearClock(room){
   if(room.clockTimer){ clearTimeout(room.clockTimer); room.clockTimer = null; }
+}
+
+/* ---------------- a break ----------------
+   Somebody has to answer the door, and a round with a clock running is not a
+   thing you can walk away from. Any phone stops the room: the round clock
+   holds where it stands, every screen goes quiet, and it starts again by
+   itself after half a minute — because a break nobody ends would strand the
+   table, which is the very thing it was called to prevent. Press it again and
+   another half minute goes on, up to a ceiling.
+
+   Ending it early belongs to whoever called it, and to the host. A break is
+   somebody's minute; the table does not get to take it back. What everyone
+   else is offered instead is the generous half of it: another thirty. */
+const PAUSE_MS     = Number(process.env.LS_PAUSE_MS     || 30000);
+const PAUSE_MAX_MS = Number(process.env.LS_PAUSE_MAX_MS || 5 * 60 * 1000);
+
+function pauseLeft(room){
+  return room.pause ? Math.max(0, room.pause.until - Date.now()) : 0;
+}
+function armPause(room, onExpire){
+  clearPause(room);
+  if(!room.pause) return;
+  room.pauseTimer = setTimeout(() => { room.pauseTimer = null; onExpire(); }, pauseLeft(room) + 30);
+  if(room.pauseTimer.unref) room.pauseTimer.unref();
+}
+function clearPause(room){
+  if(room.pauseTimer){ clearTimeout(room.pauseTimer); room.pauseTimer = null; }
+}
+function beginPause(room, phone, ctx){
+  const now = Date.now();
+  if(room.pause){
+    room.pause.until   = Math.min(now + PAUSE_MS, room.pause.startedAt + PAUSE_MAX_MS);
+    room.pause.presses += 1;
+  } else {
+    if(room.phase === "table") room.engine.pauseClock();
+    ctx.clearClock();
+    room.pause    = { by:phone.id, name:phone.name, startedAt:now, until:now + PAUSE_MS, presses:1 };
+    room.pausedAt = now;
+  }
+  ctx.armPause();
+}
+/* Back to it. The wait the room was already in is handed back the seconds the
+   break took: a phone that was slow to answer before should not come out of a
+   break looking like a phone that has been abandoned. */
+function endPause(room, ctx){
+  if(!room.pause) return;
+  const e = room.engine;
+  room.pause = null;
+  clearPause(room);
+  if(room.pausedAt) room.phaseAt = (room.phaseAt || Date.now()) + (Date.now() - room.pausedAt);
+  room.pausedAt = null;
+  if(e && room.phase === "table" && e.S.r && !e.S.r.solvedBy){ e.resumeClock(); ctx.armClock(); }
+}
+
+/* ---------------- getting up and going ----------------
+   People leave in the middle. A battery dies, somebody has to drive, a child
+   is finished. None of that should end the evening for the rest of the table,
+   so a seat can be given up at any point in a game: the phone comes off the
+   roster, whatever unit it was part of plays on with whoever is left in it,
+   and the room is put back on a step that somebody is still there to take. */
+function leave(room, phone, ctx){
+  const gone = peopleOf(room, phone.id).map(p => p.id);
+  room.people   = (room.people || []).filter(p => p.phoneId !== phone.id);
+  room.players  = room.players.filter(p => p.id !== phone.id);
+  room.accepted = (room.accepted || []).filter(id => id !== phone.id);
+  /* a break called by somebody who then walked out has nobody left to end it */
+  if(room.pause && room.pause.by === phone.id) endPause(room, ctx || NOCTX);
+  if(room.engine) retire(room, gone, ctx || NOCTX);
+  return room;
+}
+const NOCTX = { armClock(){}, clearClock(){}, armPause(){} };
+
+function retire(room, gone, ctx){
+  const e = room.engine, S = e.S;
+  if(!gone.length) return;
+  const isGone = id => gone.indexOf(id) >= 0;
+
+  /* keep the names: the round being taken apart still mentions them */
+  S.left = S.left || {};
+  S.players.forEach(p => { if(isGone(p.id)) S.left[p.id] = { id:p.id, name:p.name }; });
+
+  /* The rotation is an index into the seats. Drop a seat that sits before the
+     pointer and every later seat slides back one, so the pointer has to slide
+     with it or the turn skips a person. A seat dropped *at* the pointer needs
+     no correction — the next player has already moved into it. */
+  const seats = S.players.length;
+  let at = seats ? (S.giverIdx % seats) : 0;
+  S.players.forEach((p, i) => { if(isGone(p.id) && i < at) at -= 1; });
+  S.players = S.players.filter(p => !isGone(p.id));
+  S.giverIdx = S.players.length ? ((at % S.players.length) + S.players.length) % S.players.length : 0;
+
+  /* where the movement queue had got to, read before the units change */
+  const wasOrder  = moveOrder(e);
+  const wasMoving = wasOrder[S.moveSeat] || null;
+
+  /* a unit lives as long as one of its people is still at the table */
+  S.units.forEach(u => { u.members = u.members.filter(id => !isGone(id)); });
+  const dead = S.units.filter(u => !u.members.length).map(u => u.id);
+  if(dead.length){
+    S.units = S.units.filter(u => u.members.length);
+    dead.forEach(id => {
+      delete (S.steps || {})[id];
+      if(room.turns) delete room.turns[id];
+    });
+    if(S.r) S.r.doubles = (S.r.doubles || []).filter(id => dead.indexOf(id) < 0);
+    if(S.awardFor && dead.indexOf(S.awardFor) >= 0){ S.awardFor = null; S.offers = null; }
+    if(S.wild && dead.indexOf(S.wild.unitId) >= 0) S.wild = null;
+    if(S.result) S.result.rows = S.result.rows.filter(r => dead.indexOf(r.id) < 0);
+    room.groupSeat = S.units.length ? (room.groupSeat || 0) % S.units.length : 0;
+  }
+  /* the queue keeps its place: whoever was moving still is, and if they are
+     the ones who left, the seat they vacated already holds the next unit */
+  if(wasMoving){
+    const order = moveOrder(e), still = order.indexOf(wasMoving);
+    S.moveSeat = still >= 0 ? still
+               : wasOrder.slice(0, S.moveSeat).filter(id => order.indexOf(id) >= 0).length;
+  }
+
+  if(S.r){
+    const R = S.r;
+    R.lockedOut = R.lockedOut.filter(id => !isGone(id));
+    if(R.judging && isGone(R.judging)) R.judging = null;
+    /* Partners drew somebody to aim at and they have gone. The twist redraws
+       from whoever is left; a wager the giver placed themselves is simply
+       off, and they are asked to aim again. */
+    if(R.shot && isGone(R.shot)){
+      const away = S.players.filter(p => p.id !== R.giver);
+      R.shot = (R.mod === "T" && R.shotPublic && away.length)
+             ? away[Math.floor(Math.random() * away.length)].id : null;
+      if(!R.shot) R.shotPublic = false;
+    }
+  }
+  resettle(room, ctx);
+}
+
+/* The room may now be standing on a step nobody is left to take: the giver
+   walked out mid-clue, the unit that was moving is gone, the last person who
+   could have shouted has left. Put it back on its feet — or call the game,
+   if there is no game left to have. */
+function resettle(room, ctx){
+  const e = room.engine, S = e.S, R = S.r;
+  /* a race wants two, and a round wants somebody to talk to */
+  if(S.units.length < 2 || S.players.length < 2){
+    ctx.clearClock(); S.screen = "over"; room.phase = "over";
+    return;
+  }
+  if(room.phase === "over") return;
+
+  if(room.phase === "order"){
+    if(S.players.every(p => (room.accepted || []).indexOf(phoneOf(room, p.id)) >= 0))
+      beginFirstRound(room);
+    return;
+  }
+  if(!R) return;
+
+  const live = ["giver","blind","table","judge","swap"].indexOf(room.phase) >= 0;
+  if(live){
+    /* The round belongs to its giver. Without one there is nothing to score
+       and nothing to reveal, so it is dropped and dealt again — under the
+       same number, because as far as the table is concerned it never
+       happened. */
+    if(!S.players.some(p => p.id === R.giver)){
+      ctx.clearClock();
+      S.round = Math.max(0, S.round - 1);
+      room.movePick = null;
+      dealRound(room);
+      room.phase = phaseFor(e);
+      return;
+    }
+    /* everybody who could still shout has gone: end it where it stands */
+    const alive = S.players.filter(p => p.id !== R.giver && R.lockedOut.indexOf(p.id) < 0);
+    if(!alive.length){
+      ctx.clearClock();
+      e.pauseClock();
+      R.solvedBy = null; R.solveMs = null; R.judging = null;
+      if(R.pick === null || !R.words[R.pick]) R.pick = 0;
+      e.scoreRound();
+      S.screen = "reveal"; room.phase = "reveal";
+      return;
+    }
+    /* the one whose answer was being judged left before the verdict */
+    if(room.phase === "judge" && !R.judging){
+      S.screen = "table"; room.phase = "table";
+      e.resumeClock(); ctx.armClock();
+    }
+    return;
+  }
+  /* the board: the mover, the card square, the wildcard. Each of those was
+     waiting on one unit, and if that unit is gone the queue moves on. */
+  if(room.phase === "award" && !S.awardFor) return settleMove(room);
+  if(room.phase === "wild"  && !S.wild)     return settleMove(room);
+  if(room.phase === "move"  && !moveOrder(e)[S.moveSeat]) return settleMove(room);
 }
 
 /* ---------------- what one phone may see ---------------- */
@@ -390,10 +624,19 @@ function viewFor(room, pid){
     base.opening = { key:S.opening.key, n:CARDS[S.opening.key].n, d:CARDS[S.opening.key].d };
   }
 
-  const blocked = blockedBy(room);
+  /* A break covers everything else on the screen, so the room stops reporting
+     who it is waiting for while one is on — a table that has deliberately
+     stopped is not a table anybody is failing to answer. */
+  if(room.pause){
+    base.paused = {
+      by: room.pause.by, name: room.pause.name, ms: pauseLeft(room),
+      of: PAUSE_MS, mine: room.pause.by === pid || room.hostId === pid
+    };
+  }
+  const blocked = room.pause ? null : blockedBy(room);
   if(blocked) base.blocked = blocked;
   base.idleMs = IDLE_MS;          /* the phones count the same wait the server does */
-  const waiting = waitingOn(room);
+  const waiting = room.pause ? null : waitingOn(room);
   if(waiting){
     /* whoever is being waited for cannot be the one to skip themselves */
     waiting.isYou = awaitedIds(room).indexOf(pid) >= 0;
@@ -554,10 +797,26 @@ function applyAction(room, me, body, ctx){
   }
 
   if(!e) return { error:"not_started" };
+  /* a room on a break answers nothing but the break itself */
+  if(room.pause && type !== "pause" && type !== "resume") return { error:"paused" };
   const S = e.S, R = S.r;
   const isGiver = !!(R && owns(room, me.id, R.giver));
 
   switch(type){
+
+  /* stop everything for half a minute. Pressed again, another half minute. */
+  case "pause": {
+    if(room.phase === "over") return { error:"not_now" };
+    beginPause(room, me, ctx);
+    return { ok:true };
+  }
+
+  case "resume": {
+    if(!room.pause) return { error:"not_now" };
+    if(room.pause.by !== me.id && room.hostId !== me.id) return { error:"not_your_break" };
+    endPause(room, ctx);
+    return { ok:true };
+  }
 
   case "challenge": {
     if(room.phase !== "giver" || !isGiver) return { error:"not_your_turn" };
@@ -604,6 +863,10 @@ function applyAction(room, me, body, ctx){
        field, or an aim would rewrite who the request came from. */
     const target = body.target;
     if(target === R.giver || !S.players.some(p => p.id === target)) return { error:"bad_choice" };
+    /* in groups your own people are around the same phone: aiming at one of
+       them is not a read of anybody, it is just telling them */
+    if(S.seating === "groups" && e.unitOf(R.giver).members.indexOf(target) >= 0)
+      return { error:"bad_choice" };
     R.shot = target;
     return { ok:true };
   }
@@ -690,7 +953,7 @@ function applyAction(room, me, body, ctx){
     if(!isGiver && room.hostId !== me.id) return { error:"not_your_turn" };
     if(e.isGameOver()){ S.screen = "over"; room.phase = "over"; return { ok:true }; }
     S.moveSeat = 0; room.movePick = null;
-    if(!moveOrder(e).length){ e.newRound(); room.phase = phaseFor(e); return { ok:true }; }
+    if(!moveOrder(e).length){ dealRound(room); room.phase = phaseFor(e); return { ok:true }; }
     S.awardFor = null; S.offers = null;
     S.screen = "move"; room.phase = "move";
     return { ok:true };
@@ -793,7 +1056,9 @@ function applyAction(room, me, body, ctx){
            card meant to squeeze the table would be paying the giver its top
            rate. Shortening the whole clock keeps all three bands in play. */
         e.pauseClock();
-        if(e.remainMs() > 30000) R.total = Math.ceil((e.elapsedMs() + 30000) / 1000);
+        /* exactly thirty, not rounded up to the next whole second — the
+           round's length is only ever read as a number of milliseconds */
+        if(e.remainMs() > 30000) R.total = (e.elapsedMs() + 30000) / 1000;
         e.resumeClock();
         ctx.armClock();
         break;
@@ -857,6 +1122,7 @@ function applyAction(room, me, body, ctx){
     if(room.phase !== "over" || room.hostId !== me.id) return { error:"not_your_turn" };
     S.units.forEach(u => { u.score = 0; u.cards = []; u.pos = e.startPos(); });
     S.round = 0; S.giverIdx = 0; S.used = []; S.moveSeat = 0; S.wild = null; room.movePick = null;
+    room.groupSeat = 0; room.turns = {};
     /* a fresh game earns a fresh order and a fresh opening card, and the
        table gets the same reveal it got the first time */
     S.players = e.shuffle(S.players);
@@ -898,12 +1164,18 @@ function decoys(e, R, howMany){
 
 /* a move is finished: next mover, or the next round, or the end */
 function advanceMove(room){
+  room.engine.S.moveSeat += 1;
+  settleMove(room);
+}
+/* whoever the queue is pointing at now takes their turn — and when it points
+   past the end, the round is over. Split out of advanceMove because a unit
+   that leaves the game moves the queue on without anybody having moved. */
+function settleMove(room){
   const e = room.engine, S = e.S;
-  S.moveSeat += 1;
   room.movePick = null;
   if(S.moveSeat >= moveOrder(e).length){
     if(e.isGameOver()){ S.screen = "over"; room.phase = "over"; }
-    else { e.newRound(); room.phase = phaseFor(e); }
+    else { dealRound(room); room.phase = phaseFor(e); }
   } else {
     S.screen = "move"; room.phase = "move";
   }
@@ -930,6 +1202,8 @@ function cardFace(lang, key){
 module.exports = { startGame, applyAction, viewFor, timeUp, armClock, clearClock,
                    moveOrder, blockedBy, waitingOn, awaitedIds, uiPack, cardFace, IDLE_MS, MIN_PLAYERS,
                    randomMapId, MODE_IDS, MAP_IDS,
+                   /* stopping the room, and giving up a seat while it runs */
+                   leave, armPause, clearPause, endPause, pauseLeft, PAUSE_MS, PAUSE_MAX_MS,
                    /* the phone-and-person layer, for the server to keep the roster with */
                    roster, addPerson, personById, peopleOf, phoneOf, owns,
                    MAX_GROUP, MAX_PEOPLE, SEATINGS };

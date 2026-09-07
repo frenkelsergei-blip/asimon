@@ -142,6 +142,7 @@ setInterval(() => {
   for(const [code, room] of rooms)
     if(now - room.touchedAt > ROOM_IDLE_MS){
       play.clearClock(room);
+      play.clearPause(room);
       room.players.forEach(x => { if(x.dropTimer) clearTimeout(x.dropTimer); });
       closeRoom(room); rooms.delete(code);
     }
@@ -170,6 +171,17 @@ function broadcast(room){
   const key  = room.phase + ":" + seat + ":" + (room.engine ? room.engine.S.round : 0);
   if(key !== room._waitKey){ room._waitKey = key; room.phaseAt = Date.now(); }
   for(const p of room.players) push(room, p.id, { type:"state", state: viewFor(room, p.id) });
+}
+
+/* The two timers the rules side owns but cannot fire on its own: the round
+   clock running out, and a break ending by itself. Both end in a broadcast,
+   which only the server knows how to do. */
+function ctxFor(room){
+  return {
+    armClock:   () => play.armClock(room, () => { if(play.timeUp(room)) broadcast(room); }),
+    clearClock: () => play.clearClock(room),
+    armPause:   () => play.armPause(room, () => { play.endPause(room, ctxFor(room)); broadcast(room); })
+  };
 }
 
 /* ---------------- http ---------------- */
@@ -357,12 +369,17 @@ const server = http.createServer(async (req, res) => {
       if(!room || !me) return sendJSON(res, 404, { error:"gone" });
       touch(room);
 
+      /* Getting up and going, in the lobby or in the middle of a round. The
+         rules side takes the seat off the board and puts the room back on a
+         step somebody can take; the rest of this is the phone's own affairs. */
       if(body.type === "leave"){
         if(me.dropTimer){ clearTimeout(me.dropTimer); me.dropTimer = null; }
-        room.players = room.players.filter(x => x.id !== me.id);
-        room.people  = (room.people || []).filter(x => x.phoneId !== me.id);
+        play.leave(room, me, ctxFor(room));
         room.clients.delete(me.id);
-        if(room.hostId === me.id) room.hostId = room.players[0] ? room.players[0].id : null;
+        if(room.hostId === me.id)
+          room.hostId = (room.players.find(x => x.online) || room.players[0] || {}).id || null;
+        /* the table hears it once, the way it hears a card being played */
+        if(room.players.length) announce(room, { type:"event", kind:"left", by: me.name });
         broadcast(room);
         return sendJSON(res, 200, { ok:true });
       }
@@ -432,19 +449,13 @@ const server = http.createServer(async (req, res) => {
         if(room.hostId !== me.id) return sendJSON(res, 403, { error:"host_only" });
         if(room.phase !== "lobby") return sendJSON(res, 409, { error:"already_started" });
         if(room.players.length < play.MIN_PLAYERS) return sendJSON(res, 409, { error:"need_3" });
-        play.startGame(room, { mode: body.mode, gameMode: body.gameMode });
+        play.startGame(room, { seating: body.seating, mode: body.mode, gameMode: body.gameMode });
         broadcast(room);
         return sendJSON(res, 200, { ok:true });
       }
 
       /* everything else belongs to the round */
-      const ctx = {
-        armClock: () => play.armClock(room, () => {
-          if(play.timeUp(room)) broadcast(room);
-        }),
-        clearClock: () => play.clearClock(room)
-      };
-      const out = play.applyAction(room, me, body, ctx);
+      const out = play.applyAction(room, me, body, ctxFor(room));
       if(out && out.played){
         announce(room, { type:"event", kind:"card", by: me.name,
                          card: play.cardFace(room.lang, out.played) });

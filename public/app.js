@@ -15,7 +15,7 @@ const L = {
   he:{ title:"אסימון", tag:"משפט אחד · הזדמנות אחת",
     yourname:"איך קוראים לכם?", nameph:"השם שלכם", create:"לפתוח חדר חדש",
     joinbtn:"להצטרף עם קוד", join_k:"קוד החדר", codeph:"ABCD", go:"להצטרף", back:"חזרה",
-    lang_k:"שפה", room_k:"קוד החדר", players_k:"מי בפנים", host:"מארח/ת", you:"אתם",
+    lang_k:"שפה", room_k:"קוד החדר", players_k:"מי בפנים", host:"מארח/ת", you:"את/ה",
     face_k:"בחרו פרצוף", face_d:"זה מה שכולם יראו לידכם כל המשחק.",
     face_change:"להחליף פרצוף", face_done:"זהו", e_face_taken:"מישהו כבר לקח את הפרצוף הזה.",
     waiting:"מחכים לעוד שחקנים — צריך לפחות 3.", startgame:"מתחילים", leave:"לצאת מהחדר",
@@ -33,7 +33,7 @@ const L = {
     aim_at:"כוונו לאדם אחד", pass_note:"הטלפון נשאר אצלכם — אף אחד אחר לא רואה את המילים.",
     mode_k:"איך משחקים?", mode_solo:"כל אחד לעצמו", mode_teams:"בזוגות",
     gm_k:"באיזו מהירות?", gm_teaser:"מהיר, רגיל, רגוע או אתגר — לכל אחד קצב אחר.",
-    gm_title:"אופני משחק", gm_close:"סגירה",
+    gm_title:"סגנון משחק", gm_close:"סגירה",
     map_k:"הלוח הפעם", reroll:"להגריל לוח אחר", mm_fmt:"{0} · {1}",
     winner:"{0} מנצח/ת", wins_p:"{0} מנצחים", playagain:"עוד משחק",
     waitmove:"{0} זז/ה על הלוח.", waitmove_p:"{0} זזים על הלוח.",
@@ -55,6 +55,24 @@ const L = {
     e_busy:"השרת עמוס כרגע, נסו שוב עוד רגע.", e_slow_down:"יותר מדי חדרים. חכו קצת.",
     e_host_only:"רק המארח/ת.", e_your_turn:"זה התור שלכם — אי אפשר לדלג על עצמכם.",
     e_not_started:"המשחק לא התחיל.",
+    /* ---- הפסקה, ופרישה באמצע ---- */
+    pause:"הפסקה", paused_k:"הפסקה", paused_head:"השולחן עוצר",
+    pause_ask_k:"להפסיק את המשחק?",
+    pause_ask_d:"השעון של כולם נעצר במקום, ואף אחד לא יכול לענות. ממשיכים אוטומטית אחרי חצי דקה — או ברגע שתלחצו ״ממשיכים״.",
+    pause_ask_yes:"כן, עוצרים", pause_ask_no:"לא, ממשיכים",
+    paused_by:"{0} ביקש/ה רגע", paused_auto:"ממשיכים לבד כשזה נגמר",
+    paused_d:"שעון הסבב עצר על {0} ואף אחד לא יכול לענות. כל לחיצה על ״עוד 30״ מוסיפה חצי דקה.",
+    paused_d2:"אף אחד לא יכול לגעת בכלום עד שחוזרים. כל לחיצה על ״עוד 30״ מוסיפה חצי דקה.",
+    paused_wait:"מחכים ל{0}", paused_wait_d:"אפשר להוסיף עוד חצי דקה. לחזור מוקדם יכולים רק {0} או המארח/ת — ואם אף אחד לא נוגע, המשחק ממשיך לבד.",
+    pause_more:"עוד 30 שניות", pause_back:"ממשיכים",
+    quit:"לפרוש מהמשחק", quit_k:"לפרוש מהמשחק?",
+    quit_1:"האסימון שלכם יורד מהלוח, והניקוד לא נשמר.",
+    quit_2:"אם אתם באמצע רמז — הסבב יחולק מחדש, באותו מספר, לשחקן/ית הבא/ה.",
+    quit_3:"השאר ממשיכים. נשאר שולחן של אחד? המשחק נגמר.",
+    quit_note:"אפשר לחזור בכל רגע עם קוד החדר — אבל בתור שחקן/ית חדש/ה, בלי הנקודות.",
+    quit_yes:"כן, אני יוצא/ת", quit_no:"לא, ממשיכים",
+    gone_msg:"{0} פרש/ה", gone_sub:"השאר ממשיכים",
+    e_paused:"המשחק בהפסקה.", e_not_your_break:"ההפסקה לא שלכם.",
     /* ---- איך משחקים ---- */
     howto:"איך משחקים?", hw_teaser:"חדשים במשחק? כל הכללים בדקה.",
     hw_k:"איך משחקים", hw_close:"סגירה", hw_got:"הבנתי, קדימה",
@@ -133,7 +151,7 @@ const L = {
     aim_at:"Aim at one person", pass_note:"The phone stays with you — nobody else can see these.",
     mode_k:"How are you playing?", mode_solo:"Every player for themselves", mode_teams:"In pairs",
     gm_k:"How fast do you want it?", gm_teaser:"Quick, Regular, Slow, or Challenge — each its own pace.",
-    gm_title:"Game modes", gm_close:"Close",
+    gm_title:"Play style", gm_close:"Close",
     map_k:"Tonight's board", reroll:"Roll a new board", mm_fmt:"{0} · {1}",
     winner:"{0} wins", wins_p:"{0} win", playagain:"Play again",
     waitmove:"{0} is moving on the board.", waitmove_p:"{0} are moving on the board.",
@@ -155,6 +173,24 @@ const L = {
     e_busy:"The server is full just now — try again in a moment.", e_slow_down:"Too many rooms. Wait a little.",
     e_host_only:"Host only.", e_your_turn:"It is your turn — you cannot skip yourself.",
     e_not_started:"The game has not started.",
+    /* ---- a break, and leaving in the middle ---- */
+    pause:"Break", paused_k:"Break", paused_head:"The table has stopped",
+    pause_ask_k:"Stop the game?",
+    pause_ask_d:"Everyone's clock stops where it stands and nobody can answer. It starts again on its own after half a minute — or the moment you tap “Back to it”.",
+    pause_ask_yes:"Yes, stop it", pause_ask_no:"Never mind",
+    paused_by:"{0} asked for a moment", paused_auto:"it starts again on its own",
+    paused_d:"The round clock stopped at {0} and nobody can answer. Each press of “+30” adds another half minute.",
+    paused_d2:"Nobody can touch anything until you come back. Each press of “+30” adds another half minute.",
+    paused_wait:"Waiting for {0}", paused_wait_d:"You can give them another half minute. Only {0} or the host can come back early — and if nobody touches it, the game carries on by itself.",
+    pause_more:"+30 seconds", pause_back:"Back to it",
+    quit:"Leave the game", quit_k:"Leave the game?",
+    quit_1:"Your token comes off the board, and your score is not kept.",
+    quit_2:"Mid-clue — the round is dealt again, same number, to the next player.",
+    quit_3:"Everyone else carries on. A table of one? The game is over.",
+    quit_note:"You can come back any time with the room code — as a new player, without the points.",
+    quit_yes:"Yes, I'm out", quit_no:"Never mind",
+    gone_msg:"{0} left", gone_sub:"the rest carry on",
+    e_paused:"The game is on a break.", e_not_your_break:"That break is not yours to end.",
     /* ---- how to play ---- */
     howto:"How to play", hw_teaser:"New here? Every rule in a minute.",
     hw_k:"How to play", hw_close:"Close", hw_got:"Got it — let's go",
@@ -260,6 +296,9 @@ function themeColc(themeId){
 let lang = "he", pack = null, state = null, es = null, me = null;
 let screen = "name", error = "", online = false, mode = "solo", gameMode = "regular";
 let clockAt = 0, clockMs = 0, ticker = null;
+/* the break: when this phone was told how much of it was left, and whether it
+   is standing on the screen that asks if you really mean to go */
+let pauseAt = 0, pauseMs = 0, quitting = false, pauseAsk = false;
 let myFace = null, taken = [], pickingFace = false;
 /* what is typed lives here, not only in the DOM — picking a face re-renders,
    and a rebuilt input would otherwise come back empty */
@@ -407,13 +446,18 @@ function connect(){
   es.onmessage = ev => {
     let msg; try{ msg = JSON.parse(ev.data); }catch(e){ return; }
     if(msg.type === "ui"){ pack = msg.pack; lang = msg.lang; applyLang(); render(); return; }
-    if(msg.type === "event"){ showBanner(msg); return; }
+    if(msg.type === "event"){
+      if(msg.kind === "left") showNote(t("gone_msg", esc(msg.by)), t("gone_sub"));
+      else showBanner(msg);
+      return;
+    }
     if(msg.type !== "state") return;
     const prev = state;
     state = msg.state;
     if(state.lang !== lang){ lang = state.lang; applyLang(); }
     if(!prev || prev.phase !== state.phase || prev.round !== state.round){ movePickLocal = null; showHand = false; }
     if(typeof state.remainMs === "number"){ clockMs = state.remainMs; clockAt = Date.now(); }
+    if(state.paused){ pauseMs = state.paused.ms; pauseAt = Date.now(); pauseAsk = false; }
     waitAt = Date.now() - ((state.waiting && state.waiting.forMs) || 0);
     if(typeof state.idleMs === "number") idleMs = state.idleMs;
     const mine = (state.players || []).find(p => p.id === state.you);
@@ -478,21 +522,28 @@ function defaultFace(gone){
 
 /* ---------------- the card-played banner ---------------- */
 let bannerTimer = null;
-function showBanner(ev){
+function banner(inner, tone){
   const old = document.querySelector(".banner");
   if(old) old.remove();
   if(bannerTimer) clearTimeout(bannerTimer);
   const el = document.createElement("div");
   el.className = "banner";
-  el.innerHTML = '<div class="in">'+cardTile(ev.card.key)+
-    '<span><span class="bn">'+esc(ev.card.n)+'</span>'+
-    '<span class="bw" style="display:block">'+t("played_by", esc(ev.by))+'</span></span></div>';
+  el.innerHTML = '<div class="in">'+inner+'</div>';
   document.body.appendChild(el);
-  flash(ev.tone);
+  flash(tone);
   bannerTimer = setTimeout(() => {
     el.classList.add("out");
     setTimeout(() => el.remove(), 320);
   }, 2400);
+}
+function showBanner(ev){
+  banner(cardTile(ev.card.key)+
+    '<span><span class="bn">'+esc(ev.card.n)+'</span>'+
+    '<span class="bw" style="display:block">'+t("played_by", esc(ev.by))+'</span></span>', ev.tone);
+}
+/* the same drop-down strip, with words instead of a card: somebody left */
+function showNote(bold, sub){
+  banner('<span class="bn">'+bold+'</span><span class="bw">'+sub+'</span>');
 }
 
 /* ---------------- shell ---------------- */
@@ -743,6 +794,7 @@ function vLobby(){
         '<button data-seat="solo" class="'+(seat==="solo"?"on":"")+'">'+t("mode_solo")+'</button>'+
         '<button data-seat="pairs" class="'+(seat==="pairs"?"on":"")+'"'+(list.length<4?" disabled":"")+'>'+t("mode_teams")+'</button>'+
         '<button data-seat="groups" class="'+(seat==="groups"?"on":"")+'">'+t("seat_groups")+'</button></div>'+
+        (list.length < 4 ? '<p class="note">'+t("need4")+'</p>' : '')+
         '<div class="langsw"><button id="lhe" class="'+(s.lang==="he"?"on":"")+'">עברית</button>'+
         '<button id="len" class="'+(s.lang==="en"?"on":"")+'">English</button></div>'+
         '<button id="start"'+(list.length<3?" disabled":"")+'>'+t("startgame")+'</button>'
@@ -1458,6 +1510,125 @@ function topbar(s){
          '<span class="qchip">'+pav(s.giver, "sm")+esc(s.giverName)+'</span></div>';
 }
 
+/* ---------------- the break, and getting up ----------------
+   Any phone can stop the room. The clock holds, every screen goes grey, and
+   the game starts itself again after half a minute — so a break nobody comes
+   back from cannot strand the table. Coming back early belongs to whoever
+   called it, and to the host; everyone else is offered the generous half of
+   it instead, which is another thirty seconds.                             */
+const pauseLeft = () => Math.max(0, pauseMs - (Date.now() - pauseAt));
+
+/* the break button, appended after the screen has drawn rather than written
+   into each of them: it belongs to the room, not to any one step. Where the
+   screen already ends in a quiet button, the two go side by side. */
+function breakBar(s){
+  if(!s || s.phase === "lobby" || s.phase === "over" || s.paused) return;
+  const stack = app.querySelector(".stack");
+  if(!stack) return;
+  const b = document.createElement("button");
+  b.className = "quiet brk"; b.id = "brk"; b.innerHTML = t("pause");
+  const last = stack.lastElementChild;
+  if(last && last.tagName === "BUTTON" && last.classList.contains("quiet")){
+    const rowEl = document.createElement("div");
+    rowEl.className = "btnrow";
+    stack.insertBefore(rowEl, last);
+    rowEl.appendChild(b); rowEl.appendChild(last);
+  } else {
+    stack.appendChild(b);
+  }
+  b.onclick = () => { pauseAsk = true; render(); };
+}
+
+/* Stopping the room stops it for everyone, so it is asked before it is done —
+   the same two taps leaving takes, for the same reason: nobody should hold up
+   a table by putting a phone in a pocket badly. */
+function vPauseAsk(s){
+  document.documentElement.dataset.tone = "held";
+  stopTicker();
+  h('<div class="stack grow">'+topbar(s)+'<div class="grow"></div>'+
+    '<div class="center">'+
+      '<span class="pausemark">'+pauseGlyph(64)+'</span>'+
+      '<h2>'+t("pause_ask_k")+'</h2>'+
+      '<p class="note">'+t("pause_ask_d")+'</p></div>'+
+    errBox()+'<div class="grow"></div>'+
+    '<button id="paok">'+t("pause_ask_yes")+'</button>'+
+    '<button class="ghost" id="pano">'+t("pause_ask_no")+'</button></div>');
+  on("paok", () => { pauseAsk = false; act({ type:"pause" }); });
+  on("pano", () => { pauseAsk = false; render(); });
+}
+/* two bars, the shape every pause button on earth has */
+function pauseGlyph(px){
+  return '<svg viewBox="0 0 40 40" width="'+px+'" height="'+px+'" aria-hidden="true">'+
+    '<circle cx="20" cy="20" r="20" fill="var(--sunk)"/>'+
+    '<rect x="14" y="12" width="4.4" height="16" rx="2.2" fill="var(--second)"/>'+
+    '<rect x="21.6" y="12" width="4.4" height="16" rx="2.2" fill="var(--second)"/></svg>';
+}
+
+function vPaused(s){
+  const p = s.paused, left = pauseLeft();
+  document.documentElement.dataset.tone = "held";
+  /* the round clock, stopped where it stood — worth showing, because it is
+     the thing everyone is afraid of losing when they ask for a moment */
+  const frozen = (s.phase === "table" && typeof s.remainMs === "number") ? fmt(s.remainMs) : null;
+  h('<div class="stack grow">'+offBox()+topbar(s)+
+    '<div><div class="hero pausecard">'+
+      '<p class="kicker">'+t("paused_k")+'</p>'+
+      '<div class="pclock" id="pclk">'+fmt(left)+'</div>'+
+      '<p class="psub">'+t("paused_auto")+'</p>'+
+      '<div class="prail"><i id="prail" style="width:'+pausePct(left, p)+'%"></i></div>'+
+      '<div class="herorow"><span class="hw">'+pav(p.by, "sm")+
+        '<span>'+t("paused_by", esc(p.name))+'</span></span>'+
+        (frozen ? '<span class="ht num">'+frozen+'</span>' : '')+
+      '</div></div><div class="perf"></div></div>'+
+    '<h2>'+(p.mine ? t("paused_head") : t("paused_wait", esc(p.name)))+'</h2>'+
+    '<p class="note">'+(p.mine
+      ? (frozen ? t("paused_d", frozen) : t("paused_d2"))
+      : t("paused_wait_d", esc(p.name)))+'</p>'+
+    errBox()+'<div class="grow"></div>'+
+    (p.mine
+      ? '<div class="btnrow"><button class="ghost" id="more">'+t("pause_more")+'</button>'+
+        '<button id="back">'+t("pause_back")+'</button></div>'
+      : '<button class="ghost" id="more">'+t("pause_more")+'</button>')+
+    '<button class="quiet warn" id="quit">'+t("quit")+'</button></div>');
+  on("more", () => act({ type:"pause" }));
+  on("back", () => act({ type:"resume" }));
+  on("quit", () => { quitting = true; render(); });
+  startPauseTicker(p);
+}
+const pausePct = (left, p) => Math.max(0, Math.min(100, Math.round(100 * left / ((p && p.of) || 30000))));
+function startPauseTicker(p){
+  stopTicker();
+  ticker = setInterval(() => {
+    const clk = document.getElementById("pclk");
+    if(!clk){ stopTicker(); return; }
+    const left = pauseLeft();
+    clk.textContent = fmt(left);
+    const rail = document.getElementById("prail");
+    if(rail) rail.style.width = pausePct(left, p) + "%";
+    if(left <= 0) stopTicker();          /* the server's own timer brings us back */
+  }, 200);
+}
+
+/* Leaving in the middle. Two taps, and the second one says what it costs —
+   the table has already stopped by the time this screen is on, so nobody
+   walks out of a game by mis-tapping. */
+function vQuit(s){
+  document.documentElement.dataset.tone = "held";
+  stopTicker();
+  const mine = (s.players || []).find(p => p.id === s.you) || {};
+  h('<div class="stack grow">'+
+    '<div class="center" style="padding:22px 0 4px">'+
+      av(mine.name, colorOf(s.you), "big", mine.face)+
+      '<h2>'+t("quit_k")+'</h2></div>'+
+    '<div class="panel qlist">'+[1,2,3].map(i =>
+      '<div class="qline"><span class="qb"></span><span>'+t("quit_"+i)+'</span></div>').join("")+'</div>'+
+    '<p class="note">'+t("quit_note")+'</p>'+errBox()+'<div class="grow"></div>'+
+    '<button class="red" id="quityes">'+t("quit_yes")+'</button>'+
+    '<button class="ghost" id="quitno">'+t("quit_no")+'</button></div>');
+  on("quityes", async () => { quitting = false; await act({ type:"leave" }); forget(); render(); });
+  on("quitno", () => { quitting = false; render(); });
+}
+
 /* ---------------- dispatch ---------------- */
 /* ---------------- how to play, and reading the board ---------------- */
 /* which lane each twist mostly lives in, so the legend is coloured like the board */
@@ -1596,9 +1767,16 @@ function paint(){
   /* the order reveal is a one-off: once the game is under way, the next one
      starts its shuffle from scratch */
   if(state.phase !== "order" && orderAt){ orderAt = 0; orderPath = null; clearTimeout(orderTimer); }
+  /* A break covers the room, and the screen that asks whether you really mean
+     to go covers even that — a break running out under someone reading it
+     would answer the question for them. */
+  if(quitting){ vQuit(state); return; }
+  if(state.paused){ vPaused(state); return; }
+  if(pauseAsk){ vPauseAsk(state); return; }
   const f = { order:vOrder, giver:vGiver, blind:vBlind, table:vTable, judge:vJudge,
               reveal:vReveal, move:vMove, award:vAward, swap:vSwap, wild:vWild, over:vOver }[state.phase];
   if(f) f(state); else vLobby();
+  breakBar(state);
 }
 
 /* ---------------- boot ---------------- */

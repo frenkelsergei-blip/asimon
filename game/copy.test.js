@@ -29,6 +29,7 @@ const built = [];
 [1,2,3,4].forEach(i => built.push("hw_s"+i, "hw_s"+i+"d"));
 [1,2,3].forEach(i => built.push("hw_b"+i, "hw_b"+i+"d", "hw_p"+i, "hw_p"+i+"d"));
 [0,1,2,3].forEach(i => built.push("lg_lane_"+i));
+[1,2,3].forEach(i => built.push("quit_"+i));
 ["dot","card","end"].forEach(k => built.push("lg_"+k, "lg_"+k+"_d"));
 ["topic","open","cold"].forEach(k => built.push("ch_"+k, "ch_"+k+"_d", "cw_"+k));
 ["early","mid","late","none"].forEach(k => built.push("band_"+k));

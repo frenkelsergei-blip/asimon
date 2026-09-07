@@ -26,6 +26,8 @@
 :root[data-tone="secret"]{ --tone:var(--blind); --tone-soft:var(--blind-soft); --tone-ink:var(--blind-ink) }
 :root[data-tone="scored"]{ --tone:var(--good);  --tone-soft:var(--good-soft);  --tone-ink:var(--good-ink) }
 :root[data-tone="burned"]{ --tone:var(--guilty); --tone-soft:var(--guilty-soft); --tone-ink:var(--guilty-ink) }
+/* a room on a break: the colour drains out of the page and it goes grey */
+:root[data-tone="held"]{ --tone:var(--ink); --tone-soft:var(--sunk); --tone-ink:var(--second); --wash:.07 }
 
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{background:var(--paper)}
@@ -171,6 +173,27 @@ input.code{font-family:var(--display);font-weight:400;font-size:34px;text-align:
 .verline .vn{font-weight:700;color:var(--muted);text-decoration:underline;text-underline-offset:3px;
   text-decoration-color:var(--rule)}
 .verline:active{transform:none}
+
+/* ---- the break, and getting up ----
+   The same ink receipt the room code is printed on, holding a countdown
+   instead: the room has stopped, and this is the thing that says for how
+   much longer. The break button is dashed, so the one control that is not
+   part of the round does not read as part of it. */
+.pausecard{padding:20px 22px 18px}
+.pclock{font-size:64px;font-weight:800;letter-spacing:-.03em;line-height:1.06;margin-top:6px;
+  font-variant-numeric:tabular-nums}
+.psub{font-size:12.5px;color:rgba(255,255,255,.7);margin:2px 0 0}
+.prail{height:8px;border-radius:99px;background:rgba(255,255,255,.16);overflow:hidden;margin-top:14px}
+.prail i{display:block;height:100%;border-radius:99px;background:#fff;transition:width .25s linear}
+button.quiet.brk{border:1px dashed var(--rule)}
+/* the one thing on the break screen that cannot be undone */
+button.quiet.warn{color:var(--guilty-ink)}
+.pausemark{line-height:0;display:block;margin-bottom:2px}
+.qlist{gap:0}
+.qline{display:flex;align-items:flex-start;gap:11px;padding:12px 0;border-bottom:1px solid var(--hair);
+  font-size:14.5px;font-weight:700;line-height:1.45}
+.qline:last-child{border-bottom:0}
+.qline .qb{flex:0 0 7px;width:7px;height:7px;border-radius:50%;background:var(--muted);margin-top:7px}
 
 /* the clock */
 .clockblock{background:var(--surface);border:1px solid var(--rule);border-radius:16px;padding:20px 18px 16px;

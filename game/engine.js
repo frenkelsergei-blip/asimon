@@ -655,11 +655,15 @@ function createEngine(){
              names:["Dana","Savta","Ilan","Yoni"], mode:"solo",
              modeId:"regular", mapId:"classic", pattern:null, cardRule:null,
              players:[], units:[], giverIdx:0, round:0, used:[], r:null, result:null,
-             rows:16, steps:{}, moveSeat:0, offers:null, boardBack:null, cardsWho:null };
+             left:{}, rows:16, steps:{}, moveSeat:0, offers:null, boardBack:null, cardsWho:null };
   }
   function shuffle(a){ const x=a.slice(); for(let i=x.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [x[i],x[j]]=[x[j],x[i]]; } return x; }
   function esc(s){ return String(s).replace(/[&<>"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
-  function playerById(id){ return S.players.find(p=>p.id===id) || {name:"?",id:""}; }
+  /* Somebody who gets up and goes is taken out of S.players, but the round
+     that was already running still names them — the giver of the round being
+     abandoned, the partner a shot was aimed at. S.left keeps the name so the
+     sentence stays a sentence. */
+  function playerById(id){ return S.players.find(p=>p.id===id) || (S.left && S.left[id]) || {name:"?",id:""}; }
   function unitById(id){ return S.units.find(u=>u.id===id) || S.units[0]; }
   function unitOf(pid){ return S.units.find(u=>u.members.indexOf(pid)>=0) || S.units[0]; }
   function teammate(pid){ const u=unitOf(pid); return (u.members.filter(x=>x!==pid)[0]) || null; }
