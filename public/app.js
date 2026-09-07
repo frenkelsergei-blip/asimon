@@ -87,6 +87,11 @@ let myFace = null, taken = [], pickingFace = false;
 /* what is typed lives here, not only in the DOM — picking a face re-renders,
    and a rebuilt input would otherwise come back empty */
 let draftName = "", draftCode = "";
+/* ?p=1 gives this window its own saved seat, so several players can be open
+   on one machine — used by /watch.html and handy for testing */
+const SEAT = (new URLSearchParams(location.search).get("p") || "").replace(/[^a-z0-9]/gi, "").slice(0, 4);
+const K_ROOM = "lastsecond.room" + (SEAT ? "." + SEAT : "");
+const K_FACE = "lastsecond.face" + (SEAT ? "." + SEAT : "");
 let waitAt = 0, waitTimer = null, idleMs = 45000;
 const waitedMs = () => Date.now() - waitAt;
 let movePickLocal = null, showHand = false;
@@ -201,7 +206,7 @@ window.addEventListener("pageshow", ensureLive);
 function forget(){
   if(es){ es.close(); es = null; }
   me = null; state = null; screen = "name";
-  try{ localStorage.removeItem("lastsecond.room"); }catch(e){}
+  try{ localStorage.removeItem(K_ROOM); }catch(e){}
 }
 const remain = () => Math.max(0, clockMs - (Date.now() - clockAt));
 
@@ -304,7 +309,7 @@ function vName(){
   each("[data-face]", b => b.onclick = () => {
     draftName = nm.value;
     myFace = b.dataset.face;
-    try{ localStorage.setItem("lastsecond.face", myFace); }catch(e){}
+    try{ localStorage.setItem(K_FACE, myFace); }catch(e){}
     render();
   });
   on("lhe", () => { draftName = nm.value; lang="he"; pack=null; applyLang(); render(); });
@@ -315,7 +320,7 @@ function vName(){
       const r = await post("/api/create", { name:nm.value, lang, face:myFace });
       draftName = "";
       me = { code:r.code, pid:r.pid, name:nm.value.trim() };
-      localStorage.setItem("lastsecond.room", JSON.stringify(me));
+      localStorage.setItem(K_ROOM, JSON.stringify(me));
       connect();
     }catch(e){ error = errText(e); render(); }
   });
@@ -340,7 +345,7 @@ function vJoin(){
   each("[data-face]", b => b.onclick = () => {
     draftName = nm.value; draftCode = cd.value;
     myFace = b.dataset.face;
-    try{ localStorage.setItem("lastsecond.face", myFace); }catch(e){}
+    try{ localStorage.setItem(K_FACE, myFace); }catch(e){}
     render();
   });
   /* four letters in: ask which faces the room has already used */
@@ -363,7 +368,7 @@ function vJoin(){
       const r = await post("/api/join", { code:cd.value, name:nm.value, face:myFace });
       draftCode = ""; draftName = "";
       me = { code:r.code, pid:r.pid, name:nm.value.trim() };
-      localStorage.setItem("lastsecond.room", JSON.stringify(me));
+      localStorage.setItem(K_ROOM, JSON.stringify(me));
       connect();
     }catch(e){ error = errText(e); render(); }
   });
@@ -409,7 +414,7 @@ function vLobby(){
   on("facedone", () => { pickingFace = false; render(); });
   each("[data-reface]", b => b.onclick = () => {
     myFace = b.dataset.reface;
-    try{ localStorage.setItem("lastsecond.face", myFace); }catch(e){}
+    try{ localStorage.setItem(K_FACE, myFace); }catch(e){}
     act({ type:"face", face:myFace });
   });
   on("leave", async () => { await act({ type:"leave" }); forget(); render(); });
@@ -878,8 +883,8 @@ function render(){
 }
 
 /* ---------------- boot ---------------- */
-try{ me = JSON.parse(localStorage.getItem("lastsecond.room") || "null"); }catch(e){ me = null; }
-try{ myFace = localStorage.getItem("lastsecond.face") || null; }catch(e){}
+try{ me = JSON.parse(localStorage.getItem(K_ROOM) || "null"); }catch(e){ me = null; }
+try{ myFace = localStorage.getItem(K_FACE) || null; }catch(e){}
 if(!myFace) myFace = FACES[Math.floor(Math.random() * FACES.length)].id;
 if(me && me.pid && me.code){ connect(); render(); }
 else { if(me && me.name) me = { name:me.name }; render(); }

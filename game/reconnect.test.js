@@ -6,8 +6,10 @@ const path = require("path");
 const play = require("./play");
 
 const PORT = 3998;
-const BASE = "http://127.0.0.1:" + PORT;
-const GRACE = 1200;                      /* the server is started with a short one */
+const REMOTE = process.env.LS_BASE || "";
+const BASE = REMOTE || ("http://127.0.0.1:" + PORT);
+/* a deployed server runs the real 12s grace; a local one is told to use a short one */
+const GRACE = REMOTE ? 12000 : 1200;
 const bad = [];
 const ok = (c, m) => { if(!c) bad.push(m); };
 const wait = ms => new Promise(r => setTimeout(r, ms));
@@ -58,14 +60,18 @@ async function post(p, body){
 }
 
 (async () => {
-  const server = spawn(process.execPath, [path.join(__dirname, "..", "server.js")],
-    { env: Object.assign({}, process.env, { PORT:String(PORT), LS_GRACE_MS:String(GRACE) }),
-      stdio:["ignore","ignore","inherit"] });
-  const cleanup = () => { try{ server.kill(); }catch(e){} };
+  const server = REMOTE ? null
+    : spawn(process.execPath, [path.join(__dirname, "..", "server.js")],
+        { env: Object.assign({}, process.env, { PORT:String(PORT), LS_GRACE_MS:String(GRACE) }),
+          stdio:["ignore","ignore","inherit"] });
+  const cleanup = () => { try{ if(server) server.kill(); }catch(e){} };
   process.on("exit", cleanup);
 
   try{
-    for(let i = 0; i < 60; i++){ try{ await fetch(BASE+"/"); break; }catch(e){ await wait(100); } }
+    for(let i = 0; i < 60; i++){
+      try{ const r = await fetch(BASE+"/"); if(r.ok) break; }catch(e){}
+      await wait(REMOTE ? 2000 : 100);
+    }
 
     const a = new Phone("Dana"), b = new Phone("Savta"), c = new Phone("Ilan");
     await a.create(); await b.join(a.code); await c.join(a.code);
@@ -154,7 +160,7 @@ async function post(p, body){
   }finally{ cleanup(); }
 
   console.log(bad.length ? "FAIL ("+bad.length+"):\n"+[...new Set(bad)].join("\n")
-                         : "reconnect ok — blips ignored, real drops reported, seats survive, "
+                         : "reconnect ok against "+(REMOTE||"a local server")+" — blips ignored, drops reported, seats survive, "
                            + "a stranded room can be rescued and the host role passes on");
   process.exit(bad.length ? 1 : 0);
 })();

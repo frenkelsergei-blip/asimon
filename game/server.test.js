@@ -8,7 +8,10 @@ const { spawn } = require("child_process");
 const path = require("path");
 
 const PORT = 3999;
-const BASE = "http://127.0.0.1:" + PORT;
+/* point it at a deployed server with LS_BASE=https://… — otherwise it starts
+   one here and tests that */
+const REMOTE = process.env.LS_BASE || "";
+const BASE = REMOTE || ("http://127.0.0.1:" + PORT);
 const bad = [];
 const ok = (c, m) => { if(!c) bad.push(m); };
 
@@ -65,15 +68,17 @@ async function post(p, body){
 const wait = ms => new Promise(r => setTimeout(r, ms));
 
 (async () => {
-  const server = spawn(process.execPath, [path.join(__dirname, "..", "server.js")],
-                       { env: Object.assign({}, process.env, { PORT:String(PORT) }),
-                         stdio:["ignore","ignore","inherit"] });
-  const cleanup = () => { try{ server.kill(); }catch(e){} };
+  const server = REMOTE ? null
+    : spawn(process.execPath, [path.join(__dirname, "..", "server.js")],
+            { env: Object.assign({}, process.env, { PORT:String(PORT) }),
+              stdio:["ignore","ignore","inherit"] });
+  const cleanup = () => { try{ if(server) server.kill(); }catch(e){} };
   process.on("exit", cleanup);
 
   try {
-    for(let i = 0; i < 50; i++){
-      try{ await fetch(BASE + "/"); break; }catch(e){ await wait(100); }
+    for(let i = 0; i < 60; i++){
+      try{ const r = await fetch(BASE + "/"); if(r.ok) break; }catch(e){}
+      await wait(REMOTE ? 2000 : 100);          /* a sleeping host takes a while */
     }
 
     const dana  = new Phone("Dana");
@@ -219,7 +224,8 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
     cleanup();
   }
 
+  const where = REMOTE || "a local server";
   console.log(bad.length ? "FAIL (" + bad.length + "):\n" + [...new Set(bad)].join("\n")
-                         : "server ok — full round over HTTP, no word ever reached the wrong phone");
+                         : "server ok — full round against " + where + ", no word reached the wrong phone");
   process.exit(bad.length ? 1 : 0);
 })();
