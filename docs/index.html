@@ -129,7 +129,7 @@
   .rounds{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px}
   .round{background:var(--ink-2);border:1px solid var(--edge);border-radius:12px;
     padding:13px 16px;display:flex;flex-direction:column;gap:2px}
-  .round:last-child{grid-column:1/-1}
+  .rounds.sum .round:last-child{grid-column:1/-1}
   .round b{font-size:16.5px;font-weight:800}
   .round span{font-size:14.5px;color:var(--muted);line-height:1.4}
   .cards{display:flex;flex-wrap:wrap;gap:8px}
@@ -194,6 +194,10 @@
   a:focus-visible,video:focus-visible{outline:2.5px solid var(--amber);outline-offset:3px;
     border-radius:6px}
 
+  @media(max-width:560px){
+    /* two tempo cards side by side get too narrow to read on a phone */
+    .rounds:not(.sum){grid-template-columns:1fr!important}
+  }
   @media(max-width:880px){
     section{padding:54px 0}
     .two,.inside,.start{grid-template-columns:1fr;gap:34px}
@@ -242,8 +246,8 @@
 
     <div class="facts">
       <span><span class="num">3–8</span> שחקנים</span>
-      <span>תשעים שניות לסבב</span>
-      <span>כ־<span class="num">25</span> דקות למשחק</span>
+      <span>ארבעה מקצבים</span>
+      <span>חמישה לוחות</span>
       <span>עברית ו־English</span>
       <span>בלי הורדות</span>
       <span>בלי חשבון</span>
@@ -317,23 +321,23 @@
           <span class="n">1</span>
           <div>
             <h3>הנותן בוחר מילה</h3>
-            <p>ארבע מילים על המסך שלו, שוות <span class="num">2</span> עד
-              <span class="num">5</span> נקודות. ככל שהמילה שווה יותר, ככה היא קשה יותר.</p>
+            <p>ארבע מילים על המסך שלו, שוות <span class="num">1</span> עד
+              <span class="num">4</span> נקודות. ככל שהמילה שווה יותר, ככה היא קשה יותר.</p>
           </div>
         </div>
         <div class="step">
           <span class="n">2</span>
           <div>
             <h3>ומכוון לאדם אחד</h3>
-            <p>בשקט, בלי שאף אחד יידע. אם דווקא הוא זה שקולט — הנותן מקבל
-              <span class="num">2</span> בונוס.</p>
+            <p>בשקט, בלי שאף אחד יידע. אם דווקא הוא זה שקולט — הנותן מקבל נקודה נוספת.</p>
           </div>
         </div>
         <div class="step">
           <span class="n">3</span>
           <div>
             <h3>משפט אחד. פעם אחת.</h3>
-            <p>תשעים שניות על השעון. אסור לומר את המילה, ואסור לחזור על המשפט.</p>
+            <p>תשעים שניות ברגיל — פחות במקצב מהיר, יותר ברגוע. אסור לומר את המילה,
+              ואסור לחזור על המשפט.</p>
           </div>
         </div>
         <div class="step">
@@ -356,34 +360,34 @@
   <!-- ============ what is inside ============ -->
   <section>
     <p class="eyebrow"><svg aria-hidden="true"><use href="#coin"/></svg>מה יש בפנים</p>
-    <h2 style="font-size:clamp(28px,4.6vw,42px);margin-bottom:30px">
-      לוח, קלפים, וסבבים שמשנים את הכללים.</h2>
+    <h2 style="font-size:clamp(28px,4.6vw,42px);margin-bottom:14px">
+      הלוח הוא זה שקובע איזה סבב תשחקו.</h2>
+    <p class="warn" style="margin-top:0;margin-bottom:30px">
+      המשבצת שהנותן עומד עליה קובעת את סוג הסבב. <b>מי שמתקדם, מתקדם לתוך
+      סבבים קשים יותר</b> — וזה אומר שאותו לוח לא משחק אותו דבר פעמיים.
+    </p>
 
     <div class="inside">
       <div>
         <div class="phone"><img src="assets/shot-board.png" width="620" height="1307"
-          alt="לוח המשחק: ארבעה נתיבים צבעוניים והחיילים של השחקנים"></div>
+          alt="לוח המשחק: ארבעה נתיבים צבעוניים, כל משבצת סוג סבב אחר"></div>
         <p class="phone-note">כל נקודה היא צעד. הראשון לסוף מנצח.</p>
       </div>
 
       <div class="chipset">
         <div>
-          <p class="chiphead">עשרה סוגי סבבים</p>
-          <div class="rounds">
-            <div class="round"><b>רגיל</b><span>תשעים שניות, משפט אחד</span></div>
-            <div class="round"><b>מהיר</b><span>ארבעים וחמש שניות בלבד</span></div>
-            <div class="round"><b>מילה אחת</b><span>הרמז חייב להיות מילה אחת</span></div>
-            <div class="round"><b>פנטומימה</b><span>בלי לדבר — וכאן דווקא כדאי שיקלטו מהר</span></div>
+          <p class="chiphead">סוגי הסבבים</p>
+          <div class="rounds sum">
             <div class="round"><b>עיוור</b><span>הכול מתהפך: הנותן הוא שמנחש</span></div>
-            <div class="round"><b>כפול</b><span>כל מילה שווה כפול</span></div>
-            <div class="round"><b>שותפים</b><span>לנותן מוגרל שותף — קולטים ביחד</span></div>
-            <div class="round"><b>דו־קרב</b><span>הנותן בוחר יריב אחד — רק הוא עונה</span></div>
+            <div class="round"><b>פנטומימה</b><span>בלי לדבר — וכאן דווקא כדאי שיקלטו מהר</span></div>
+            <div class="round"><b>דו־קרב</b><span>אדם אחד בקול, צעקה אחת, והסבב נגמר</span></div>
             <div class="round"><b>שתי מילים</b><span>שתי מילים, משפט אחד לשתיהן</span></div>
-            <div class="round"><b>הקישור</b><span>שלוש מילים, בלי משפט — מה מחבר ביניהן?</span></div>
+            <div class="round"><b>הקישור</b><span>שלוש מילים עקומות, ושם אחד שמחבר</span></div>
+            <div class="round"><b>ועוד</b><span>מהיר, מילה אחת, כפול, שותפים…</span></div>
           </div>
         </div>
         <div>
-          <p class="chiphead">ושבעה קלפים לשבור איתם את הסבב</p>
+          <p class="chiphead">והקלפים, לשבור איתם סבב</p>
           <div class="cards">
             <span>סטופר</span><span>הצצה</span><span>וטו</span><span>פנטומימה</span>
             <span>כפול</span><span>החלפה</span><span>כיסוי עיניים</span>
@@ -391,6 +395,33 @@
         </div>
       </div>
     </div>
+  </section>
+
+  <!-- ============ how long, and how loud ============ -->
+  <section>
+    <p class="eyebrow"><svg aria-hidden="true"><use href="#coin"/></svg>לפי הזמן שיש לכם</p>
+    <h2 style="font-size:clamp(26px,4.2vw,38px);margin-bottom:26px">
+      ארבעה מקצבים, חמישה לוחות.</h2>
+
+    <div class="two" style="grid-template-columns:1fr 296px">
+      <div class="rounds" style="grid-template-columns:repeat(2,minmax(0,1fr))">
+        <div class="round"><b>מהיר</b><span>לוח קצר, שעון קצר — סבב שלם בפחות מדקה</span></div>
+        <div class="round"><b>רגיל</b><span>תשעים שניות, הלוח שאתם מכירים</span></div>
+        <div class="round"><b>רגוע</b><span>לוח ארוך, שעון ארוך, פחות לחץ</span></div>
+        <div class="round"><b>אתגר</b><span>רוב הסבבים קשים, והניצחון לפי ניקוד</span></div>
+      </div>
+      <div>
+        <div class="phone"><img src="assets/shot-award.png" width="620" height="1307"
+          alt="שלושה קלפים יורדים מהחפיסה, אחד מתהפך ומראה מה הוא עושה"></div>
+        <p class="phone-note">נחתם על משבצת קלף? שלושה יורדים, אחד נשאר.</p>
+      </div>
+    </div>
+
+    <p class="warn" style="margin-top:28px">
+      <b>ויש קול.</b> השעון מתקתק בעשר השניות האחרונות, הכפתור האדום נשמע
+      כמו באזר, והאסימון מצטלצל כשהוא נופל. כל פרצוף עושה משהו כשבוחרים אותו —
+      סבתא קורצת. אפשר לכבות הכול בכפתור אחד.
+    </p>
   </section>
 
   <!-- ============ how to start ============ -->
