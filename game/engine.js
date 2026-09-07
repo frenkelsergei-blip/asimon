@@ -556,7 +556,7 @@ function createEngine(){
   function shotBonus(R){ return SHOT_BONUS + (R.mod === "U" ? 1 : 0); }
   function valueDelta(R){ return CHALLENGES[R.challenge] !== undefined ? CHALLENGES[R.challenge] : 0; }
   function wordValue(R, w){
-    /* Double adds one, not two. At two it was the best square on the board by
+    /* Gamble adds one, not two. At two it was the best square on the board by
        a distance — the only round that paid near the top while landing near
        the top, because the word was dearer without the round being harder. */
     return Math.max(1, w.value + (R.mod === "G" ? 1 : 0) + (R.mod === "W" ? -1 : 0) + valueDelta(R));
@@ -627,9 +627,9 @@ function createEngine(){
      Column 0 is the lane a player hugs when they want a quiet round, and the
      sweep says they hug it hard — over half of every round played came out
      Standard while Mime sat at 3%. So the quiet lane is no longer empty. It
-     carries Partners and Fast, and none of Double, Mime or Blind: quiet has to
-     mean a round that cannot punish you, and Double is not gentle — it doubles
-     what a wrong shout costs as surely as it doubles the word. That holds on
+     carries Partners and Fast, and none of Gamble, Mime or Blind: quiet has to
+     mean a round that cannot punish you, and Gamble is the opposite of gentle —
+     it is the one square where the giver can end a round worse off. That holds on
      every map but chaos, which is named for what it is. Left is calm, right is
      where the awkward rounds live, and now the calm side still has something
      happening on it. Sprint was the worst board of the five at three rounds in
@@ -732,9 +732,9 @@ function createEngine(){
      same plain round again and again are precisely the ones already losing.
      So it rotates — by round number, so the whole table is standing on the
      same one and it can be said out loud. Standard, Partners, Fast, and back.
-     Double is deliberately not among them: the start line is the one place a
-     player is stuck without having chosen it, and a mod that doubles the cost
-     of a wrong shout is the last thing to hand somebody who is already behind.
+     Gamble is deliberately not among them: the start line is the one place a
+     player is stuck without having chosen it, and a square that doubles what a
+     wrong shout costs is the last thing to hand somebody already behind.
      Putting it here cost 2 points on the share of players who finish a game
      having scored nothing at all. Round zero is Standard, which keeps a
      table's first round the simple on-ramp it ought to be. Past the finish
@@ -1041,10 +1041,10 @@ function createEngine(){
         if(R.shot && R.shot === R.solvedBy) bump(gu.id, shotBonus(R), t("w_shot", shotBonus(R)));
       }
     } else if(R.mod === "G"){
-      /* Double raises everybody's stake but the giver's: the word is worth two
-         more to whoever gets it, the wrong shout costs two — and the giver had
+      /* Gamble raises everybody's stake but the giver's: the word pays a point
+         more to whoever gets it and a wrong shout costs two, while the giver had
          nothing of their own on the table. A round nobody gets costs them one,
-         so the square is a gamble rather than a free upgrade. */
+         which is the whole of why the square is a bet and not a free upgrade. */
       bump(gu.id, -1, t("w_none_x2"));
     } else {
       bump(gu.id, 0, t("w_none"));

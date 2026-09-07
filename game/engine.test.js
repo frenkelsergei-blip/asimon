@@ -82,7 +82,7 @@ for(const mode of ["solo","teams"]){
         const grow = e.S.result.rows.find(r => r.id === gu);
         if(!solved){
           giverZeroes++;
-          /* A round nobody gets pays the giver nothing — except on a Double
+          /* A round nobody gets pays the giver nothing — except on a Gamble
              square, where they had a point of their own on the table. */
           const owed = R.mod === "G" ? -1 : 0;
           ok(grow.pts === owed,

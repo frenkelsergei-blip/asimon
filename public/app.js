@@ -5,7 +5,7 @@
 const app = document.getElementById("app");
 const AV = ["#2C6BFF","#12B886","#FF5A3D","#D97706","#7A5AF8","#0891B2","#DB2777","#4D7C0F"];
 /* a word card is tinted by what it pays. Four prices, 1 up to 4, and the
-   ones above that a Double square or a Cold deal can push a word to. */
+   ones above that a Gamble square or a Cold deal can push a word to. */
 const VAL_TINT = { 1:["var(--accent-soft)","var(--accent)"], 2:["var(--good-soft)","var(--good-ink)"],
                    3:["#F1EDFE","var(--violet)"],            4:["var(--blind-soft)","var(--blind-ink)"],
                    5:["var(--blind-soft)","var(--blind-ink)"] };

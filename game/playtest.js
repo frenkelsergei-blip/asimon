@@ -52,7 +52,7 @@ const MODEL = {
      floor that rises with the word, and a long tail out to the end of the
      clock. `whenSkew` above 1 pulls the mass earlier, below 1 pushes it late. */
   whenFloor: 0.04, whenFloorPerValue: 0.055, whenSkew: 1.55, cheapestWord: 1,
-  /* Somebody shouts the wrong thing. A Double round says so on the buzzer
+  /* Somebody shouts the wrong thing. A Gamble round says so on the buzzer
      screen — "a wrong buzz costs 2" — and a table that reads it waits for
      more before shouting: the confidence a shout needs goes from about one
      in five to one in four when the cost doubles and the word is only half
@@ -870,7 +870,7 @@ line("  a board is " + Math.min(...runs.map(g => g.rowsNeeded)) + "–" +
      Math.max(...runs.map(g => g.rowsNeeded)) + " rows, so an ordinary round moves about " +
      n1(100 * stepAvg / avg(runs, g => g.rowsNeeded)) + "% of it");
 checkMax("Pacing", "rounds that move six or more", bigShare, n1(bigShare) + "%", 8, 15,
-      "the big rounds are what end a game early — they come from Cold, the Double square and the Double card stacking");
+      "the big rounds are what end a game early — they come from Cold, the Gamble square and the Double card stacking");
 
 /* ---------- 8. the cards ---------- */
 head("the seven cards");
