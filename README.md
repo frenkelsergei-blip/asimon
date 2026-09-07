@@ -26,6 +26,7 @@ address; once it is hosted, it is the public one.
 | `public/` | the phone: `index.html`, `app.js`, `art.js`, `style.css` |
 | `public/sfx.js` | the sounds, synthesised &mdash; no audio files, the way there are no images |
 | `public/favicon.svg` | the mark, small cut &mdash; also `icon.svg` for the home screen |
+| `public/manifest.webmanifest` | what a phone installs when it adds the game to its home screen |
 | `design/logo/` | the logo canvas the mark came out of |
 
 The engine is generated, never edited by hand. When the rules or the words
@@ -41,11 +42,12 @@ npm run build:engine -- /path/to/buzz.html
 npm test
 ```
 
-Eight suites: the rules over 540 simulated games, the seven cards, a stalled
+Nine suites: the rules over 540 simulated games, the seven cards, a stalled
 room, the copy (every key the phone asks for answers in both languages), the
 shape of a round (a blind verdict belongs to the table; the podium names the
 winner), a full round over real HTTP (asserting the giver's words never reach
-another phone), phones dropping and reconnecting, and a phone carrying a group.
+another phone), phones dropping and reconnecting, a phone carrying a group, and
+the version surface.
 
 ## The playtest
 
@@ -76,6 +78,43 @@ npm run playtest -- --addRows 4 --cap 6       # try a change before making it
 
 It exits non-zero on a hard failure — a stuck room, a negative score, a game
 that never ends.
+
+## Versions, and getting a phone off an old one
+
+The game is installed, not visited. Added to a home screen it opens as its own
+window &mdash; no address bar, nothing to pull down &mdash; and iOS will keep
+that page alive for weeks. Left alone, that is a table playing last month's
+build and nobody in the room able to tell.
+
+So the build has a name. `currentBuild()` in `server.js` hashes the version in
+`package.json` together with the six files the phone loads, and every page is
+served with that hash stamped into it:
+
+```html
+<meta name="asimon-version" content="0.2.0">
+<meta name="asimon-build" content="3c6392986e">
+<script src="/app.js?v=3c6392986e"></script>
+```
+
+It is a hash of the contents on purpose. A restart, a redeploy of the same
+files, a touched mtime &mdash; none of those should interrupt a game to
+announce an update. Only a real change to a file the phone loads does.
+
+From there the phone does the rest. It asks `/api/version` when it comes back
+to the foreground, every fifteen minutes while it is being looked at, and
+whenever somebody taps the version at the foot of the first screen. If the
+answer names a different build, an update bar appears &mdash; on the first
+screen, in the lobby, and on the podium, but never mid-round, which is not the
+moment to ask anyone to reload. Tapping it drops any service worker and cache
+the phone may be holding, then comes back on an address it has never seen.
+
+Bump `version` in `package.json` for a release anyone should notice. Nothing
+depends on remembering to: the hash moves on its own the moment a file does.
+
+The caching follows from the same stamp. The page is never cached &mdash; it
+is the one thing that must be fresh, because it names everything else. An asset
+asked for under the current build may be kept for a year, because those exact
+bytes will never change under that address. Anything else is `no-store`.
 
 ## Hosting it
 
@@ -113,7 +152,7 @@ you restart it.
 ## Notes for a public host
 
 - `PORT` is read from the environment (`8080` in the container).
-- `/healthz` reports uptime and how many rooms are open.
+- `/healthz` reports the version, the build, uptime, and how many rooms are open.
 - The address shown in the lobby follows how the room was reached, so it is
   the public URL on a host and the Wi-Fi address at home.
 - Guards: 8 players a room, 400 rooms, 20 new rooms per address per 10

@@ -108,6 +108,9 @@ const L = {
     wild_swap:"החלפת מקומות", wild_swap_d:"החלפתם מקום עם {0}.",
     wild_swap_none:"לא נמצא מישהו להחליף איתו.",
     wild_jackpot:"ג׳קפוט", wild_jackpot_d:"שתי נקודות, כאן ועכשיו.",
+    ver:"גרסה {0}", ver_tap:"לבדוק עדכון", ver_checking:"בודקים…",
+    ver_fresh:"זו הגרסה העדכנית.", ver_failed:"אין חיבור לשרת.",
+    upd_t:"יש גרסה חדשה", upd_d:"טוענים אותה מחדש — ייקח רגע.", upd_go:"לעדכן",
     e_dummy:"" },
   en:{ title:"Asimon", tag:"one sentence · one shot",
     yourname:"What is your name?", nameph:"Your name", create:"Open a new room",
@@ -205,6 +208,9 @@ const L = {
     wild_swap:"Swapped places", wild_swap_d:"You traded squares with {0}.",
     wild_swap_none:"There was nobody to swap with.",
     wild_jackpot:"Jackpot", wild_jackpot_d:"Two points, right now.",
+    ver:"Version {0}", ver_tap:"Check for an update", ver_checking:"Checking…",
+    ver_fresh:"This is the latest.", ver_failed:"Could not reach the server.",
+    upd_t:"A new version is out", upd_d:"Loading it again takes a moment.", upd_go:"Update",
     e_dummy:"" }
 };
 
@@ -326,6 +332,59 @@ async function post(path, body){
 }
 const errText = e => t("e_" + String((e && e.error) || "net"));
 
+/* ---------------- the version, and getting off an old one ----------------
+   A phone on a home screen never reloads by itself. iOS keeps the page alive
+   between launches, and in standalone there is no address bar to pull down —
+   which is exactly how a table ends up playing last month's build without
+   anyone knowing. So the page carries the build it was served as, asks the
+   server now and then whether that is still the build being served, and offers
+   a way back to the current one that clears everything on the way out.      */
+const metaTag = n => { const m = document.querySelector('meta[name="'+n+'"]'); return m ? m.content : ""; };
+const VERSION = metaTag("asimon-version") || "0";
+const BUILD   = metaTag("asimon-build");
+let newBuild = "", verBusy = false, verNote = "", verAt = 0;
+
+async function checkUpdate(manual){
+  if(verBusy || newBuild) return;
+  /* a phone coming back to the foreground asks at most twice a minute; a tap
+     always asks, because a tap is somebody who suspects they are stale */
+  if(!manual && Date.now() - verAt < 30000) return;
+  verBusy = true; verAt = Date.now();
+  const was = newBuild + "|" + verNote;
+  if(manual){ verNote = "checking"; render(); }
+  try{
+    const r = await fetch("/api/version?t=" + Date.now(), { cache:"no-store" });
+    const v = await r.json();
+    if(v && v.build && BUILD && v.build !== BUILD){ newBuild = v.build; verNote = ""; }
+    else verNote = manual ? "fresh" : "";
+  }catch(e){ verNote = manual ? "failed" : verNote; }
+  verBusy = false;
+  /* a quiet check that found nothing repaints nothing — it can land in the
+     middle of a round, and a repaint there is a flicker for no reason */
+  if(manual || newBuild + "|" + verNote !== was) render();
+}
+
+/* Drop anything that could hand back the old files — there is no service
+   worker here, but one may have been registered by an older build, and a phone
+   that is stuck is exactly the phone that would still be holding it — then come
+   back on an address this phone has never seen before. */
+async function applyUpdate(){
+  try{
+    if(navigator.serviceWorker){
+      const regs = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(regs.map(r => r.unregister()));
+    }
+  }catch(e){}
+  try{
+    if(window.caches){ const keys = await caches.keys(); await Promise.all(keys.map(k => caches.delete(k))); }
+  }catch(e){}
+  try{
+    const u = new URL(location.href);
+    u.searchParams.set("u", newBuild || String(Date.now()));
+    location.replace(u.toString());
+  }catch(e){ location.reload(); }
+}
+
 async function act(a){
   error = "";
   try{ await post("/api/action", Object.assign({}, a, { code:me.code, pid:me.pid })); }
@@ -445,6 +504,30 @@ const TONE = { giver:"secret", blind:"secret", reveal:"scored", over:"scored" };
 function on(id, fn){ const el = document.getElementById(id); if(el) el.onclick = fn; }
 function each(sel, fn){ app.querySelectorAll(sel).forEach(fn); }
 const errBox = () => error ? '<div class="err">'+esc(error)+'</div>' : '';
+/* offered only where a reload costs nothing — the name screen, the lobby, the
+   podium. Never mid-round: a game in play is not the moment to ask anyone to
+   reload, and the round would be waiting on them. */
+function updBox(){
+  if(!newBuild) return "";
+  return '<div class="upd"><span class="ut"><b>'+t("upd_t")+'</b>'+
+         '<span>'+t("upd_d")+'</span></span>'+
+         '<button id="updgo">'+t("upd_go")+'</button></div>';
+}
+/* the line at the foot of the first screen: which build this phone is, and a
+   way to ask without waiting for the next check */
+function verBox(){
+  const note = verBusy ? t("ver_checking")
+             : verNote === "fresh"  ? t("ver_fresh")
+             : verNote === "failed" ? t("ver_failed")
+             : t("ver_tap");
+  return '<button class="verline" id="vertap">'+
+         '<span class="num">'+t("ver", esc(VERSION))+'</span>'+
+         '<span class="vn">'+esc(note)+'</span></button>';
+}
+function wireVersion(){
+  on("updgo", applyUpdate);
+  on("vertap", () => checkUpdate(true));
+}
 let handUp = null, awardUp = null, dealtFor = "";
 /* the order reveal runs on a clock of its own: when this phone first saw it,
    the route each avatar takes through the shuffle, and the repaint that ends it */
@@ -481,7 +564,7 @@ const offBox = () => online ? '' : '<div class="err">'+t("offline")+'</div>';
 
 /* ---------------- lobby-side screens ---------------- */
 function vName(){
-  h('<div class="stack grow">'+
+  h('<div class="stack grow">'+updBox()+
     '<div><p class="kicker">'+t("tag")+'</p><h1>'+wordmark(lang)+'</h1></div>'+
     learnBtn("howto", t("howto"), t("hw_teaser"))+
     '<p class="kicker">'+t("lang_k")+'</p>'+
@@ -493,7 +576,8 @@ function vName(){
     '<input id="nm" type="text" maxlength="14" placeholder="'+t("nameph")+'">'+
     errBox()+'<div class="grow"></div>'+
     '<button id="create">'+t("create")+'</button>'+
-    '<button class="ghost" id="tojoin">'+t("joinbtn")+'</button></div>');
+    '<button class="ghost" id="tojoin">'+t("joinbtn")+'</button>'+
+    verBox()+'</div>');
   const nm = document.getElementById("nm");
   nm.value = draftName || (me && me.name) || "";
   nm.addEventListener("input", () => { draftName = nm.value; });
@@ -631,7 +715,7 @@ function vLobby(){
     Array.from({ length: Math.max(0, 3 - list.length) }, () =>
       '<div class="prow empty"><span class="seat"></span>'+
       '<span class="pname">'+t("free_seat")+'</span><span class="dot off"></span></div>').join("");
-  h('<div class="stack grow">'+offBox()+
+  h('<div class="stack grow">'+offBox()+updBox()+
     '<div><div class="hero roomhead" style="display:flex;align-items:center;justify-content:space-between;gap:14px">'+
       '<div><p class="kicker">'+t("room_k")+'</p><div class="roomcode">'+esc(s.code)+'</div></div>'+
       '<span class="av" style="background:rgba(255,255,255,.16);width:44px;height:44px;flex:0 0 44px;font-size:15px">'+
@@ -1246,7 +1330,7 @@ function podium(s){
 }
 function vOver(s){
   document.documentElement.dataset.tone = "scored";
-  h('<div class="stack grow">'+offBox()+
+  h('<div class="stack grow">'+offBox()+updBox()+
     '<p class="kicker">'+t("after_rounds", s.round)+'</p>'+
     '<h1>'+tUnit("wins", s.units.find(u=>u.id===(s.standings[0]||{}).id), (s.standings[0]||{}).name)+'</h1>'+
     podium(s)+
@@ -1497,6 +1581,7 @@ function paintSheet(){
 function render(){
   paint();
   wireLearn();
+  wireVersion();
   if(sheet) paintSheet();
 }
 function paint(){
@@ -1517,6 +1602,21 @@ function paint(){
 }
 
 /* ---------------- boot ---------------- */
+/* coming back to the foreground is the moment a stale phone is most likely to
+   be showing an old build — so that is when it asks */
+document.addEventListener("visibilitychange", () => { if(!document.hidden) checkUpdate(false); });
+window.addEventListener("pageshow", e => { if(e.persisted) checkUpdate(false); });
+setInterval(() => { if(!document.hidden) checkUpdate(false); }, 15 * 60 * 1000);
+/* the ?u= that brought this load here has done its job; take it back out of
+   the address so it is not carried into anything shared from here */
+if(new URLSearchParams(location.search).has("u")){
+  try{
+    const u = new URL(location.href);
+    u.searchParams.delete("u");
+    history.replaceState(null, "", u.pathname + (u.search || "") + u.hash);
+  }catch(e){}
+}
+
 try{ me = JSON.parse(localStorage.getItem(K_ROOM) || "null"); }catch(e){ me = null; }
 try{ myFace = localStorage.getItem(K_FACE) || null; }catch(e){}
 if(!myFace) myFace = FACES[Math.floor(Math.random() * FACES.length)].id;

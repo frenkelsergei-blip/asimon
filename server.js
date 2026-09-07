@@ -7,6 +7,7 @@ const http = require("http");
 const fs   = require("fs");
 const path = require("path");
 const os   = require("os");
+const crypto = require("crypto");
 const play = require("./game/play");
 
 const PORT = Number(process.env.PORT || 3000);
@@ -21,6 +22,51 @@ function lanAddress(){
 /* the address the other phones must type — never localhost, which only
    works on the machine running the server */
 const LAN_URL = "http://" + lanAddress() + ":" + PORT;
+
+/* ---------------- the build ----------------
+   The phone is a long-lived thing. Added to a home screen it can sit for weeks
+   without ever reloading, and there is no address bar to pull down. So the
+   server names the build it is serving — a hash of what public/ actually holds,
+   not a counter someone has to remember to turn — and every phone can ask
+   whether the one it is running is still the one being served.
+
+   Content-addressed on purpose: a restart, a redeploy of the same files, a
+   touched mtime — none of those should tell a table mid-game to reload. Only a
+   real change to the version or to a file the phone loads does.               */
+const VERSION = require("./package.json").version;
+const ASSETS = ["index.html","app.js","art.js","sfx.js","style.css","gestures.css"];
+
+let BUILD = "", assetStamp = null;
+function currentBuild(){
+  /* six stats to decide whether to re-read six files: cheap enough to do on
+     every ask, so an edit during development is picked up without a restart */
+  let stamp = VERSION;
+  for(const f of ASSETS){
+    try{ const st = fs.statSync(path.join(PUBLIC, f)); stamp += "|" + f + ":" + st.size + ":" + st.mtimeMs; }
+    catch(e){ stamp += "|" + f + ":none"; }
+  }
+  if(stamp !== assetStamp){
+    assetStamp = stamp;
+    const h = crypto.createHash("sha1").update(VERSION);
+    for(const f of ASSETS){
+      try{ h.update(f).update(fs.readFileSync(path.join(PUBLIC, f))); }
+      catch(e){ h.update(f + ":none"); }
+    }
+    BUILD = h.digest("hex").slice(0, 10);
+  }
+  return BUILD;
+}
+
+/* The page is served with the build stamped into it: the assets carry it as a
+   query so a phone never mixes an old script with a new stylesheet, and two
+   meta tags let the running page say out loud which build it is. */
+function shell(html, build){
+  return html
+    .replace(/\b(href|src)="(\/[^"]+\.(?:css|js))"/g, (m, a, u) => a + '="' + u + "?v=" + build + '"')
+    .replace("<head>",
+      '<head>\n<meta name="asimon-version" content="' + VERSION + '">' +
+      '\n<meta name="asimon-build" content="' + build + '">');
+}
 
 /* ---------------- rooms ---------------- */
 const rooms = new Map();               // code -> room
@@ -128,7 +174,8 @@ function broadcast(room){
 
 /* ---------------- http ---------------- */
 const TYPES = { ".html":"text/html; charset=utf-8", ".js":"text/javascript; charset=utf-8",
-                ".css":"text/css; charset=utf-8", ".svg":"image/svg+xml", ".ico":"image/x-icon" };
+                ".css":"text/css; charset=utf-8", ".svg":"image/svg+xml", ".ico":"image/x-icon",
+                ".webmanifest":"application/manifest+json; charset=utf-8", ".json":"application/json; charset=utf-8" };
 
 function sendJSON(res, code, obj){
   res.writeHead(code, { "content-type":"application/json; charset=utf-8", "cache-control":"no-store" });
@@ -274,7 +321,13 @@ const server = http.createServer(async (req, res) => {
 
     /* ---- for the host's health check ---- */
     if(p === "/healthz"){
-      return sendJSON(res, 200, { ok:true, rooms: rooms.size, up: Math.round(process.uptime()) });
+      return sendJSON(res, 200, { ok:true, version: VERSION, build: currentBuild(),
+                                  rooms: rooms.size, up: Math.round(process.uptime()) });
+    }
+
+    /* ---- which build is being served? asked by a phone that may be stale ---- */
+    if(p === "/api/version"){
+      return sendJSON(res, 200, { version: VERSION, build: currentBuild() });
     }
 
     /* ---- what a room looks like from outside, for the join screen ---- */
@@ -412,11 +465,23 @@ const server = http.createServer(async (req, res) => {
     file = path.normalize(file).replace(/^(\.\.[/\\])+/, "");
     const full = path.join(PUBLIC, file);
     if(!full.startsWith(PUBLIC)){ res.writeHead(403); return res.end("no"); }
+    const ext = path.extname(full);
     fs.readFile(full, (err, data) => {
       if(err){ res.writeHead(404, {"content-type":"text/plain; charset=utf-8"}); return res.end("not found"); }
-      res.writeHead(200, { "content-type": TYPES[path.extname(full)] || "application/octet-stream",
-                           "cache-control":"no-store" });
-      res.end(data);
+      let body = data;
+      /* the page itself is never cached — it is the one thing that must be
+         fresh, because it is what names the build everything else comes from */
+      let cache = "no-store";
+      if(ext === ".html"){
+        body = Buffer.from(shell(data.toString("utf8"), currentBuild()), "utf8");
+      } else if(url.searchParams.get("v") && url.searchParams.get("v") === currentBuild()){
+        /* asked for by build: that exact bytes will never change under that
+           address, so a phone on a thin connection may keep it */
+        cache = "public, max-age=31536000, immutable";
+      }
+      res.writeHead(200, { "content-type": TYPES[ext] || "application/octet-stream",
+                           "cache-control": cache });
+      res.end(body);
     });
   } catch(e){
     sendJSON(res, 400, { error:"bad_request" });
