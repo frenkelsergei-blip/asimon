@@ -24,6 +24,7 @@ address; once it is hosted, it is the public one.
 | `game/build-engine.js` | lifts that engine out of the pass-and-play build |
 | `game/play.js` | the round across several phones, and who may see what |
 | `public/` | the phone: `index.html`, `app.js`, `art.js`, `style.css` |
+| `public/sfx.js` | the sounds, synthesised &mdash; no audio files, the way there are no images |
 | `public/favicon.svg` | the mark, small cut &mdash; also `icon.svg` for the home screen |
 | `design/logo/` | the logo canvas the mark came out of |
 
