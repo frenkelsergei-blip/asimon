@@ -5,3 +5,4 @@ node_modules
 # the seeded design canvas is 2.5MB of editor payload — not worth versioning
 design/pick-your-face.html
 design/logo/asimon-logo.html
+design/poster/asimon-poster-and-rules.html

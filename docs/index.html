@@ -1,0 +1,421 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#14131A">
+<meta name="description" content="אסימון — משחק מסיבה שמשחקים בטלפונים. משפט אחד, נאמר פעם אחת, ואתם רוצים שיקלטו אתכם בשנייה האחרונה.">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="assets/icon.svg">
+<link rel="canonical" href="https://frenkelsergei-blip.github.io/asimon/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="אסימון">
+<meta property="og:locale" content="he_IL">
+<meta property="og:title" content="אסימון — משפט אחד, הזדמנות אחת">
+<meta property="og:description" content="משחק מסיבה שמשחקים בטלפונים. כל שנייה שלוקח להם לקלוט — שווה לכם יותר.">
+<meta property="og:url" content="https://frenkelsergei-blip.github.io/asimon/">
+<meta property="og:image" content="https://frenkelsergei-blip.github.io/asimon/assets/trailer-poster.jpg">
+<meta property="og:image:width" content="1280">
+<meta property="og:image:height" content="720">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="אסימון — משפט אחד, הזדמנות אחת">
+<meta name="twitter:description" content="משחק מסיבה שמשחקים בטלפונים. כל שנייה שלוקח להם לקלוט — שווה לכם יותר.">
+<meta name="twitter:image" content="https://frenkelsergei-blip.github.io/asimon/assets/trailer-poster.jpg">
+<title>אסימון</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700;800&family=Rubik:wght@500;700;800&display=swap">
+<style>
+  /* One committed visual world: the game's own secret-round amber struck on
+     ink. Every colour is painted explicitly so the page holds on any ground. */
+  :root{
+    --ink:#14131A; --ink-2:#1A1922; --raise:#201E29; --edge:rgba(255,252,246,.11);
+    --paper:#FFFCF6; --muted:#A3A1B0; --dim:#7E7B8C;
+    --amber:#FFB020; --amber-deep:#D18A08; --amber-soft:rgba(255,176,32,.13);
+    --good:#12B886; --good-soft:rgba(18,184,134,.14);
+    --hot:#FF5A3D; --hot-soft:rgba(255,90,61,.14);
+    --display:"Rubik",system-ui,sans-serif;
+    --body:"Assistant","Arial Hebrew",system-ui,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{margin:0;background:var(--ink);color:var(--paper);font-family:var(--body);
+    font-size:17px;line-height:1.55;direction:rtl;
+    -webkit-font-smoothing:antialiased;overflow-x:hidden}
+  .wrap{max-width:1060px;margin:0 auto;padding:0 22px}
+  section{padding:72px 0;border-top:1px solid var(--edge)}
+  section:first-of-type{border-top:0}
+
+  .coin{width:1em;height:1em;display:inline-block;vertical-align:-.05em}
+  h1,h2,h3{font-family:var(--display);font-weight:800;margin:0;line-height:1.06;
+    letter-spacing:-.01em;text-wrap:balance}
+  p{margin:0}
+
+  /* the section marker is the mark itself, not a number */
+  .eyebrow{display:flex;align-items:center;gap:9px;font-size:13px;font-weight:800;
+    letter-spacing:.16em;color:var(--amber);margin-bottom:16px}
+  .eyebrow svg{width:15px;height:15px;flex:0 0 15px;vertical-align:0}
+
+  /* ---------- hero ---------- */
+  .hero{position:relative;padding:78px 0 68px;overflow:hidden}
+  .hero > *{position:relative;z-index:1}
+  .hero > svg.hero-coin{position:absolute;top:24px;left:-215px;width:430px;height:430px;
+    opacity:.055;pointer-events:none;z-index:0}
+  .kicker{font-size:14.5px;font-weight:800;letter-spacing:.18em;color:var(--muted)}
+  .lockup{font-family:var(--display);font-weight:800;font-size:clamp(62px,13vw,132px);
+    line-height:1;margin:14px 0 0;letter-spacing:-.005em}
+  .lockup .coin{width:.78em;height:.78em}
+  @media(prefers-reduced-motion:no-preference){
+    .lockup .coin{animation:settle .7s cubic-bezier(.22,.7,.3,1) both}
+  }
+  @keyframes settle{from{transform:translateY(-14px) rotate(-24deg)}to{transform:none}}
+  .tagline{font-size:clamp(20px,3.4vw,27px);font-weight:700;color:var(--amber);
+    letter-spacing:.02em;margin-top:14px}
+  .pitch{font-size:clamp(18px,2.3vw,21px);line-height:1.5;color:#D6D3E0;
+    max-width:60ch;margin-top:22px;text-wrap:pretty}
+  .pitch b{color:var(--paper);font-weight:800}
+
+  .facts{display:flex;flex-wrap:wrap;gap:9px;margin-top:28px}
+  .facts > span{font-size:15px;font-weight:700;color:#CFCCDA;background:var(--ink-2);
+    border:1px solid var(--edge);border-radius:999px;padding:9px 17px}
+  .num{font-variant-numeric:tabular-nums}
+
+  /* ---------- the trailer ---------- */
+  .screen{margin-top:34px;border-radius:16px;overflow:hidden;background:#000;
+    border:1px solid var(--edge);box-shadow:0 40px 90px -50px rgba(0,0,0,.9)}
+  .screen video{display:block;width:100%;height:auto}
+  .caption{font-size:14.5px;color:var(--dim);margin-top:11px}
+
+  /* ---------- the timing scale: the one bold moment ---------- */
+  .scale-track{height:9px;border-radius:999px;margin-bottom:14px;
+    background:linear-gradient(to left,var(--hot),#6E5A50 42%,#3E6B5C 72%,var(--good))}
+  .scale{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  .stop{background:var(--raise);border:1px solid var(--edge);border-radius:14px;
+    padding:20px 20px 18px;display:flex;flex-direction:column;gap:5px}
+  .stop.now{border-color:rgba(255,90,61,.5);background:var(--hot-soft)}
+  .stop.best{border-color:rgba(18,184,134,.55);background:var(--good-soft)}
+  .stop .when{font-family:var(--display);font-weight:800;font-size:24px;line-height:1.1}
+  .stop.now .when{color:var(--hot)} .stop.best .when{color:var(--good)}
+  .stop .gets{font-size:16.5px;font-weight:700;color:#CFCCDA}
+  .stop.best .gets{color:#8FE9C8}
+  .stop .gets em{font-style:normal;font-weight:800;color:var(--paper)}
+  .warn{margin-top:20px;font-size:17px;line-height:1.5;color:var(--muted);
+    max-width:64ch;text-wrap:pretty}
+  .warn b{color:var(--paper);font-weight:800}
+
+  /* ---------- steps: a real sequence, so it gets numbers ---------- */
+  .two{display:grid;grid-template-columns:1fr 300px;gap:48px;align-items:start}
+  .steps{display:flex;flex-direction:column}
+  .step{display:grid;grid-template-columns:42px 1fr;column-gap:16px;
+    padding:19px 0;border-bottom:1px solid var(--edge)}
+  .step:last-child{border-bottom:0}
+  .step .n{font-family:var(--display);font-weight:800;font-size:26px;line-height:1.1;
+    color:var(--amber);font-variant-numeric:tabular-nums}
+  .step h3{font-size:20px;margin-bottom:4px}
+  .step p{font-size:16.5px;line-height:1.5;color:var(--muted);text-wrap:pretty}
+
+  /* ---------- phones ---------- */
+  .phone{border-radius:30px;background:linear-gradient(160deg,#2A2833,#0B0A0F 62%);
+    padding:9px;border:1px solid var(--edge);
+    box-shadow:0 46px 90px -52px rgba(0,0,0,.95)}
+  .phone img{display:block;width:100%;height:auto;border-radius:23px}
+  .phone-note{font-size:14px;color:var(--dim);text-align:center;margin-top:12px}
+
+  /* ---------- what is inside ---------- */
+  .inside{display:grid;grid-template-columns:260px 1fr;gap:44px;align-items:start}
+  .chipset{display:flex;flex-direction:column;gap:26px}
+  .chiphead{font-size:13px;font-weight:800;letter-spacing:.16em;color:var(--dim);
+    margin-bottom:12px}
+  .rounds{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px}
+  .round{background:var(--ink-2);border:1px solid var(--edge);border-radius:12px;
+    padding:13px 16px;display:flex;flex-direction:column;gap:2px}
+  .round:last-child{grid-column:1/-1}
+  .round b{font-size:16.5px;font-weight:800}
+  .round span{font-size:14.5px;color:var(--muted);line-height:1.4}
+  .cards{display:flex;flex-wrap:wrap;gap:8px}
+  .cards > span{font-size:15px;font-weight:700;color:#CFCCDA;background:var(--amber-soft);
+    border:1px solid rgba(255,176,32,.3);border-radius:999px;padding:8px 15px}
+
+  /* ---------- start ---------- */
+  .start{display:grid;grid-template-columns:1fr 1fr;gap:44px;align-items:start}
+  .howto{display:flex;flex-direction:column;gap:14px}
+  .howto div{display:grid;grid-template-columns:30px 1fr;column-gap:14px;align-items:baseline}
+  .howto .n{font-family:var(--display);font-weight:800;font-size:19px;color:var(--amber);
+    font-variant-numeric:tabular-nums}
+  .howto p{font-size:17.5px;line-height:1.45}
+  .ticket{background:var(--raise);border:1px solid var(--edge);border-radius:16px;
+    padding:24px}
+  .ticket .lab{font-size:12.5px;font-weight:800;letter-spacing:.14em;color:var(--dim)}
+  .code{font-family:var(--display);font-weight:800;font-size:44px;letter-spacing:.16em;
+    direction:ltr;margin-top:6px;color:var(--paper)}
+  .slot{margin-top:18px;border:1.5px dashed rgba(255,252,246,.34);border-radius:11px;
+    padding:14px 16px;display:flex;align-items:baseline;gap:11px;flex-wrap:wrap}
+  .slot .lab{white-space:nowrap}
+  .slot .val{font-size:17px;font-weight:700;color:var(--muted)}
+  .privacy{margin-top:20px;font-size:15.5px;line-height:1.5;color:var(--dim);
+    max-width:52ch;text-wrap:pretty}
+
+  /* ---------- footer ---------- */
+  footer{border-top:1px solid var(--edge);padding:44px 0 60px;
+    display:flex;align-items:center;justify-content:space-between;gap:22px;flex-wrap:wrap}
+  .en-lockup{font-family:var(--display);font-weight:800;font-size:34px;letter-spacing:.05em;
+    direction:ltr;line-height:1}
+  .en-lockup .coin{width:.78em;height:.78em;vertical-align:-.06em}
+  footer p{font-size:15px;color:var(--dim)}
+
+  /* the one action on the page */
+  .cta-row{display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin-top:30px}
+  .cta{display:inline-block;text-decoration:none;font-family:var(--display);font-weight:800;
+    font-size:23px;line-height:1;color:#17161C;background:var(--amber);
+    border-radius:13px;padding:19px 34px;
+    box-shadow:0 10px 0 var(--amber-deep),0 24px 40px -22px rgba(255,176,32,.5);
+    transition:transform .1s ease,box-shadow .1s ease}
+  .cta:hover{transform:translateY(2px);box-shadow:0 8px 0 var(--amber-deep),0 20px 34px -22px rgba(255,176,32,.5)}
+  .cta:active{transform:translateY(8px);box-shadow:0 2px 0 var(--amber-deep)}
+  .cta-sm{margin-top:18px;font-size:19px;padding:15px 26px;box-shadow:0 8px 0 var(--amber-deep)}
+  .cta-note{font-size:15px;line-height:1.45;color:var(--dim);max-width:31ch}
+  .addr{font-size:19px;font-weight:800;color:var(--amber);text-decoration:none;
+    direction:ltr;border-bottom:1.5px solid rgba(255,176,32,.4)}
+  .addr:hover{border-bottom-color:var(--amber)}
+  @media(prefers-reduced-motion:reduce){.cta{transition:none}}
+
+  a{color:var(--amber)}
+  a:focus-visible,video:focus-visible{outline:2.5px solid var(--amber);outline-offset:3px;
+    border-radius:6px}
+
+  @media(max-width:880px){
+    section{padding:54px 0}
+    .two,.inside,.start{grid-template-columns:1fr;gap:34px}
+    .two .phone,.inside .phone{max-width:300px;margin:0 auto}
+    .scale{grid-template-columns:1fr}
+    .scale-track{display:none}
+    .stop{flex-direction:row;align-items:baseline;justify-content:space-between}
+  }
+
+  .kit{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+  .dl{display:flex;flex-direction:column;gap:3px;text-decoration:none;
+    background:var(--raise);border:1px solid var(--edge);border-radius:14px;padding:18px 20px;
+    transition:border-color .18s ease,background .18s ease}
+  .dl:hover{border-color:rgba(255,176,32,.55);background:#252230}
+  .dl b{font-family:var(--display);font-weight:800;font-size:19px;color:var(--amber)}
+  .dl span{font-size:14.5px;color:var(--muted)}
+  .runit{margin-top:16px;font-size:15.5px;line-height:1.5;color:var(--dim)}
+  @media(prefers-reduced-motion:reduce){.dl{transition:none}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <symbol id="coin" viewBox="0 0 100 100">
+    <circle cx="50" cy="50" r="50" fill="#D18A08"/>
+    <circle cx="50" cy="50" r="47" fill="none" stroke="#17161C" stroke-width="6"
+      stroke-dasharray="3 6.2285" stroke-linecap="butt" opacity=".85"/>
+    <circle cx="50" cy="50" r="42" fill="#FFB020"/>
+    <rect x="26" y="41" width="48" height="18" rx="9" fill="#17161C"
+      transform="rotate(-30 50 50)"/>
+  </symbol>
+</defs></svg>
+
+<div class="wrap">
+
+  <!-- ============ hero ============ -->
+  <section class="hero">
+    <svg class="hero-coin" aria-hidden="true"><use href="#coin"/></svg>
+    <p class="kicker">משחק מסיבה · טלפון לכל אחד</p>
+    <h1 class="lockup">א<svg class="coin" aria-hidden="true"><use href="#coin"/></svg>ימון</h1>
+    <p class="tagline">משפט אחד · הזדמנות אחת</p>
+    <p class="pitch">
+      מישהו אחד יודע את המילה ואומר עליה משפט אחד. השאר צריכים לקלוט מה זה.
+      <b>הטריק: הוא לא רוצה שיקלטו מהר — הוא רוצה שיקלטו בשנייה האחרונה.</b>
+    </p>
+
+    <div class="facts">
+      <span><span class="num">3–8</span> שחקנים</span>
+      <span>תשעים שניות לסבב</span>
+      <span>כ־<span class="num">25</span> דקות למשחק</span>
+      <span>עברית ו־English</span>
+      <span>בלי הורדות</span>
+      <span>בלי חשבון</span>
+    </div>
+
+    <div class="cta-row">
+      <a class="cta" href="https://asimon.onrender.com">לשחק עכשיו</a>
+      <span class="cta-note">מתארח בחינם — אם המשחק ישן, הכניסה הראשונה לוקחת
+        כמה שניות להתעורר.</span>
+    </div>
+
+    <div class="screen">
+      <video controls playsinline preload="metadata" poster="assets/trailer-poster.jpg"
+        aria-label="טריילר של אסימון">
+        <source src="assets/trailer-720.mp4" type="video/mp4">
+      </video>
+    </div>
+    <p class="caption">שלושים ושמונה שניות · צולם ממשחק אמיתי על שלושה טלפונים</p>
+  </section>
+
+  <!-- ============ the thesis ============ -->
+  <section>
+    <p class="eyebrow"><svg aria-hidden="true"><use href="#coin"/></svg>הרעיון</p>
+    <h2 style="font-size:clamp(30px,5.4vw,50px)">כל שנייה שלוקח להם — שווה לכם יותר.</h2>
+    <p class="warn" style="margin-top:18px;margin-bottom:34px">
+      הנותן צובר לפי <b>מתי</b> קלטו אותו, לא לפי אם קלטו. וזה הופך כל רמז להחלטה.
+    </p>
+
+    <div class="scale-track"></div>
+    <div class="scale">
+      <div class="stop now">
+        <span class="when">מיד</span>
+        <span class="gets">הנותן לוקח <em class="num">1</em></span>
+      </div>
+      <div class="stop">
+        <span class="when">באמצע</span>
+        <span class="gets">שווי המילה</span>
+      </div>
+      <div class="stop best">
+        <span class="when">ברגע האחרון</span>
+        <span class="gets">שווי המילה <em class="num">+1</em></span>
+      </div>
+    </div>
+
+    <p class="warn">
+      אף אחד לא קלט? <b>הנותן לא מקבל כלום.</b> לכן רמז מעורפל מדי מסוכן בדיוק כמו רמז
+      ברור מדי — צריך לכוון לשנייה האחרונה, לא אחריה.
+    </p>
+  </section>
+
+  <!-- ============ how to play ============ -->
+  <section>
+    <p class="eyebrow"><svg aria-hidden="true"><use href="#coin"/></svg>סבב, שלב אחרי שלב</p>
+    <div class="two">
+      <div class="steps">
+        <div class="step">
+          <span class="n">1</span>
+          <div>
+            <h3>הנותן בוחר מילה</h3>
+            <p>ארבע מילים על המסך שלו, שוות <span class="num">2</span> עד
+              <span class="num">5</span> נקודות. ככל שהמילה שווה יותר, ככה היא קשה יותר.</p>
+          </div>
+        </div>
+        <div class="step">
+          <span class="n">2</span>
+          <div>
+            <h3>ומכוון לאדם אחד</h3>
+            <p>בשקט, בלי שאף אחד יידע. אם דווקא הוא זה שקולט — הנותן מקבל
+              <span class="num">2</span> בונוס.</p>
+          </div>
+        </div>
+        <div class="step">
+          <span class="n">3</span>
+          <div>
+            <h3>משפט אחד. פעם אחת.</h3>
+            <p>תשעים שניות על השעון. אסור לומר את המילה, ואסור לחזור על המשפט.</p>
+          </div>
+        </div>
+        <div class="step">
+          <span class="n">4</span>
+          <div>
+            <h3>מי שקולט — לוחץ</h3>
+            <p>לוחצים על הכפתור האדום ואומרים בקול. צדקתם? צברתם. טעיתם? יורדת נקודה
+              ואתם בחוץ עד סוף הסבב.</p>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="phone"><img src="assets/shot-words.png" width="620" height="1307"
+          alt="מסך הנותן: ארבע מילים עם ניקוד, ורשימת השחקנים לכוון אליהם"></div>
+        <p class="phone-note">המסך הזה נראה רק לנותן</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ what is inside ============ -->
+  <section>
+    <p class="eyebrow"><svg aria-hidden="true"><use href="#coin"/></svg>מה יש בפנים</p>
+    <h2 style="font-size:clamp(28px,4.6vw,42px);margin-bottom:30px">
+      לוח, קלפים, וסבבים שמשנים את הכללים.</h2>
+
+    <div class="inside">
+      <div>
+        <div class="phone"><img src="assets/shot-board.png" width="620" height="1307"
+          alt="לוח המשחק: ארבעה נתיבים צבעוניים והחיילים של השחקנים"></div>
+        <p class="phone-note">כל נקודה היא צעד. הראשון לסוף מנצח.</p>
+      </div>
+
+      <div class="chipset">
+        <div>
+          <p class="chiphead">שבעה סוגי סבבים</p>
+          <div class="rounds">
+            <div class="round"><b>רגיל</b><span>תשעים שניות, משפט אחד</span></div>
+            <div class="round"><b>מהיר</b><span>ארבעים וחמש שניות בלבד</span></div>
+            <div class="round"><b>מילה אחת</b><span>הרמז חייב להיות מילה אחת</span></div>
+            <div class="round"><b>פנטומימה</b><span>בלי לדבר — וכאן דווקא כדאי שיקלטו מהר</span></div>
+            <div class="round"><b>עיוור</b><span>הכול מתהפך: הנותן הוא שמנחש</span></div>
+            <div class="round"><b>כפול</b><span>כל מילה שווה כפול</span></div>
+            <div class="round"><b>שותפים</b><span>לנותן מוגרל שותף — קולטים ביחד</span></div>
+          </div>
+        </div>
+        <div>
+          <p class="chiphead">ושבעה קלפים לשבור איתם את הסבב</p>
+          <div class="cards">
+            <span>סטופר</span><span>הצצה</span><span>וטו</span><span>פנטומימה</span>
+            <span>כפול</span><span>החלפה</span><span>כיסוי עיניים</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ how to start ============ -->
+  <section>
+    <p class="eyebrow"><svg aria-hidden="true"><use href="#coin"/></svg>איך מתחילים</p>
+    <div class="start">
+      <div>
+        <div class="howto">
+          <div><span class="n">1</span><p>מארח אחד מריץ את המשחק.</p></div>
+          <div><span class="n">2</span><p>כולם פותחים את הכתובת בטלפון — אין מה להתקין.</p></div>
+          <div><span class="n">3</span><p>מקישים את קוד החדר, בוחרים פרצוף, ומתחילים.</p></div>
+        </div>
+        <p class="privacy">
+          בלי חשבונות ובלי מידע אישי: חדר הוא קוד בן ארבע אותיות, שם פרטי ופרצוף שבחרתם —
+          והכול נמחק כשהחדר נסגר.
+        </p>
+      </div>
+
+      <div class="ticket">
+        <p class="lab">קוד החדר</p>
+        <p class="code">ABCD</p>
+        <div class="slot">
+          <span class="lab">הכתובת</span>
+          <a class="val addr" href="https://asimon.onrender.com">asimon.onrender.com</a>
+        </div>
+        <a class="cta cta-sm" href="https://asimon.onrender.com">לפתוח חדר</a>
+      </div>
+    </div>
+  </section>
+
+
+  <section id="kit">
+    <p class="eyebrow"><svg aria-hidden="true"><use href="#coin"/></svg>להורדה</p>
+    <h2 style="font-size:clamp(26px,4.2vw,38px);margin-bottom:8px">כל החומרים, חופשי לשיתוף.</h2>
+    <p class="warn" style="margin-top:0;margin-bottom:26px">
+      הטריילר, הפוסטר ודף הכללים — קחו ותתלו איפה שבא לכם.
+    </p>
+    <div class="kit">
+      <a class="dl" href="assets/asimon-trailer-1080p.mp4" download>
+        <b>הטריילר</b><span>MP4 · 1080p · 38 שניות</span></a>
+      <a class="dl" href="assets/asimon-poster-A4.pdf" download>
+        <b>הפוסטר</b><span>PDF · A4 · להדפסה</span></a>
+      <a class="dl" href="assets/asimon-how-to-play-A4.pdf" download>
+        <b>איך משחקים</b><span>PDF · A4 · דף הכללים</span></a>
+      <a class="dl" href="https://github.com/frenkelsergei-blip/asimon">
+        <b>הקוד</b><span>GitHub · להריץ בעצמכם</span></a>
+    </div>
+  </section>
+
+  <footer>
+    <p class="en-lockup">ASIM<svg class="coin" aria-hidden="true"><use href="#coin"/></svg>N</p>
+    <p>משחק מסיבה לטלפונים · עברית ו־English · אותו משחק בשני הכיוונים</p>
+  </footer>
+
+</div>
+</body>
+</html>
