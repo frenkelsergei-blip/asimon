@@ -109,6 +109,7 @@ function orderByUnit(e){
 
 /* ---------------- starting ---------------- */
 function startGame(room, opts){
+  room.breaks = {};                     /* two breaks each, counted from here */
   const e = createEngine();
   e.S = e.freshState();
   e.S.lang = room.lang;
@@ -274,6 +275,15 @@ function clearClock(room){
    else is offered instead is the generous half of it: another thirty. */
 const PAUSE_MS     = Number(process.env.LS_PAUSE_MS     || 30000);
 const PAUSE_MAX_MS = Number(process.env.LS_PAUSE_MAX_MS || 5 * 60 * 1000);
+/* And a phone gets two of them a game. A break is a real cost to everyone
+   else at the table, so the one phone that would rather stop than play cannot
+   keep stopping: two is enough for a doorbell and a bathroom, and short of
+   the number it takes to hold a room hostage. Adding half a minute to a break
+   somebody else called is not one of the two — that is generosity, not a
+   break of your own, and it stays free. */
+const PAUSE_CALLS  = Number(process.env.LS_PAUSE_CALLS  || 2);
+const breaksUsed = (room, id) => (room.breaks && room.breaks[id]) || 0;
+const breaksLeft = (room, id) => Math.max(0, PAUSE_CALLS - breaksUsed(room, id));
 
 function pauseLeft(room){
   return room.pause ? Math.max(0, room.pause.until - Date.now()) : 0;
@@ -297,6 +307,8 @@ function beginPause(room, phone, ctx){
     ctx.clearClock();
     room.pause    = { by:phone.id, name:phone.name, startedAt:now, until:now + PAUSE_MS, presses:1 };
     room.pausedAt = now;
+    room.breaks   = room.breaks || {};
+    room.breaks[phone.id] = breaksUsed(room, phone.id) + 1;
   }
   ctx.armPause();
 }
@@ -633,6 +645,8 @@ function viewFor(room, pid){
       of: PAUSE_MS, mine: room.pause.by === pid || room.hostId === pid
     };
   }
+  /* how many breaks this phone still has, which is the button's whole label */
+  base.breaks = { left: breaksLeft(room, pid), of: PAUSE_CALLS };
   const blocked = room.pause ? null : blockedBy(room);
   if(blocked) base.blocked = blocked;
   base.idleMs = IDLE_MS;          /* the phones count the same wait the server does */
@@ -666,6 +680,150 @@ function squareType(e, p){
   const MODS = e.packs().MODS;
   return { key:ty, name:MODS[ty].n, desc:MODS[ty].d };
 }
+/* ---------------- the screen in the room ----------------
+   A television, a tablet leaned against the salt: something that shows the
+   table where everybody stands without being anybody's seat. It joins by the
+   room code alone, holds no player, and can send nothing back.
+
+   It holds no words either. Not "the giver's words minus the giver" — none at
+   all, until the reveal. Everyone is in the same room as this screen, and on a
+   blind round the one person who must not see the word is the one most likely
+   to be looking at it. What goes up is only what the table already knows out
+   loud: the board, the score, whose turn it is, how long is left.
+
+   Written as a list of what may be shown rather than as viewFor() with the
+   secrets taken back out, so a field added to a round tomorrow is missing from
+   the screen rather than published on it.                                    */
+function boardView(room){
+  const e = room.engine;
+  const out = {
+    code: room.code,
+    lanUrl: room.lanUrl,
+    phase: room.phase,
+    lang: room.lang,
+    players: room.players.map(p => ({ id:p.id, name:p.name, face:p.face,
+                                      online:p.online, host:p.id === room.hostId }))
+  };
+  if(!e || room.phase === "lobby"){
+    out.mapId    = room.mapId || "classic";
+    out.gameMode = room.mode || "regular";
+    out.seating  = SEATINGS.indexOf(room.seating) >= 0 ? room.seating : "solo";
+    out.people   = roster(room).map(p => ({ id:p.id, name:p.name, face:p.face, phone:p.phoneId }));
+    out.minPlayers = MIN_PLAYERS;
+    return out;
+  }
+
+  const S = e.S, R = S.r, MODS = e.packs().MODS;
+  const faceOf = id => (personById(room, id) || {}).face;
+  /* names and faces, so the screen can put a face to a person id — the same
+     roster the lobby already shows to anybody who walks past it */
+  out.people   = roster(room).map(p => ({ id:p.id, name:p.name, face:p.face }));
+  out.board    = boardLayout(room);
+  out.rows     = e.ROWS();
+  out.round    = S.round;
+  out.mode     = S.mode;
+  out.seating  = S.seating || "solo";
+  out.gameMode = S.modeId;
+  out.mapId    = S.mapId;
+  out.units    = S.units.map(u => ({
+    id:u.id, name:u.name, score:u.score, pos:u.pos, color:u.color,
+    face: faceOf(u.members[0]),
+    faces: u.members.map(faceOf).filter(Boolean),
+    members: u.members,
+    /* how many cards a unit is holding. Which ones is nobody else's business,
+       and a screen on the wall is everybody else. */
+    cards: (u.cards || []).length
+  }));
+  out.winner = (e.winnerUnit() || {}).id || null;
+
+  if(R){
+    out.giver     = R.giver;
+    out.giverName = e.playerById(R.giver).name;
+    out.mod       = { key:R.mod, name:MODS[R.mod].n, desc:MODS[R.mod].d };
+    out.challenge = R.challenge;
+    out.topic     = R.topic ? e.packs().TOPICS[R.topic].n : null;
+    out.topicKey  = R.topic || null;
+    out.lockedOut = R.lockedOut.slice();
+    out.total     = R.total;
+    out.remainMs  = e.remainMs();
+    /* the Insight card puts the four candidates up on purpose — that is the
+       whole card, and it is already on every phone in the room */
+    out.insight   = R.insight ? (R.insightWords || R.words.map(w => w.text)) : null;
+    out.veto      = !!R.veto;
+    out.mimeCard  = !!R.mimeCard;
+    out.swapped   = !!R.swapped;
+    if(R.shotPublic && R.shot) out.partner = { id:R.shot, name:e.playerById(R.shot).name };
+    if(room.phase === "judge" && R.judging)
+      out.judging = { id:R.judging, name:e.playerById(R.judging).name };
+  }
+
+  if(room.phase === "order"){
+    const accepted = room.accepted || [];
+    out.order = {
+      seats: S.players.map(p => ({ id:p.id, name:p.name, in:accepted.indexOf(phoneOf(room, p.id)) >= 0 })),
+      left: S.players.length - accepted.length
+    };
+  }
+  if(room.phase === "reveal" && S.result){
+    const res = S.result;
+    out.result = {
+      word: res.word.text,
+      solvedBy: res.solvedBy,
+      solvedName: res.solvedBy ? e.playerById(res.solvedBy).name : null,
+      solveMs: res.solveMs, total: res.total, mod: res.mod,
+      rows: res.rows.map(r => ({ id:r.id, name:r.name, pts:r.pts, why:r.why, giver:r.giver }))
+    };
+    out.steps = S.steps;
+  }
+  if(room.phase === "move"){
+    const order = moveOrder(e);
+    const u = order[S.moveSeat] ? e.unitById(order[S.moveSeat]) : null;
+    if(u){
+      out.move = { unitId:u.id, unitName:u.name, steps:S.steps[u.id],
+                   seat:S.moveSeat + 1, of:order.length,
+                   /* where they may go and where they are hovering: both are
+                      on every phone in the room already */
+                   spots: e.reachable(e.posOf(u), S.steps[u.id]).map(p => ({ r:p.r, c:p.c })),
+                   picked: room.movePick };
+      out.queue = order.map((id,i) => {
+        const q = e.unitById(id);
+        return { id, name:q.name, steps:S.steps[id], done:i < S.moveSeat, now:i === S.moveSeat };
+      });
+    }
+  }
+  if(room.phase === "award" && S.awardFor){
+    const u = e.unitById(S.awardFor);
+    /* which cards were offered is on the phones; the screen says who is choosing */
+    if(u) out.award = { unitId:u.id, unitName:u.name };
+  }
+  if(room.phase === "swap" && R) out.swap = { giverName: e.playerById(R.giver).name };
+  if(room.phase === "wild" && S.wild){
+    const CARDS = e.packs().CARDS;
+    out.wild = Object.assign({}, S.wild, {
+      cardName: S.wild.card ? CARDS[S.wild.card].n : null,
+      cardDesc: S.wild.card ? CARDS[S.wild.card].d : null
+    });
+  }
+  if(room.pause){
+    out.paused = { by:room.pause.by, name:room.pause.name, ms:pauseLeft(room), of:PAUSE_MS };
+  }
+  const blocked = room.pause ? null : blockedBy(room);
+  if(blocked) out.blocked = blocked;
+  out.idleMs = IDLE_MS;
+  const waiting = room.pause ? null : waitingOn(room);
+  if(waiting) out.waiting = waiting;
+
+  if(room.phase === "over"){
+    const won = (e.winnerUnit() || {}).id || null;
+    out.standings = S.units.slice()
+      .sort((a,b) => (b.id === won) - (a.id === won)
+                  || ((b.pos||{}).r||0) - ((a.pos||{}).r||0)
+                  || b.score - a.score)
+      .map(u => ({ id:u.id, name:u.name, score:u.score, row:(u.pos||{}).r||0 }));
+  }
+  return out;
+}
+
 /* A room stalls for two reasons: a phone that has gone, and a phone that is
    simply not being looked at. Both leave everyone else with nothing to tap. */
 const IDLE_MS = Number(process.env.LS_IDLE_MS || 45000);
@@ -807,6 +965,9 @@ function applyAction(room, me, body, ctx){
   /* stop everything for half a minute. Pressed again, another half minute. */
   case "pause": {
     if(room.phase === "over") return { error:"not_now" };
+    /* the ceiling is on calling a break, not on lengthening one: the phone
+       that has spent both of its own can still hand somebody else thirty */
+    if(!room.pause && breaksLeft(room, me.id) <= 0) return { error:"no_breaks" };
     beginPause(room, me, ctx);
     return { ok:true };
   }
@@ -1122,7 +1283,7 @@ function applyAction(room, me, body, ctx){
     if(room.phase !== "over" || room.hostId !== me.id) return { error:"not_your_turn" };
     S.units.forEach(u => { u.score = 0; u.cards = []; u.pos = e.startPos(); });
     S.round = 0; S.giverIdx = 0; S.used = []; S.moveSeat = 0; S.wild = null; room.movePick = null;
-    room.groupSeat = 0; room.turns = {};
+    room.groupSeat = 0; room.turns = {}; room.breaks = {};
     /* a fresh game earns a fresh order and a fresh opening card, and the
        table gets the same reveal it got the first time */
     S.players = e.shuffle(S.players);
@@ -1199,11 +1360,12 @@ function cardFace(lang, key){
   return { key, n: c.n || key };
 }
 
-module.exports = { startGame, applyAction, viewFor, timeUp, armClock, clearClock,
+module.exports = { startGame, applyAction, viewFor, boardView, timeUp, armClock, clearClock,
                    moveOrder, blockedBy, waitingOn, awaitedIds, uiPack, cardFace, IDLE_MS, MIN_PLAYERS,
                    randomMapId, MODE_IDS, MAP_IDS,
                    /* stopping the room, and giving up a seat while it runs */
-                   leave, armPause, clearPause, endPause, pauseLeft, PAUSE_MS, PAUSE_MAX_MS,
+                   leave, armPause, clearPause, endPause, pauseLeft, breaksLeft,
+                   PAUSE_MS, PAUSE_MAX_MS, PAUSE_CALLS,
                    /* the phone-and-person layer, for the server to keep the roster with */
                    roster, addPerson, personById, peopleOf, phoneOf, owns,
                    MAX_GROUP, MAX_PEOPLE, SEATINGS };

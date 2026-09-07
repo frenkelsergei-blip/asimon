@@ -1,0 +1,246 @@
+/* Asimon — the screen in the room.
+
+   A television, a tablet against the fruit bowl: one page, no seat, read from
+   the other side of a table. It borrows the whole palette from style.css so
+   the wall and the phones are plainly the same game, and sizes everything off
+   one root em that grows with the screen — the same layout at 10 inches and
+   at 55. Drawn on the canvas at design/screen/ first, where one em is 16px
+   and the frame is 1280x720; every figure below is that design divided by 16.
+
+   Two things this is deliberately not. It is not a dashboard: the moment is
+   the phone's own receipt — a coloured block with a perforated edge, amber
+   while a word is in play, green once it has been said out loud, ink for
+   everything procedural. And it is not a column of numbers: the bar and the
+   token already say where somebody stands, so each player gets one big score
+   and one bar, and nothing else unless they are holding a card.
+
+   And it has a second shape: the map on its own, filling the wall. See the
+   foot of this file.                                                        */
+
+html,body{ background:var(--paper); height:100% }
+body{ margin:0 }
+
+#screen{
+  /* every size on this page is in em, so this one line is the whole scale:
+     16px at 1280 across, 24px on a 1080p television */
+  font-size:clamp(15px, 1.25vw, 32px);
+  /* the html height, not 100dvh: on a browser keeping room for a toolbar the
+     two differ by the toolbar, and a screen that never scrolls must not be
+     handed a scrollbar */
+  height:100%; overflow:hidden; display:flex; flex-direction:column; gap:.75em;
+  padding:1em; background:var(--paper);
+}
+#screen .num{ font-variant-numeric:tabular-nums; direction:ltr; unicode-bidi:isolate }
+
+/* ---------------- the head: what room this is ---------------- */
+.shead{ display:flex; align-items:center; gap:1.5em; background:var(--ink); color:#fff;
+  border-radius:.875em; padding:.8125em 1.375em; flex:0 0 auto }
+.shead .mark{ display:flex; align-items:center; gap:.625em;
+  font-family:var(--logo); font-weight:800; font-size:1.4375em; letter-spacing:.01em }
+.shead .mark .coin{ width:1.22em; height:1.22em; display:block; flex:0 0 auto }
+.shead .mark .coin svg{ display:block; width:100%; height:100% }
+.shead .spacer{ flex:1 }
+.sextra{ display:flex; align-items:center; gap:1.5em }
+.sfact{ display:flex; flex-direction:column; line-height:1.1; gap:.125em }
+.sfact span{ font-size:.75em; font-weight:700; letter-spacing:.14em; text-transform:uppercase;
+  color:rgba(255,255,255,.5) }
+.sfact b{ font-size:1.25em; font-weight:800 }
+.sfact b.code{ font-family:var(--display); font-weight:400; font-size:2.125em;
+  letter-spacing:.12em; direction:ltr }
+.slive{ width:.5625em; height:.5625em; border-radius:50%; background:var(--good); flex:0 0 auto }
+.slive.off{ background:var(--guilty) }
+
+/* ---------------- the two columns ---------------- */
+/* The board is drawn into a fixed 320x560 box and fits whatever it is given,
+   so the column is sized off the height it will have: any wider and the board
+   just floats in the middle of it. The row is bounded by the screen, not by
+   what is in it — without that a long board pushes its caption off a wall. */
+.sbody{ flex:1; min-height:0; display:grid; gap:.75em;
+  grid-template-columns:min(34vw, 46vh) minmax(0,1fr); grid-template-rows:minmax(0,1fr) }
+.boardpane{ background:var(--surface); border:1px solid var(--rule); border-radius:.875em;
+  padding:.75em; display:flex; flex-direction:column; align-items:center; gap:.5em;
+  min-height:0; min-width:0; cursor:pointer }
+.boardfit{ flex:1; min-height:0; min-width:0; align-self:stretch; display:flex; justify-content:center }
+/* style.css sizes the phone's board off the phone's own dials — a max-width
+   worked out from how much of a phone is left under the buttons. This screen
+   hands the board a box and asks it to fit that instead. */
+#screen .board{ width:100%; height:100%; max-width:none; max-height:none }
+.boardpane .cap{ font-size:.8125em; font-weight:800; color:var(--muted); margin:0;
+  flex:0 0 auto; text-align:center }
+.side{ display:flex; flex-direction:column; gap:.75em; min-height:0 }
+
+/* ---------------- the moment, as a receipt ---------------- */
+/* --rc is the block's colour, and the perforation below it is cut out of the
+   same one, so a tone change is one custom property. */
+.receipt{ flex:0 0 auto }
+.rbox{ background:var(--rc); color:var(--ri); border-radius:1.125em 1.125em .25em .25em;
+  padding:1.25em 1.5em; display:flex; align-items:center; gap:1.375em }
+.perf{ height:.5625em;
+  background:radial-gradient(circle at .3125em 0,transparent .225em,var(--rc) .257em) 0 0/.625em .625em repeat-x }
+.rbox .mface{ width:4.25em; height:4.25em; flex:0 0 4.25em; border-radius:50%;
+  box-shadow:0 0 0 .1875em rgba(255,255,255,.65) }
+.rbox .mface svg{ display:block; width:100%; height:100% }
+.rbox .mtext{ flex:1; min-width:0 }
+.rbox .kicker{ font-size:.75em; font-weight:700; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--rs); margin:0 }
+.rbox .kicker::after{ display:none }
+.rbox h2{ font-size:2.625em; font-weight:800; line-height:1.1; letter-spacing:-.015em;
+  margin:.14em 0 0; overflow-wrap:anywhere; text-wrap:balance }
+.rbox h2.word{ font-family:var(--display); font-weight:400; font-size:3.5em; line-height:1.04;
+  letter-spacing:0 }
+.rbox .msub{ font-size:1.125em; font-weight:600; color:var(--rb); margin:.39em 0 0; line-height:1.35 }
+.clock{ font-family:var(--display); font-weight:400; font-size:5.25em; line-height:.92;
+  direction:ltr; font-variant-numeric:tabular-nums; flex:0 0 auto }
+.clock.low{ color:var(--guilty-deep) }
+.stamp{ font-size:1.375em; font-weight:800; background:rgba(255,255,255,.2); border-radius:.45em;
+  padding:.36em .73em; direction:ltr; flex:0 0 auto }
+
+/* the round's own facts: the twist, the topic, what has been played on it */
+.chips{ display:flex; flex-wrap:wrap; gap:.625em; flex:0 0 auto }
+.chip{ border-radius:999px; padding:.5em 1.125em; font-size:.9375em; font-weight:800;
+  background:var(--sunk); color:var(--second) }
+.chip.tone{ background:var(--tone-soft); color:var(--tone-ink) }
+
+/* ---------------- the table: where everybody stands ---------------- */
+.standings{ background:var(--surface); border:1px solid var(--rule); border-radius:.875em;
+  padding:.25em 1.375em; flex:1; min-height:0; overflow:hidden;
+  display:flex; flex-direction:column; justify-content:center }
+.srow{ display:grid; grid-template-columns:3.25em minmax(0,1fr) auto; align-items:center;
+  column-gap:1.125em; padding:.9375em 0; border-bottom:1px solid var(--hair) }
+.srow:last-child{ border-bottom:0 }
+.srow.out{ opacity:.5 }
+.sface{ width:3.25em; height:3.25em }
+.sface svg{ display:block; width:100%; height:100% }
+.sface .init{ width:100%; height:100%; border-radius:50%; display:grid; place-items:center;
+  color:#fff; font-weight:800; font-size:1.1em }
+.sname{ display:flex; align-items:center; gap:.625em; min-width:0 }
+.sname .nm{ font-size:1.625em; font-weight:800; overflow:hidden; text-overflow:ellipsis;
+  white-space:nowrap }
+.tag{ font-style:normal; font-size:.75em; font-weight:800; letter-spacing:.08em;
+  text-transform:uppercase; padding:.33em .83em; border-radius:999px;
+  background:var(--sunk); color:var(--muted); white-space:nowrap }
+.tag.giver{ background:var(--blind-soft); color:var(--blind-ink) }
+.tag.out{ background:var(--guilty-soft); color:var(--guilty-ink) }
+.tag.won{ background:var(--good-soft); color:var(--good-ink) }
+.slane{ display:flex; align-items:center; gap:.75em; margin-top:.5em }
+.sbar{ flex:1; height:.625em; border-radius:999px; background:var(--hair);
+  position:relative; overflow:hidden; display:block }
+.sbar i{ position:absolute; inset-block:0; inset-inline-start:0; border-radius:999px;
+  transition:width .4s ease }
+.sbar i.ghost{ opacity:.3 }
+.srun{ font-size:.875em; font-weight:800; color:var(--faint); direction:ltr;
+  font-variant-numeric:tabular-nums }
+.snums{ display:flex; align-items:baseline; gap:.5em; flex:0 0 auto }
+.sgain{ font-size:1.375em; font-weight:800; color:var(--good-ink) }
+.sscore{ font-size:2.75em; font-weight:800; font-variant-numeric:tabular-nums; direction:ltr;
+  line-height:1 }
+.spts{ font-size:.6875em; font-weight:800; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--faint) }
+
+/* ---------------- before the game: the lobby ---------------- */
+.lobbypane{ flex:1; min-height:0; display:grid; gap:.75em;
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr); grid-template-rows:minmax(0,1fr) }
+.joinbox{ background:var(--ink); color:#fff; border-radius:.875em; padding:2.25em 2.5em;
+  display:flex; flex-direction:column; justify-content:center; gap:.875em }
+.joinbox .kicker{ font-size:.75em; font-weight:700; letter-spacing:.14em; text-transform:uppercase;
+  color:rgba(255,255,255,.6); margin:0 }
+.joinbox .kicker::after{ display:none }
+.joinbox .bigcode{ font-family:var(--display); font-weight:400; font-size:6.5em; line-height:.94;
+  letter-spacing:.1em; direction:ltr }
+.joinbox .where{ font-size:1.5em; font-weight:700; direction:ltr; overflow-wrap:anywhere;
+  background:rgba(255,255,255,.12); border-radius:.42em; padding:.58em .75em }
+.dot{ width:.625em; height:.625em; border-radius:50%; background:var(--good) }
+.dot.off{ background:var(--zero) }
+
+/* ---------------- the map, and nothing else ----------------
+   The other shape of this screen: the board over the whole wall, with one
+   quiet line under it so the room can still be joined and the clock still
+   read. On a landscape screen the map is turned on its side to fill it —
+   the same board, the long way round — because a portrait map on a
+   television is a third of a screen and a lot of leftover wall. */
+#screen.maponly{ padding:.5em; gap:.5em }
+.mapfull{ flex:1; min-height:0; min-width:0; display:flex; align-items:center;
+  justify-content:center; background:var(--surface); border:1px solid var(--rule);
+  border-radius:.875em; padding:.75em; cursor:pointer }
+.mapline{ flex:0 0 auto; display:flex; align-items:center; gap:1em; padding:0 .5em;
+  color:var(--muted); font-size:1em; font-weight:700 }
+.mapline .mcode{ font-family:var(--display); font-weight:400; font-size:1.6em;
+  letter-spacing:.1em; direction:ltr; color:var(--ink) }
+.mapline .mnow{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis;
+  white-space:nowrap; color:var(--second); font-weight:800; font-size:1.2em }
+.mapline .mclock{ font-family:var(--display); font-weight:400; font-size:2em; direction:ltr;
+  font-variant-numeric:tabular-nums; color:var(--ink) }
+.mapline .mclock.low{ color:var(--guilty-deep) }
+
+/* ---------------- asking which room ---------------- */
+.ask{ flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:.8em; text-align:center; padding:1em }
+.ask .coin{ width:3.4em; height:3.4em; display:block }
+.ask .coin svg{ display:block; width:100%; height:100% }
+.ask h1{ font-size:2.4em }
+.ask p{ color:var(--muted); font-size:1.1em; max-width:24em }
+.ask form{ display:flex; flex-direction:column; gap:.6em; width:min(90vw,14em) }
+.ask input{ font-size:2em; padding:.4em; border-radius:.4em }
+.ask button{ font-size:1.1em; padding:.7em; border-radius:.5em }
+.ask .err{ color:var(--guilty-ink); font-weight:700 }
+/* the two quiet controls, out of the way of the game on every device */
+/* they float over whatever is under them — on a phone that is the map — so
+   they carry just enough paper to stay readable */
+.corner{ position:fixed; inset-block-end:.35em; inset-inline-end:.6em; display:flex; gap:.2em;
+  z-index:2; border-radius:.6em; background:color-mix(in srgb,var(--paper) 86%,transparent);
+  backdrop-filter:blur(4px) }
+.corner button{ background:transparent; border:0; color:var(--faint); font-size:.8125em;
+  font-weight:700; width:auto; padding:.45em .7em; box-shadow:none; cursor:pointer;
+  border-radius:.5em }
+.corner button:hover{ color:var(--second); background:var(--sunk) }
+
+/* ---------------- three shapes, one page ----------------
+   WIDE is everything above: a television, a laptop, a tablet on its side —
+   the board in a column beside the moment and the table.
+
+   TALL is a tablet stood up or a phone held normally. The two columns become
+   one, the moment goes to the top where it is read first, the board keeps the
+   middle, and the page is allowed to scroll rather than squeeze.
+
+   SMALL is that again on something the size of a hand: the header sheds the
+   two facts it can spare, and every figure comes down a size. */
+@media (max-aspect-ratio: 4/5){
+  #screen{ font-size:clamp(13px, 3.1vw, 26px); height:auto; min-height:100dvh; overflow:visible }
+  .sbody{ grid-template-columns:minmax(0,1fr); grid-template-rows:auto minmax(0,1fr) }
+  .boardpane{ min-height:46vh }
+  .side{ order:-1 }
+  .standings{ flex:0 0 auto; overflow:visible }
+  .srow{ padding:.625em 0 }
+  .rbox h2{ font-size:2em }
+  .rbox h2.word{ font-size:2.6em }
+  .clock{ font-size:3.6em }
+  .lobbypane{ grid-template-columns:minmax(0,1fr); grid-template-rows:auto minmax(0,1fr) }
+  .joinbox{ padding:1.4em 1.6em }
+  .joinbox .bigcode{ font-size:4em }
+  /* the map on its own still fills exactly one screen, and does not scroll */
+  #screen.maponly{ height:100%; overflow:hidden }
+}
+@media (max-width: 560px){
+  #screen{ font-size:15px; padding:.55em; gap:.55em }
+  .shead{ gap:.75em; padding:.65em .85em; border-radius:.7em }
+  .shead .mark{ font-size:1.15em }
+  .sextra{ display:none }            /* which board, which speed: not on a phone */
+  .sfact b.code{ font-size:1.7em }
+  .rbox{ padding:.9em 1em; gap:.8em; border-radius:.9em .9em .25em .25em }
+  .rbox .mface{ width:3em; height:3em; flex:0 0 3em }
+  .rbox h2{ font-size:1.5em }
+  .rbox h2.word{ font-size:2.1em }
+  .rbox .msub{ font-size:.95em }
+  .clock{ font-size:2.6em }
+  .stamp{ font-size:1em }
+  .standings{ padding:.15em .9em }
+  .srow{ grid-template-columns:2.5em minmax(0,1fr) auto; column-gap:.75em }
+  .sface{ width:2.5em; height:2.5em }
+  .sname .nm{ font-size:1.2em }
+  .sscore{ font-size:1.9em }
+  .tag{ font-size:.65em }
+  .chip{ font-size:.8em; padding:.4em .8em }
+  .boardpane{ padding:.5em }
+  .mapline{ font-size:.85em; gap:.6em }
+}
+@media (prefers-reduced-motion:reduce){ *{ transition:none!important; animation:none!important } }

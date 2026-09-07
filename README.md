@@ -24,10 +24,13 @@ address; once it is hosted, it is the public one.
 | `game/build-engine.js` | lifts that engine out of the pass-and-play build |
 | `game/play.js` | the round across several phones, and who may see what |
 | `public/` | the phone: `index.html`, `app.js`, `art.js`, `style.css` |
+| `public/board.html` | the screen in the room &mdash; with `board.js` and `board.css` |
+| `public/boardart.js` | the board itself, drawn once for both the phone and the screen |
 | `public/sfx.js` | the sounds, synthesised &mdash; no audio files, the way there are no images |
 | `public/favicon.svg` | the mark, small cut &mdash; also `icon.svg` for the home screen |
 | `public/manifest.webmanifest` | what a phone installs when it adds the game to its home screen |
 | `design/logo/` | the logo canvas the mark came out of |
+| `design/screen/` | the canvas the screen in the room was drawn on |
 
 The engine is generated, never edited by hand. When the rules or the words
 change in the pass-and-play build, regenerate:
@@ -42,12 +45,13 @@ npm run build:engine -- /path/to/buzz.html
 npm test
 ```
 
-Nine suites: the rules over 540 simulated games, the seven cards, a stalled
-room, the copy (every key the phone asks for answers in both languages), the
+Eleven suites: the rules over 540 simulated games, the seven cards, a stalled
+room, the copy (every key either page asks for answers in both languages), the
 shape of a round (a blind verdict belongs to the table; the podium names the
 winner), a full round over real HTTP (asserting the giver's words never reach
-another phone), phones dropping and reconnecting, a phone carrying a group, and
-the version surface.
+another phone), phones dropping and reconnecting, a phone carrying a group, a
+seat given up mid-round, the screen in the room (no seat, and no word before
+the reveal), and the version surface.
 
 ## The playtest
 
@@ -79,6 +83,97 @@ npm run playtest -- --addRows 4 --cap 6       # try a change before making it
 It exits non-zero on a hard failure — a stuck room, a negative score, a game
 that never ends.
 
+## The screen in the room
+
+A television, a tablet against the fruit bowl, a spare phone propped on a
+glass. It watches a room by its code alone:
+
+```
+http://<the same address>/board?room=ABCD
+```
+
+The lobby prints that address under the one the phones join at, so it can be
+read off the table. It holds no seat, counts against nobody, sends nothing
+back, and takes a room only as far as eight screens.
+
+**It never shows the four words.** Not before the reveal, not on a blind round
+where every phone but the giver's can see them &mdash; because the one person
+who must not know is sitting in front of it. `boardView()` in `game/play.js` is
+written as a list of what a screen *may* see rather than as `viewFor()` with the
+secrets taken back out, so a field added to a round tomorrow is missing from the
+wall rather than published on it. `game/screen.test.js` walks an ordinary round
+and a blind one and fails on any word, any hand, any aim.
+
+What it does show: the board, whose turn it is, the clock, and where everybody
+stands &mdash; one score and one bar each, and a card count only when somebody
+is holding one. The moment is the phone's own receipt: amber while a word is in
+play, green once it has been said out loud, ink for everything else.
+
+One page, four shapes, decided by the screen it is on. Wide (a television, a
+laptop, a tablet on its side) puts the board in a column beside the moment and
+the table. Tall folds that into one column with the moment at the top. A phone
+also sheds the two header facts it can spare. And **the map on its own** &mdash;
+the board over the whole screen with a single quiet line under it &mdash; is one
+tap on the board away, remembered, or reachable directly:
+
+```
+http://<the same address>/board?room=ABCD&map
+```
+
+On a landscape screen that map turns on its side and runs the long way, because
+a portrait board on a television is a third of a screen and a lot of leftover
+wall. It is the same drawing either way: `public/boardart.js` takes an `across`
+flag, and the phone and the screen cannot draw two different boards.
+
+The design canvas it was drawn on is `design/screen/`, built by
+`node design/screen/build.js` &mdash; the artboards lift the real faces, the
+real board and the real palette out of `public/`, so they cannot drift from the
+game.
+
+## A tablet, held either way up
+
+The game is a receipt on a phone: one column, in a hand, at arm's length. A
+tablet is not a large phone, so it gets its own two sizes and its own shape.
+
+Everything on the sheet is a multiple of one number, `--k` at the head of
+`public/style.css`. A phone leaves it at 1 and is untouched by all of this.
+A tablet turns it up &mdash; 1.2, and 1.34 on a large one &mdash; and every
+font size, figure, avatar and padding in the file follows, because each one is
+written as a multiple of it rather than as a number of its own. The handful of
+sizes measured in javascript instead (the cards in a hand, the podium, the
+tokens in the play order) read the same dial through `kpx()`.
+
+A tablet is *the short side of the glass being 600px or more*, asked once per
+orientation so it survives being turned over: a phone on its side is 393px on
+the short side and is left alone; an iPad is 744 to 1024 whichever way up.
+
+**Upright** it is the phone's own screen, larger: one column down the middle of
+the page, with the app filling the device rather than sitting on it as a
+phone-shaped card.
+
+**On its side** it is a different layout, because landscape is not a narrower
+portrait &mdash; it is the same width with far less height. An iPad lying down
+has 820px to spend where a phone standing up has 844, and half its width empty.
+So the screens built around one figure put the figure down one side at the full
+height it wants and everything that talks about it down the other: the board
+and whose turn it is, the buzzer and the clock, the receipt and the scores, the
+fifteen faces and the name being typed. The screens that are two lists rather
+than a figure name their halves in the markup &mdash; the lobby is the room and
+the settings, the giver's turn is a word and somebody to aim it at &mdash; and
+those halves become the columns.
+
+A `.pane` is `display:contents` everywhere but a tablet on its side, so off
+that one case it generates no boxes at all: deleting both wrappers from a phone
+moves nothing and changes the page height by nothing. That is the test to run
+when adding one.
+
+Four screens are deliberately left as one centred piece: the play order, the
+wildcard, the swap, and every screen that is only waiting on somebody else.
+Each is a single ceremony the whole table looks at &mdash; a shuffle, a card
+turning over, a face &mdash; with no second half to set beside it. The play
+order in particular animates across a full row and would wrap and break in half
+the width.
+
 ## Versions, and getting a phone off an old one
 
 The game is installed, not visited. Added to a home screen it opens as its own
@@ -87,8 +182,8 @@ that page alive for weeks. Left alone, that is a table playing last month's
 build and nobody in the room able to tell.
 
 So the build has a name. `currentBuild()` in `server.js` hashes the version in
-`package.json` together with the six files the phone loads, and every page is
-served with that hash stamped into it:
+`package.json` together with every file a page loads, and every page is served
+with that hash stamped into it:
 
 ```html
 <meta name="asimon-version" content="0.2.0">

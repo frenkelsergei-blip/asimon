@@ -23,11 +23,21 @@ const L = {
     groups_note:"עד {0} אנשים על הטלפון הזה. הניקוד קבוצתי — אבל המשחק זוכר מי עשה מה.",
     group_of:"{0} בקבוצה",
     share:"שאר הטלפונים נכנסים לכתובת הזאת, על אותו ה־Wi‑Fi:", hostwait:"המארח/ת מתחיל/ה את המשחק.",
+    bigscreen:"יש טלוויזיה או טאבלט? פתחו שם את הכתובת הזאת — מסך שרק מראה את הלוח ואת המצב:",
     offline:"מנותק — מנסים להתחבר מחדש…",
     picking:"{0} בוחר/ת מילה", picking_d:"רגע אחד. אל תסתכלו לו/ה בטלפון.",
     lookaway:"{0} — תסתובבו", lookaway_d:"כל השאר בוחרים לכם מילה בטלפון שלהם.",
     yourword:"המילה שלכם", buzznow:"יש לי!", buzzsub:"לוחצים ואומרים בקול",
+    /* the same round, told to the phone holding the buzzer instead of to the
+       one saying the sentence — say_it* is the giver's, hear_it* everyone else's */
+    hear_it:"תקשיבו. זה נאמר פעם אחת.",
+    hear_it_d:"ברגע שנפל האסימון: לוחצים.",
+    hear_it_one:"מילה אחת. תקשיבו טוב.",
+    hear_it_one_d:"מילה אחת בלבד, נאמרת פעם אחת. נפל האסימון? לוחצים.",
+    hear_it_mime:"תסתכלו. בלי מילה, בלי קול.",
+    hear_it_mime_d:"ברגע שנפל האסימון: לוחצים.",
     youout:"אתם בחוץ בסבב הזה", giverwait:"אתם נותנים את הרמז — אין באזר.",
+    blind_nobuzz:"{0} מנחש/ת — הבאזר שלהם.", time_up_wait:"הזמן נגמר — הסבב נסגר",
     someone:"{0} לחץ/ה", judging:"{0} בודק/ת את התשובה…", waitjudge:"מחכים לנותן/ת הרמז.",
     waitjudge_b:"מחכים לכל השאר.",
     aim_at:"כוונו לאדם אחד", pass_note:"הטלפון נשאר אצלכם — אף אחד אחר לא רואה את המילים.",
@@ -65,6 +75,8 @@ const L = {
     paused_d2:"אף אחד לא יכול לגעת בכלום עד שחוזרים. כל לחיצה על ״עוד 30״ מוסיפה חצי דקה.",
     paused_wait:"מחכים ל{0}", paused_wait_d:"אפשר להוסיף עוד חצי דקה. לחזור מוקדם יכולים רק {0} או המארח/ת — ואם אף אחד לא נוגע, המשחק ממשיך לבד.",
     pause_more:"עוד 30 שניות", pause_back:"ממשיכים",
+    pause_left:"הפסקות שנשארו לכם: {0}", pause_last:"זו ההפסקה האחרונה שלכם.",
+    pause_spent:"אין לכם עוד הפסקות",
     quit:"לפרוש מהמשחק", quit_k:"לפרוש מהמשחק?",
     quit_1:"האסימון שלכם יורד מהלוח, והניקוד לא נשמר.",
     quit_2:"אם אתם באמצע רמז — הסבב יחולק מחדש, באותו מספר, לשחקן/ית הבא/ה.",
@@ -73,6 +85,7 @@ const L = {
     quit_yes:"כן, אני יוצא/ת", quit_no:"לא, ממשיכים",
     gone_msg:"{0} פרש/ה", gone_sub:"השאר ממשיכים",
     e_paused:"המשחק בהפסקה.", e_not_your_break:"ההפסקה לא שלכם.",
+    e_no_breaks:"נגמרו לכם ההפסקות.",
     /* ---- איך משחקים ---- */
     howto:"איך משחקים?", hw_teaser:"חדשים במשחק? כל הכללים בדקה.",
     hw_k:"איך משחקים", hw_close:"סגירה", hw_got:"הבנתי, קדימה",
@@ -141,11 +154,19 @@ const L = {
     groups_note:"Up to {0} people on this phone. The score is the group's — but the game remembers who did what.",
     group_of:"{0} in the group",
     share:"The other phones open this address, on the same Wi‑Fi:", hostwait:"The host starts the game.",
+    bigscreen:"A television or a tablet in the room? Open this on it — a screen that only shows the board and where everyone stands:",
     offline:"Disconnected — reconnecting…",
     picking:"{0} is choosing a word", picking_d:"Give them a moment. No peeking at their phone.",
     lookaway:"{0} — look away", lookaway_d:"Everyone else is choosing your word on their own phone.",
     yourword:"Your word", buzznow:"I have it!", buzzsub:"tap, then say it out loud",
+    hear_it:"Listen. It is said once.",
+    hear_it_d:"The moment it drops, hit the buzzer.",
+    hear_it_one:"One word. Listen closely.",
+    hear_it_one_d:"A single word, said once. The moment it drops, hit the buzzer.",
+    hear_it_mime:"Watch. Not a word, not a sound.",
+    hear_it_mime_d:"The moment it drops, hit the buzzer.",
     youout:"You are out for this round", giverwait:"You are giving the clue — no buzzer for you.",
+    blind_nobuzz:"{0} is guessing — the buzzer is theirs.", time_up_wait:"Time is up — the round is closing",
     someone:"{0} buzzed", judging:"{0} is checking the answer…", waitjudge:"Waiting for the giver.",
     waitjudge_b:"Waiting for everybody else.",
     aim_at:"Aim at one person", pass_note:"The phone stays with you — nobody else can see these.",
@@ -183,6 +204,8 @@ const L = {
     paused_d2:"Nobody can touch anything until you come back. Each press of “+30” adds another half minute.",
     paused_wait:"Waiting for {0}", paused_wait_d:"You can give them another half minute. Only {0} or the host can come back early — and if nobody touches it, the game carries on by itself.",
     pause_more:"+30 seconds", pause_back:"Back to it",
+    pause_left:"Breaks you have left: {0}", pause_last:"This is your last one.",
+    pause_spent:"No breaks left",
     quit:"Leave the game", quit_k:"Leave the game?",
     quit_1:"Your token comes off the board, and your score is not kept.",
     quit_2:"Mid-clue — the round is dealt again, same number, to the next player.",
@@ -191,6 +214,7 @@ const L = {
     quit_yes:"Yes, I'm out", quit_no:"Never mind",
     gone_msg:"{0} left", gone_sub:"the rest carry on",
     e_paused:"The game is on a break.", e_not_your_break:"That break is not yours to end.",
+    e_no_breaks:"You have used both of your breaks.",
     /* ---- how to play ---- */
     howto:"How to play", hw_teaser:"New here? Every rule in a minute.",
     hw_k:"How to play", hw_close:"Close", hw_got:"Got it — let's go",
@@ -288,10 +312,19 @@ const MAPS_COPY = {
 };
 /* four lane colours per map theme, read off the CSS custom properties so a
    redesign of the palette only ever has to happen in style.css */
-function themeColc(themeId){
-  const id = (themeId && MAPS_COPY.en[themeId]) ? themeId : "classic";
-  return [0,1,2,3].map(i => "var(--map-"+id+"-"+i+")");
+function themeColc(themeId){ return asimonBoard.lanes(themeId); }
+
+/* ---------------- how big this glass draws things ----------------
+   style.css sizes the whole sheet off one dial, --k: 1 on a phone, more on a
+   tablet. A handful of things are measured here instead of there — the cards
+   in a hand, the podium, the tokens in the play order — because their size
+   depends on how many there are. They read the same dial, so a tablet grows
+   them with everything else rather than leaving them phone-sized.        */
+function kScale(){
+  const v = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--k"));
+  return v > 0 ? v : 1;
 }
+const kpx = n => Math.round(n * kScale());
 
 let lang = "he", pack = null, state = null, es = null, me = null;
 let screen = "name", error = "", online = false, mode = "solo", gameMode = "regular";
@@ -437,14 +470,16 @@ function connect(){
   if(!me) return;
   if(es) es.close();
   es = new EventSource("/api/events?room="+encodeURIComponent(me.code)+"&pid="+encodeURIComponent(me.pid));
-  es.onopen  = () => { online = true; seatChecks = 0; render(); };
+  es.onopen  = () => { online = true; seatChecks = 0; lastHeard = Date.now(); render(); };
   es.onerror = () => {
     online = false; render();
     /* a 404 closes an EventSource for good; anything else it retries itself */
     if(es && es.readyState === 2) checkSeat();
   };
   es.onmessage = ev => {
+    lastHeard = Date.now();
     let msg; try{ msg = JSON.parse(ev.data); }catch(e){ return; }
+    if(msg.type === "beat") return;          /* nothing to do but have heard it */
     if(msg.type === "ui"){ pack = msg.pack; lang = msg.lang; applyLang(); render(); return; }
     if(msg.type === "event"){
       if(msg.kind === "left") showNote(t("gone_msg", esc(msg.by)), t("gone_sub"));
@@ -482,14 +517,27 @@ async function checkSeat(){
     setTimeout(checkSeat, 2000);                   /* no network yet; try again shortly */
   }
 }
-/* phones suspend the page when they lock. Reopen the moment they come back. */
+/* Phones suspend the page when they lock, and the socket underneath often
+   dies while they are asleep — the page is frozen, so no error event ever
+   runs. It wakes to an EventSource still reporting OPEN, an `online` flag
+   still true, and nothing at all coming down: this used to pass every test
+   here and reconnect nothing, which is how a phone could sit on a round the
+   rest of the table had already finished. So the stream is judged by what it
+   has actually delivered, not by what it claims about itself. */
+let lastHeard = 0;
+const STALE_MS = 50000;                  /* two and a half missed heartbeats */
+const streamDead = () => !es || es.readyState === 2 || !online ||
+                         (lastHeard > 0 && Date.now() - lastHeard > STALE_MS);
 function ensureLive(){
   if(!me || !me.pid) return;
-  if(!es || es.readyState === 2 || !online){ seatChecks = 0; checkSeat(); }
+  if(streamDead()){ seatChecks = 0; checkSeat(); }
 }
 document.addEventListener("visibilitychange", () => { if(!document.hidden) ensureLive(); });
 window.addEventListener("online", ensureLive);
 window.addEventListener("pageshow", ensureLive);
+/* and for a socket that dies while the page is watching, where no wake-up
+   event is coming to ask the question for us */
+setInterval(ensureLive, 10000);
 
 function forget(){
   if(es){ es.close(); es = null; }
@@ -766,19 +814,29 @@ function vLobby(){
     Array.from({ length: Math.max(0, 3 - list.length) }, () =>
       '<div class="prow empty"><span class="seat"></span>'+
       '<span class="pname">'+t("free_seat")+'</span><span class="dot off"></span></div>').join("");
-  h('<div class="stack grow">'+offBox()+updBox()+
+  /* The lobby is the one screen that is a list rather than a figure, and it
+     is really two lists: the room — who is here and how to reach it — and
+     the settings the host turns before starting. They already had a seam
+     between them: the spacer that pushes the start button to the foot of a
+     phone. Naming the two halves costs the phone nothing — a flex column
+     inside a flex column, same gap, same order — and gives a tablet lying
+     on its side two panes to set side by side instead of one long scroll. */
+  h('<div class="stack grow split">'+offBox()+updBox()+
+    '<div class="pane">'+
     '<div><div class="hero roomhead" style="display:flex;align-items:center;justify-content:space-between;gap:14px">'+
       '<div><p class="kicker">'+t("room_k")+'</p><div class="roomcode">'+esc(s.code)+'</div></div>'+
       '<span class="av" style="background:rgba(255,255,255,.16);width:44px;height:44px;flex:0 0 44px;font-size:15px">'+
       list.length+'</span></div><div class="perf"></div></div>'+
     '<p class="note">'+t("share")+'</p><div class="link">'+esc(s.lanUrl||location.origin)+'</div>'+
+    '<p class="note">'+t("bigscreen")+'</p><div class="link">'+
+      esc((s.lanUrl||location.origin)+'/board?room='+s.code)+'</div>'+
     '<p class="kicker">'+t("players_k")+'</p><div class="plist">'+rows+'</div>'+
     (s.seating === "groups" ? groupBox(s) : '')+
     (pickingFace
       ? '<p class="kicker">'+t("face_k")+'</p>'+faceGrid(myFace, s.taken || [], "data-reface")+
         '<button class="quiet" id="facedone">'+t("face_done")+'</button>'
       : '<button class="ghost" id="facebtn">'+t("face_change")+'</button>')+
-    errBox()+'<div class="grow"></div>'+
+    errBox()+'</div><div class="grow"></div><div class="pane">'+
     learnBtn("howto", t("howto"), t("hw_teaser"))+
     learnBtn("modeinfo", t("gm_title"), t("gm_teaser"))+
     '<p class="kicker">'+t("map_k")+'</p>'+mapChipHTML(s, s.isHost)+
@@ -799,7 +857,7 @@ function vLobby(){
         '<button id="len" class="'+(s.lang==="en"?"on":"")+'">English</button></div>'+
         '<button id="start"'+(list.length<3?" disabled":"")+'>'+t("startgame")+'</button>'
       : '<p class="note">'+t("hostwait")+'</p>')+
-    '<button class="quiet" id="leave">'+t("leave")+'</button></div>');
+    '<button class="quiet" id="leave">'+t("leave")+'</button></div></div>');
   if(s.isHost){
     on("lhe", () => act({ type:"lang", lang:"he" }));
     on("len", () => act({ type:"lang", lang:"en" }));
@@ -864,7 +922,7 @@ function wordCards(s, sel, disabled){
 function waitCard(title, sub, who){
   /* nothing else is on this screen, so the face is the screen */
   return '<div class="panel center grow" style="justify-content:center">'+
-    (who ? pav(who, "big") : '<span class="spin">'+coinMark(52)+'</span>')+
+    (who ? pav(who, "big") : '<span class="spin">'+coinMark(kpx(52))+'</span>')+
     '<h2>'+title+'</h2><p class="note">'+sub+'</p></div>';
 }
 
@@ -878,19 +936,21 @@ function vGiver(s){
   }
   /* step 1 — how hard */
   if(s.challenge === null || s.challenge === undefined){
-    h('<div class="stack grow">'+topbar(s)+'<h2>'+t("chal_k")+'</h2>'+modBlock(s)+
+    h('<div class="stack grow split">'+topbar(s)+'<div class="pane">'+
+      '<h2>'+t("chal_k")+'</h2>'+modBlock(s)+
       '<p class="kicker">'+t("payoff_k")+'</p>'+
       '<div class="payoff">'+
         '<div class="best"><b>'+t(s.mod.key==="M"?"po_m_best":"po_best")+'</b><span>'+t("po_best_d")+'</span></div>'+
         '<div class="meh"><b>'+t(s.mod.key==="M"?"po_m_meh":"po_meh")+'</b><span>'+t(s.mod.key==="M"?"po_m_meh_d":"po_meh_d")+'</span></div>'+
         '<div class="none"><b>'+t("po_none")+'</b><span>'+t("po_none_d")+'</span></div></div>'+
+      '</div><div class="pane">'+
       '<p class="kicker">'+t("chal_pick_k")+'</p>'+
       '<div class="cardgrid stagger">'+["topic","open","cold"].map(k => {
         const col = k==="cold" ? "var(--good-ink)" : (k==="topic" ? "var(--muted)" : "var(--accent-ink)");
         return '<button class="gcard card" data-ch="'+k+'">'+choiceSvg(k, 46)+
           '<span class="ctext"><span class="cw" style="color:'+col+'">'+t("cw_"+k)+'</span>'+
           '<span class="cn">'+t("ch_"+k)+'</span><span class="cd">'+t("ch_"+k+"_d")+'</span></span></button>';
-      }).join("")+'</div>'+errBox()+'</div>');
+      }).join("")+'</div>'+errBox()+'</div></div>');
     each("[data-ch]", b => b.onclick = () => act({ type:"challenge", k:b.dataset.ch }));
     return;
   }
@@ -908,11 +968,19 @@ function vGiver(s){
   const cold = s.challenge === "cold";
   const aimed = sec.shot;
   const canGo = sec.pick !== null && (aimed || s.partner);
-  h('<div class="stack grow">'+topbar(s)+
+  /* Two decisions, and on a phone you scroll from one to the other: which
+     word, and who to aim it at. Lying down there is room to hold both at
+     once, so they are named as halves — but only when there really are two.
+     Around one phone a group has nobody to aim at, and half a screen of
+     nothing is worse than the column it replaced. */
+  const twoSided = !s.partner;
+  h('<div class="stack grow'+(twoSided ? " split" : "")+'">'+topbar(s)+
+    (twoSided ? '<div class="pane">' : '')+
     '<h2>'+(cold ? t("cold_k") : t("pick_word"))+'</h2>'+
     '<p class="note">'+(cold ? t("cold_d") : t("pick_word_d"))+'</p>'+
     modBlock(s)+notes(s)+
     wordCards(s, sec.pick, cold)+
+    (twoSided ? '</div><div class="pane">' : '')+
     (s.partner ? '' :
       '<p class="kicker">'+t("shot_k")+'</p><p class="note">'+t("shot_d")+'</p>'+
       '<div class="suslist stagger">'+s.players.filter(p => p.id !== s.you).map(p =>
@@ -920,7 +988,8 @@ function vGiver(s){
         av(p.name, colorOf(p.id), "", p.face)+'<span class="nm">'+esc(p.name)+'</span><span class="dotpick"></span></button>').join("")+'</div>')+
     errBox()+'<div class="grow"></div>'+
     '<p class="note">'+t("pass_note")+'</p>'+
-    '<button id="ready"'+(canGo?"":" disabled")+'>'+t("ready")+'</button></div>');
+    '<button id="ready"'+(canGo?"":" disabled")+'>'+t("ready")+'</button>'+
+    (twoSided ? '</div>' : '')+'</div>');
   each("[data-w]", b => b.onclick = () => act({ type:"pick", i:Number(b.dataset.w) }));
   each("[data-aim]", b => b.onclick = () => act({ type:"aim", target:b.dataset.aim }));
   on("ready", () => act({ type:"ready" }));
@@ -950,12 +1019,19 @@ function vTable(s){
   document.documentElement.dataset.tone = hot ? "burned" : "live";
   const blind = s.mod.key === "B";
   const mimed = s.mod.key === "M" || s.mimeCard;
+  /* One screen, two jobs. The giver is being told to say the thing; everybody
+     else is holding a buzzer and is being told to listen for it — so each is
+     told their own. Blind is the exception and needs no branch: there the
+     table talks and the giver guesses, and its copy already describes the
+     round rather than instructing whoever happens to be reading it. */
   const head = blind ? t("blind_table_h")
-             : mimed ? t("say_it_mime")
-             : s.mod.key === "O" ? t("say_it_one") : t("say_it");
+             : s.isGiver
+               ? (mimed ? t("say_it_mime")  : s.mod.key === "O" ? t("say_it_one")  : t("say_it"))
+               : (mimed ? t("hear_it_mime") : s.mod.key === "O" ? t("hear_it_one") : t("hear_it"));
   const sub  = blind ? t("blind_table_d", esc(s.giverName))
-             : mimed ? t("say_it_mime_d")
-             : s.mod.key === "O" ? t("say_it_one_d") : t("say_it_d");
+             : s.isGiver
+               ? (mimed ? t("say_it_mime_d")  : s.mod.key === "O" ? t("say_it_one_d")  : t("say_it_d"))
+               : (mimed ? t("hear_it_mime_d") : s.mod.key === "O" ? t("hear_it_one_d") : t("hear_it_d"));
 
   const mine = s.secret && s.secret.pick !== null && s.secret.words[s.secret.pick];
   const yourWord = (s.isGiver && mine)
@@ -964,8 +1040,17 @@ function vTable(s){
     : "";
 
   const canBuzz = blind ? s.isGiver : (!s.isGiver && !s.iAmOut && left > 0);
-  const buzzLabel = s.isGiver && !blind ? t("giverwait")
-                  : s.iAmOut ? t("youout") : t("buzznow");
+  /* The box that stands in for the buzzer has to say why it is not one. It
+     used to fall through to the buzzer's own label, so a phone that simply
+     ran out of clock got a dead grey panel reading "I have it!" — which is
+     the one thing on the screen that looks like your own button, disabled,
+     and reads as a turn you are being kept from. Every reason canBuzz is
+     false now has a line of its own. */
+  const buzzLabel = blind
+      ? (s.isGiver ? t("buzznow") : t("blind_nobuzz", esc(s.giverName)))
+      : s.isGiver  ? t("giverwait")
+      : s.iAmOut   ? t("youout")
+      : t("time_up_wait");
 
   h('<div class="stack grow">'+offBox()+topbar(s)+
     '<div class="clockblock"><div class="ring'+(hot?" warn":"")+'" id="ringwrap">'+clockRing(fmt(left))+'</div></div>'+
@@ -978,7 +1063,16 @@ function vTable(s){
         '<span class="bs">'+t("buzzsub")+'</span></button></div>'
       : '<div class="standby">'+buzzLabel+'</div>')+
     handBlock(s)+
-    ((s.isGiver || s.isHost) ? '<button class="quiet" id="none">'+(left<=0?t("time_up_end"):t("end_round"))+'</button>' : '')+
+    /* Ending the round by hand. It is outlined in both of its states and
+       never primary, because it is an escape rather than the way through:
+       a round with nobody in ends on the server's own clock (armClock, and
+       timeUp behind it), so at zero this is only here for the table whose
+       push never arrived — a phone coming back from the background with a
+       stale clock, or a room the timer somehow missed. Loud, it would read
+       as the way rounds are meant to finish, which it is not. */
+    ((s.isGiver || s.isHost)
+      ? '<button class="ghost" id="none">'+(left <= 0 ? t("time_up_end") : t("end_round"))+'</button>'
+      : '')+
     '</div>');
   on("bz", () => act({ type:"buzz" }));
   on("none", () => act({ type:"nobody" }));
@@ -1006,14 +1100,14 @@ function handBlock(s){
   if(!hand.length) return "";
   const n = hand.length;
   if(!showHand){
-    const bw = 26, step = 11;
+    const bw = kpx(26), step = kpx(11);
     return '<button class="ghost handbtn" id="hand">'+
       '<span class="mini" style="width:'+(bw + (n - 1) * step)+'px;height:'+Math.round(bw * 1.4)+'px">'+
       hand.map((c, i) => '<span class="mb" style="inset-inline-start:'+(i * step)+'px;'+
         'transform:rotate('+((i - (n - 1) / 2) * 7).toFixed(1)+'deg)">'+cardBack(bw)+'</span>').join("")+
       '</span><span>'+t("playcard")+' · '+n+'</span></button>';
   }
-  const w = n <= 3 ? 98 : (n <= 5 ? 86 : 74);
+  const w = kpx(n <= 3 ? 98 : (n <= 5 ? 86 : 74));
   const mid = (n - 1) / 2, lean = Math.min(9, 26 / n);
   const up = (handUp !== null && hand[handUp]) ? hand[handUp] : null;
   const cards = hand.map((c, i) => {
@@ -1047,10 +1141,12 @@ function vAward(s){
   const stamp = s.round + ":" + a.unitId;
   const run = dealtFor !== stamp;
   if(run){ dealtFor = stamp; awardUp = null; }
-  const n = a.offers.length, w = n <= 2 ? 118 : (n === 3 ? 100 : 84), ch = Math.round(w * 7 / 5);
+  const n = a.offers.length, w = kpx(n <= 2 ? 118 : (n === 3 ? 100 : 84)), ch = Math.round(w * 7 / 5);
   const mid = (n - 1) / 2;
   const up = (awardUp !== null && a.offers[awardUp]) ? a.offers[awardUp] : null;
-  h('<div class="stack grow">'+offBox()+
+  /* the three that came off the deck, and — once one is turned up — what it
+     does and the button that takes it */
+  h('<div class="stack grow split">'+offBox()+'<div class="pane">'+
     '<p class="kicker" style="color:var(--good-ink)">'+t("card_won")+'</p>'+
     '<h2>'+t("takeone", esc(a.unitName))+'</h2>'+
     '<div class="deal'+(run ? " run" : "")+'">'+a.offers.map((c, i) =>
@@ -1061,11 +1157,12 @@ function vAward(s){
           '<span class="side back">'+cardBack(w)+'</span>'+
           '<span class="side front">'+cardFace(c.key, esc(c.n), w)+'</span>'+
         '</span></span></button>').join("")+'</div>'+
+    '</div><div class="pane">'+
     (up ? '<div class="raised"><span class="rn">'+up.n+'</span><span class="rd">'+up.d+'</span></div>'+
           '<button id="takenow">'+t("take_it")+'</button>'
         : '<p class="note" style="text-align:center">'+t("pick_card")+'</p>')+
     errBox()+'<div class="grow"></div>'+
-    '<p class="note">'+t("cards_secret")+'</p></div>');
+    '<p class="note">'+t("cards_secret")+'</p></div></div>');
   each("[data-up]", b => b.onclick = () => {
     const i = Number(b.dataset.up);
     awardUp = (awardUp === i) ? null : i;
@@ -1110,6 +1207,13 @@ function startTicker(s){
     if(left <= 0){
       if(bz) bz.disabled = true;
       stopTicker();
+      /* The server ends a round the moment its own clock runs out, so a phone
+         still sitting on the table a second later did not hear it. That is
+         the loudest evidence of a dead stream this screen ever gets — take
+         it, rather than parking on 0:00 waiting for a push that cannot come. */
+      setTimeout(() => {
+        if(state && state.phase === "table" && remain() <= 0){ seatChecks = 0; checkSeat(); }
+      }, 1500);
     }
   }, 200);
 }
@@ -1129,12 +1233,16 @@ function vJudge(s){
     wireSkip();
     return;
   }
-  h('<div class="stack grow">'+topbar(s)+
+  /* who buzzed and what you have to decide about them, and the deciding */
+  h('<div class="stack grow split">'+topbar(s)+
+    '<div class="pane">'+
     '<div class="panel center grow" style="justify-content:center">'+
     (s.judging ? pav(s.judging.id) : "")+
-    '<h2>'+t("judge_q", esc(who))+'</h2></div>'+errBox()+
+    '<h2>'+t("judge_q", esc(who))+'</h2></div>'+
+    '</div><div class="pane">'+errBox()+
     '<button class="good" id="yes">'+t("judge_yes")+'</button>'+
-    '<button class="quiet" id="no">'+t("judge_no")+'</button></div>');
+    '<button class="quiet" id="no">'+t("judge_no")+'</button>'+
+    '</div></div>');
   on("yes", () => act({ type:"judge", yes:true }));
   on("no",  () => act({ type:"judge", yes:false }));
 }
@@ -1205,99 +1313,17 @@ function bandGlyph(i){
 }
 
 /* ---------------- the board ---------------- */
-function nodeXY(r, c, rows){
-  const top = 34, bottom = 534;
-  const y = bottom - (bottom - top) * (r / (rows + 1));
-  const x = 44 + c * 77;
-  if(r === 0 || r > rows) return { x: 44 + 1.5*77, y };
-  return { x, y };
-}
+/* The map itself is drawn in boardart.js, because the screen in the room
+   draws the same one. What stays here is what only a phone knows: which
+   squares are yours to tap, and what the squares are called in this language. */
 const COLC = ["var(--accent)","var(--good)","var(--blind)","var(--guilty)"];
 function boardSVG(s, spots, picked){
-  const rows = s.board.rows, lit = {};
-  /* the active map's own palette — "classic" reads back the same four
-     colours COLC always had, so an unmapped board still looks unchanged */
-  const COLC = themeColc(s.board && s.board.themeId);
-  (spots||[]).forEach(p => lit[p.r+","+p.c] = p);
-  let out = "";
-  for(let c = 0; c < 4; c++){
-    const a = nodeXY(1,c,rows), b = nodeXY(rows,c,rows);
-    out += '<rect x="'+(a.x-15)+'" y="'+(b.y-15)+'" width="30" height="'+((a.y-b.y)+30)+
-           '" rx="15" fill="'+COLC[c]+'" opacity="0.10"/>';
-  }
-  for(let r = 0; r <= rows; r++){
-    const froms = r === 0 ? [{r:0,c:1}] : [0,1,2,3].map(c => ({r,c}));
-    froms.forEach(p => {
-      const nxt = p.r >= rows ? [{r:rows+1,c:1}]
-                : p.r === 0 ? [0,1,2,3].map(c => ({r:1,c}))
-                : [p.c-1,p.c,p.c+1].filter(c => c>=0 && c<4).map(c => ({r:p.r+1,c}));
-      nxt.forEach(q => {
-        const A = nodeXY(p.r,p.c,rows), B = nodeXY(q.r,q.c,rows);
-        out += '<line x1="'+A.x+'" y1="'+A.y+'" x2="'+B.x+'" y2="'+B.y+'" stroke="'+
-               COLC[Math.min(q.c,3)]+'" stroke-width="1.6" opacity="0.28"/>';
-      });
-    });
-  }
-  s.board.nodes.forEach(n => {
-    const xy = nodeXY(n.r, n.c, rows), key = n.r+","+n.c, isLit = !!lit[key];
-    const col = n.t === "CARD" ? "var(--good)" : n.t === "WILD" ? "var(--violet)" : COLC[n.c];
-    const short = n.t === "CARD" ? t("card_node") : n.t === "WILD" ? "" : ((pack.mods[n.t]||{}).s || "");
-    let node;
-    if(n.t === "WILD"){
-      /* rare enough to be worth its own mark: a dashed ring with a question in it */
-      node = (isLit ? '<circle cx="'+xy.x+'" cy="'+xy.y+'" r="14.5" fill="'+col+'" opacity="0.18"/>' : '')+
-        '<circle cx="'+xy.x+'" cy="'+xy.y+'" r="10" fill="'+(isLit?col:"var(--surface)")+'" stroke="'+col+
-        '" stroke-width="'+(isLit?1.9:1.5)+'" stroke-dasharray="3 2.4"/>'+
-        '<text x="'+xy.x+'" y="'+(xy.y+3.6)+'" text-anchor="middle" font-family="Suez One,Georgia,serif" '+
-        'font-size="13" fill="'+(isLit?"#FFFFFF":col)+'">?</text>';
-    } else if(short){
-      const ink = n.c === 2 && n.t !== "CARD" ? "#2A1B00" : "#FFFFFF";
-      node = (isLit ? '<circle cx="'+xy.x+'" cy="'+xy.y+'" r="13.5" fill="'+col+'" opacity="0.18"/>' : '')+
-        '<rect x="'+(xy.x-22)+'" y="'+(xy.y-9)+'" width="44" height="18" rx="9" fill="'+
-        (isLit?col:"var(--surface)")+'" stroke="'+col+'" stroke-width="'+(isLit?1.8:1.3)+'"/>'+
-        '<text x="'+xy.x+'" y="'+(xy.y+3.4)+'" text-anchor="middle" font-family="Assistant,sans-serif" '+
-        'font-size="10" font-weight="800" fill="'+(isLit?ink:col)+'">'+esc(short)+'</text>';
-    } else {
-      node = (isLit ? '<circle cx="'+xy.x+'" cy="'+xy.y+'" r="12.5" fill="'+col+'" opacity="0.18"/>' : '')+
-        '<circle cx="'+xy.x+'" cy="'+xy.y+'" r="'+(isLit?8:4.5)+'" fill="'+(isLit?col:"var(--rule)")+'"'+
-        (isLit?' stroke="var(--surface)" stroke-width="2"':'')+'/>';
-    }
-    out += isLit
-      ? '<g data-go="'+key+'" style="cursor:pointer">'+node+
-        '<rect x="'+(xy.x-28)+'" y="'+(xy.y-13)+'" width="56" height="26" fill="transparent"/></g>'
-      : node;
+  return asimonBoard.draw({
+    board: s.board, units: s.units, spots, picked, pick: true,
+    label: n => n.t === "CARD" ? t("card_node") : n.t === "WILD" ? "" : ((pack.mods[n.t]||{}).s || ""),
+    endText: lang === "he" ? "סוף" : "END",
+    moved: u => !!(lastPos[u.id] && (lastPos[u.id] !== u.pos.r+","+u.pos.c))
   });
-  const s0 = nodeXY(0,1,rows);
-  out += '<circle cx="'+s0.x+'" cy="'+s0.y+'" r="7" fill="var(--sunk)" stroke="var(--rule)" stroke-width="1.5"/>';
-  const e0 = nodeXY(rows+1,1,rows), endLit = !!lit[(rows+1)+",1"];
-  const endNode = (endLit ? '<circle cx="'+e0.x+'" cy="'+e0.y+'" r="21" fill="var(--good)" opacity="0.2"/>' : '')+
-    '<circle cx="'+e0.x+'" cy="'+e0.y+'" r="14" fill="'+(endLit?"var(--good)":"var(--ink)")+'"/>'+
-    '<text x="'+e0.x+'" y="'+(e0.y+3.4)+'" text-anchor="middle" font-family="Assistant,sans-serif" '+
-    'font-size="10.5" font-weight="800" fill="#FFFFFF">'+(lang==="he"?"סוף":"END")+'</text>';
-  out += endLit ? '<g data-go="'+(rows+1)+',1" style="cursor:pointer">'+endNode+
-    '<rect x="'+(e0.x-26)+'" y="'+(e0.y-26)+'" width="52" height="52" fill="transparent"/></g>' : endNode;
-
-  const byKey = {};
-  s.units.forEach(u => { const k = u.pos.r+","+u.pos.c; (byKey[k] = byKey[k] || []).push(u); });
-  Object.keys(byKey).forEach(k => {
-    const [r,c] = k.split(",").map(Number), list = byKey[k], p0 = nodeXY(r,c,rows);
-    list.forEach((u,j) => {
-      const x = p0.x + (j - (list.length-1)/2) * 19;
-      const justLanded = lastPos[u.id] && (lastPos[u.id] !== u.pos.r+","+u.pos.c);
-      out += '<g class="'+(justLanded?"tok":"")+'">'+ (u.face
-        ? faceToken(u.face, x, p0.y, 11.5)
-        : '<circle cx="'+x+'" cy="'+p0.y+'" r="11.5" fill="'+unitColor(u)+'" stroke="var(--surface)" stroke-width="2.5"/>'+
-          '<text x="'+x+'" y="'+(p0.y+3.4)+'" text-anchor="middle" font-family="Assistant,sans-serif" '+
-          'font-size="9" font-weight="800" fill="#FFFFFF">'+esc(initials(u.name))+'</text>') + '</g>';
-    });
-  });
-  if(picked){
-    const xy = nodeXY(picked.r, picked.c, rows);
-    out += picked.r > rows
-      ? '<circle cx="'+xy.x+'" cy="'+xy.y+'" r="20" fill="none" stroke="var(--ink)" stroke-width="2.2"/>'
-      : '<rect x="'+(xy.x-22)+'" y="'+(xy.y-13.5)+'" width="44" height="27" rx="13.5" fill="none" stroke="var(--ink)" stroke-width="2.2"/>';
-  }
-  return '<svg class="board" viewBox="0 0 320 560" role="img">'+out+'</svg>';
 }
 function trackBlock(s, pending){
   const rows = s.rows;
@@ -1365,34 +1391,36 @@ function podium(s){
   if(!top.length) return "";
   /* second, first, third — the winner in the middle, standing highest */
   const order = top.length >= 3 ? [1, 0, 2] : (top.length === 2 ? [1, 0] : [0]);
-  const size = [96, 60, 52], step = [86, 56, 40];
+  const size = [96, 60, 52].map(kpx), step = [86, 56, 40].map(kpx);
   return '<div class="podium">'+order.map(k => {
     const u = top[k];
     const unit = s.units.find(x => x.id === u.id) || {};
     return '<div class="pcol'+(k === 0 ? " win" : "")+'">'+
       '<span class="hold">'+
         '<span class="pav" style="width:'+size[k]+'px;height:'+size[k]+'px;background:'+
-          unitColor(unit)+';font-size:'+(k === 0 ? 26 : 15)+'px">'+
+          unitColor(unit)+';font-size:'+kpx(k === 0 ? 26 : 15)+'px">'+
           (unit.face ? faceSvg(unit.face, size[k]) : esc(initials(u.name)))+'</span>'+
-        (k === 0 ? '<span class="crown">'+coinMark(40)+'</span>' : '')+
+        (k === 0 ? '<span class="crown">'+coinMark(kpx(40))+'</span>' : '')+
       '</span>'+
       '<span class="pstep" style="width:'+(size[k] + 8)+'px;height:'+step[k]+'px;'+
-        'font-size:'+(k === 0 ? 34 : 22)+'px">'+(k + 1)+'</span></div>';
+        'font-size:'+kpx(k === 0 ? 34 : 22)+'px">'+(k + 1)+'</span></div>';
   }).join("")+'</div>';
 }
 function vOver(s){
   document.documentElement.dataset.tone = "scored";
-  h('<div class="stack grow">'+offBox()+updBox()+
+  /* the top three on the steps, and everybody's numbers beside them */
+  h('<div class="stack grow split">'+offBox()+updBox()+'<div class="pane">'+
     '<p class="kicker">'+t("after_rounds", s.round)+'</p>'+
     '<h1>'+tUnit("wins", s.units.find(u=>u.id===(s.standings[0]||{}).id), (s.standings[0]||{}).name)+'</h1>'+
     podium(s)+
+    '</div><div class="pane">'+
     '<div class="scores">'+s.standings.map((u,i) =>
       '<div class="resrow">'+uav(s.units.find(x=>x.id===u.id)||{name:u.name})+
       '<span class="who"><span class="nm">'+(i+1)+'. '+esc(u.name)+'</span></span>'+
       '<span class="pt">'+u.score+'</span></div>').join("")+'</div>'+
     errBox()+'<div class="grow"></div>'+
     (s.isHost ? '<button id="again">'+t("playagain")+'</button>' : '')+
-    '<button class="quiet" id="leave">'+t("leave")+'</button></div>');
+    '<button class="quiet" id="leave">'+t("leave")+'</button></div></div>');
   on("again", () => act({ type:"again" }));
   on("leave", async () => { await act({ type:"leave" }); forget(); render(); });
   if(burstFor !== "over"){ burstFor = "over"; setTimeout(() => burst({ y: innerHeight * 0.3 }), 260); }
@@ -1401,7 +1429,7 @@ function vOver(s){
 /* ---------------- the play order, drawn in front of everyone ---------------- */
 const SHUFFLE_MS = 2100;
 /* the fewer the players, the bigger their faces get to be */
-function orderSize(n){ return n <= 4 ? 84 : (n <= 6 ? 64 : 48); }
+function orderSize(n){ return kpx(n <= 4 ? 84 : (n <= 6 ? 64 : 48)); }
 function orderPaths(n, pitch){
   /* one stable set of offsets per phone: the tokens have to take the same
      route through the shuffle on every repaint, or a phone tapping in
@@ -1439,7 +1467,7 @@ function vOrder(s){
   }).join("");
 
   const gift = (!rolling && s.opening)
-    ? '<div class="giftrow">'+cardTile(s.opening.key, 44)+
+    ? '<div class="giftrow">'+cardTile(s.opening.key, kpx(44))+
       '<span><b>'+t("ord_gift")+'</b><span>'+t("ord_gift_d")+'</span>'+
       '<span class="giftname">'+esc(s.opening.n)+' — '+s.opening.d+'</span></span></div>'
     : '';
@@ -1520,15 +1548,26 @@ const pauseLeft = () => Math.max(0, pauseMs - (Date.now() - pauseAt));
 
 /* the break button, appended after the screen has drawn rather than written
    into each of them: it belongs to the room, not to any one step. Where the
-   screen already ends in a quiet button, the two go side by side. */
+   screen already ends in a quiet button, the two go side by side.
+
+   It carries its own budget: a pip for each of the two breaks the phone
+   started the game with, filled while it still has them. Both spent, the
+   button stays on the screen and goes dead — a control that vanishes leaves
+   people hunting for it, and the dead one says plainly why it will not go. */
 function breakBar(s){
   if(!s || s.phase === "lobby" || s.phase === "over" || s.paused) return;
   const stack = app.querySelector(".stack");
   if(!stack) return;
+  const brk = s.breaks, spent = !!brk && brk.left <= 0;
   const b = document.createElement("button");
-  b.className = "quiet brk"; b.id = "brk"; b.innerHTML = t("pause");
+  b.className = "brk"; b.id = "brk";
+  b.innerHTML = '<span>'+t(spent ? "pause_spent" : "pause")+'</span>'+pausePips(brk);
+  b.disabled = spent;
+  /* side by side with whatever secondary control the screen already ends in —
+     never with a primary, which has the row to itself */
   const last = stack.lastElementChild;
-  if(last && last.tagName === "BUTTON" && last.classList.contains("quiet")){
+  if(last && last.tagName === "BUTTON" &&
+     (last.classList.contains("quiet") || last.classList.contains("ghost"))){
     const rowEl = document.createElement("div");
     rowEl.className = "btnrow";
     stack.insertBefore(rowEl, last);
@@ -1536,7 +1575,15 @@ function breakBar(s){
   } else {
     stack.appendChild(b);
   }
-  b.onclick = () => { pauseAsk = true; render(); };
+  if(!spent) b.onclick = () => { pauseAsk = true; render(); };
+}
+/* one dot per break the phone was given, dimmed as they are spent. An older
+   server that does not count them sends nothing, and the row draws nothing. */
+function pausePips(brk){
+  if(!brk || !brk.of) return "";
+  let out = "";
+  for(let i = 0; i < brk.of; i++) out += '<i'+(i < brk.left ? '' : ' class="off"')+'></i>';
+  return '<span class="brkpips" aria-hidden="true">'+out+'</span>';
 }
 
 /* Stopping the room stops it for everyone, so it is asked before it is done —
@@ -1549,7 +1596,10 @@ function vPauseAsk(s){
     '<div class="center">'+
       '<span class="pausemark">'+pauseGlyph(64)+'</span>'+
       '<h2>'+t("pause_ask_k")+'</h2>'+
-      '<p class="note">'+t("pause_ask_d")+'</p></div>'+
+      '<p class="note">'+t("pause_ask_d")+'</p>'+
+      (s.breaks ? '<p class="brkleft">'+(s.breaks.left <= 1
+        ? t("pause_last") : t("pause_left", s.breaks.left))+'</p>' : '')+
+      '</div>'+
     errBox()+'<div class="grow"></div>'+
     '<button id="paok">'+t("pause_ask_yes")+'</button>'+
     '<button class="ghost" id="pano">'+t("pause_ask_no")+'</button></div>');
@@ -1778,6 +1828,25 @@ function paint(){
   if(f) f(state); else vLobby();
   breakBar(state);
 }
+
+/* ---------------- turning the tablet over ----------------
+   Everything drawn in CSS follows the new orientation on its own. The few
+   sizes measured in javascript cannot, so when a turn moves the sheet to a
+   different scale — and only then, not every time a keyboard opens — the
+   screen is drawn again at the new one. */
+let lastK = kScale();
+let turnTimer = null;
+function onTurn(){
+  clearTimeout(turnTimer);
+  turnTimer = setTimeout(() => {
+    const k = kScale();
+    if(k === lastK) return;
+    lastK = k;
+    render();
+  }, 120);
+}
+addEventListener("resize", onTurn);
+addEventListener("orientationchange", onTurn);
 
 /* ---------------- boot ---------------- */
 /* coming back to the foreground is the moment a stale phone is most likely to

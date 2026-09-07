@@ -34,11 +34,12 @@ const LAN_URL = "http://" + lanAddress() + ":" + PORT;
    touched mtime — none of those should tell a table mid-game to reload. Only a
    real change to the version or to a file the phone loads does.               */
 const VERSION = require("./package.json").version;
-const ASSETS = ["index.html","app.js","art.js","sfx.js","style.css","gestures.css"];
+const ASSETS = ["index.html","app.js","art.js","boardart.js","sfx.js","style.css","gestures.css",
+                "board.html","board.js","board.css"];
 
 let BUILD = "", assetStamp = null;
 function currentBuild(){
-  /* six stats to decide whether to re-read six files: cheap enough to do on
+  /* one stat per file to decide whether to re-read them: cheap enough to do on
      every ask, so an edit during development is picked up without a restart */
   let stamp = VERSION;
   for(const f of ASSETS){
@@ -75,7 +76,13 @@ const ROOM_IDLE_MS = 1000 * 60 * 90;
 /* A locked phone drops its stream within a second or two. Wait before saying
    so out loud, or a pocketed phone looks like someone who walked out. */
 const OFFLINE_GRACE_MS = Number(process.env.LS_GRACE_MS || 12000);
+/* how often a quiet stream says it is still there, and so how long a phone
+   may hear nothing before it should stop believing the stream */
+const BEAT_MS = Number(process.env.LS_BEAT_MS || 20000);
 const MAX_PLAYERS = 8;
+/* screens watching a room. They hold no seat, so they are capped separately —
+   a television, a tablet on the sideboard, and room to spare. */
+const MAX_SCREENS = 8;
 const MAX_ROOMS   = Number(process.env.LS_MAX_ROOMS || 400);
 const CREATE_PER_IP = 20;                 /* per window, so one visitor cannot fill the box */
 const CREATE_WINDOW_MS = 10 * 60 * 1000;
@@ -121,6 +128,7 @@ function makeRoom(){
     people: [],                         // the roster the rules run on: {id, name, face, phoneId}
     seating: "solo",                    // solo | pairs | groups — chosen in the lobby
     clients: new Map(),                 // pid -> Set(res)
+    screens: new Set(),                 // the streams of screens watching, holding no seat
     phase: "lobby",
     lang: "he",
     lanUrl: LAN_URL,          /* replaced by the public address when there is one */
@@ -136,6 +144,7 @@ function makeRoom(){
 function touch(room){ room.touchedAt = Date.now(); }
 function closeRoom(room){
   for(const set of room.clients.values()) for(const res of set){ try{ res.end(); }catch(e){} }
+  for(const res of room.screens){ try{ res.end(); }catch(e){} }
 }
 setInterval(() => {
   const now = Date.now();
@@ -163,6 +172,14 @@ function push(room, pid, payload){
 /* a moment everyone should see, separate from the state they should hold */
 function announce(room, payload){
   for(const q of room.players) push(room, q.id, payload);
+  toScreens(room, payload);
+}
+/* The screens in the room: one stream each, all of them holding the same
+   thing, because a screen is not anybody in particular. */
+function toScreens(room, payload){
+  if(!room.screens.size) return;
+  const line = "data: " + JSON.stringify(payload) + "\n\n";
+  for(const res of room.screens){ try{ res.write(line); }catch(e){} }
 }
 function broadcast(room){
   /* stamp when the room started waiting on this particular person, so a phone
@@ -171,6 +188,7 @@ function broadcast(room){
   const key  = room.phase + ":" + seat + ":" + (room.engine ? room.engine.S.round : 0);
   if(key !== room._waitKey){ room._waitKey = key; room.phaseAt = Date.now(); }
   for(const p of room.players) push(room, p.id, { type:"state", state: viewFor(room, p.id) });
+  if(room.screens.size) toScreens(room, { type:"state", state: play.boardView(room) });
 }
 
 /* The two timers the rules side owns but cannot fire on its own: the round
@@ -308,7 +326,15 @@ const server = http.createServer(async (req, res) => {
       if(wasOffline) broadcast(room);
       else push(room, pid, { type:"state", state: viewFor(room, pid) });
 
-      const beat = setInterval(() => { try{ res.write(": beat\n\n"); }catch(e){} }, 20000);
+      /* The heartbeat, as a message rather than an SSE comment. A comment is
+         enough to stop a proxy closing a quiet stream, but EventSource throws
+         it away without telling the page, so it could not be used as proof
+         the stream was still alive — and a phone whose socket died while it
+         was asleep had no way to find that out. Sent as data, it is the one
+         thing a phone can miss and notice it has missed. */
+      const beat = setInterval(() => {
+        try{ res.write('data: {"type":"beat"}\n\n'); }catch(e){}
+      }, BEAT_MS);
       req.on("close", () => {
         clearInterval(beat);
         const set = room.clients.get(pid);
@@ -331,6 +357,37 @@ const server = http.createServer(async (req, res) => {
       return;
     }
 
+    /* ---- the stream a screen watches on ----
+       The room code is the whole of it: no name, no seat, nothing it can send
+       back. What comes down is boardView() — the table's own state, which
+       holds no words until the reveal, because whoever must not see them is
+       sitting in front of this screen. */
+    if(p === "/api/board"){
+      const code = String(url.searchParams.get("room") || "").toUpperCase();
+      const room = rooms.get(code);
+      if(!room){ res.writeHead(404, {"content-type":"text/plain"}); return res.end("gone"); }
+      if(room.screens.size >= MAX_SCREENS){
+        res.writeHead(429, {"content-type":"text/plain"}); return res.end("too many screens");
+      }
+
+      res.writeHead(200, {
+        "content-type":"text/event-stream; charset=utf-8",
+        "cache-control":"no-store, no-transform",
+        "connection":"keep-alive",
+        "x-accel-buffering":"no"
+      });
+      res.write("retry: 2000\n\n");
+      room.screens.add(res);
+      /* deliberately no touch(): a screen left on overnight should not keep a
+         room nobody is playing in from being forgotten */
+      res.write("data: " + JSON.stringify({ type:"ui", lang: room.lang, pack: play.uiPack(room.lang) }) + "\n\n");
+      res.write("data: " + JSON.stringify({ type:"state", state: play.boardView(room) }) + "\n\n");
+
+      const beat = setInterval(() => { try{ res.write(": beat\n\n"); }catch(e){} }, 20000);
+      req.on("close", () => { clearInterval(beat); room.screens.delete(res); });
+      return;
+    }
+
     /* ---- for the host's health check ---- */
     if(p === "/healthz"){
       return sendJSON(res, 200, { ok:true, version: VERSION, build: currentBuild(),
@@ -348,7 +405,9 @@ const server = http.createServer(async (req, res) => {
       if(!room) return sendJSON(res, 404, { error:"no_such_room" });
       return sendJSON(res, 200, {
         code: room.code, phase: room.phase, count: room.players.length,
-        taken: room.players.map(x => x.face).filter(Boolean)
+        taken: room.players.map(x => x.face).filter(Boolean),
+        /* a screen asks this before it opens a stream, so it can say why */
+        screensFull: room.screens.size >= MAX_SCREENS
       });
     }
 
@@ -440,7 +499,9 @@ const server = http.createServer(async (req, res) => {
         if(room.hostId !== me.id) return sendJSON(res, 403, { error:"host_only" });
         if(body.lang === "en" || body.lang === "he"){
           room.lang = body.lang;
-          for(const q of room.players) push(room, q.id, { type:"ui", lang: room.lang, pack: play.uiPack(room.lang) });
+          const ui = { type:"ui", lang: room.lang, pack: play.uiPack(room.lang) };
+          for(const q of room.players) push(room, q.id, ui);
+          toScreens(room, ui);
           broadcast(room);
         }
         return sendJSON(res, 200, { ok:true });
@@ -472,7 +533,11 @@ const server = http.createServer(async (req, res) => {
     }
 
     /* ---- static ---- */
-    let file = p === "/" ? "/index.html" : p;
+    /* two pages, two addresses somebody has to be able to type: the root for a
+       phone, /board for whatever is going to stand on the sideboard */
+    let file = p === "/" ? "/index.html"
+             : (p === "/board" || p === "/board/") ? "/board.html"
+             : p;
     file = path.normalize(file).replace(/^(\.\.[/\\])+/, "");
     const full = path.join(PUBLIC, file);
     if(!full.startsWith(PUBLIC)){ res.writeHead(403); return res.end("no"); }

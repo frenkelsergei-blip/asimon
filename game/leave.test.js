@@ -151,6 +151,43 @@ function nextRound(r){
   ok(act(r, P(r, 1), { type:"pause" }).error === "not_now", "a finished game went on a break");
 }
 
+/* ---- 7. two a game, per phone, and the button says so ---- */
+{
+  const r = toTable(room(["A","B","C"]));
+  const me = P(r, 1), other = P(r, 2);
+  ok(view(r, me.id).breaks.left === play.PAUSE_CALLS, "a fresh game did not hand out its breaks");
+  ok(view(r, me.id).breaks.of === play.PAUSE_CALLS, "the view did not say how many there were");
+
+  for(let i = 0; i < play.PAUSE_CALLS; i++){
+    ok(act(r, me, { type:"pause" }).ok, "break " + (i + 1) + " of the allowance was refused");
+    ok(view(r, me.id).breaks.left === play.PAUSE_CALLS - (i + 1),
+       "the count did not go down after break " + (i + 1));
+    play.endPause(r, CTX);
+  }
+  ok(act(r, me, { type:"pause" }).error === "no_breaks", "a third break got through");
+  ok(!r.pause, "the refused break stopped the room anyway");
+
+  /* the allowance is one phone's, not the room's */
+  ok(view(r, other.id).breaks.left === play.PAUSE_CALLS, "one phone spent another phone's breaks");
+  ok(act(r, other, { type:"pause" }).ok, "a phone with breaks left was refused one");
+
+  /* and adding half a minute to somebody else's break is still free */
+  ok(act(r, me, { type:"pause" }).ok, "a spent phone could not lengthen somebody else's break");
+  ok(r.pause.presses === 2, "the +30 press was not counted as a press");
+  ok(view(r, me.id).breaks.left === 0, "lengthening a break was charged as calling one");
+}
+
+/* ---- 8. a fresh game is a fresh allowance ---- */
+{
+  const r = toTable(room(["A","B","C"]));
+  const me = P(r, 1);
+  for(let i = 0; i < play.PAUSE_CALLS; i++){ act(r, me, { type:"pause" }); play.endPause(r, CTX); }
+  ok(play.breaksLeft(r, me.id) === 0, "the allowance did not run out");
+  r.phase = "over";
+  act(r, P(r, 0), { type:"again" });
+  ok(play.breaksLeft(r, me.id) === play.PAUSE_CALLS, "a rematch did not hand the breaks back");
+}
+
 /* ================= getting up ================= */
 
 /* ---- 7. in the lobby, as it always was ---- */

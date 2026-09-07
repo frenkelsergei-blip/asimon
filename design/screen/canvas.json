@@ -1,0 +1,38 @@
+{
+  "artboards": [
+    { "file": "Main.dc.html",    "x": 0,    "y": 0,    "w": 1280, "h": 720,  "title": "A · The clock" },
+    { "file": "Reveal.dc.html",  "x": 1400, "y": 0,    "w": 1280, "h": 720,  "title": "B · The word" },
+    { "file": "Move.dc.html",    "x": 2800, "y": 0,    "w": 1280, "h": 720,  "title": "C · Somebody moving" },
+    { "file": "Lobby.dc.html",   "x": 0,    "y": 840,  "w": 1280, "h": 720,  "title": "D · Before anyone starts" },
+    { "file": "Podium.dc.html",  "x": 1400, "y": 840,  "w": 1280, "h": 720,  "title": "E · The end" },
+    { "file": "English.dc.html", "x": 2800, "y": 840,  "w": 1280, "h": 720,  "title": "F · The same screen, English" },
+    { "file": "MapWall.dc.html", "x": 0,    "y": 1780, "w": 1280, "h": 720,  "title": "G · The map, and nothing else" },
+    { "file": "Tablet.dc.html",  "x": 1400, "y": 1780, "w": 820,  "h": 1180, "title": "H · A tablet, stood up" },
+    { "file": "Phone.dc.html",   "x": 2340, "y": 1780, "w": 375,  "h": 900,  "title": "I · A phone" },
+    { "file": "AltWide.dc.html", "x": 0,    "y": 3100, "w": 1280, "h": 720,  "title": "J · The open question" }
+  ],
+  "annotations": [
+    {
+      "id": "brief",
+      "x": 0,
+      "y": -600,
+      "w": 900,
+      "text": "The screen in the room — a television, a tablet against the fruit bowl, a spare phone propped on a glass. It watches a room by its four-letter code, holds no seat, sends nothing back, and never shows the four words: the one person who must not know them is sitting in front of it.\n\nDrawn with the game's own parts, by design/screen/build.js — the faces come out of public/art.js, the board out of public/boardart.js drawing a real engine state, the palette out of style.css, the words out of the engine's dictionary. So an artboard cannot quietly disagree with the thing it is a design for.\n\nThree arguments it is making.\n\nThe moment is a receipt, not a dashboard panel. It is the phone's own hero block with the perforated edge — amber while a word is in play, green once it has been said out loud, ink for everything procedural. The clock lives inside it at 84px, because that is what you actually read from the far end of a table.\n\nOne number per player, not three. The first build showed points, cards and row as a column of three small numerals; the bar and the token already say where somebody is, so the row became 5/17 at the end of the bar and the score got big. Cards only appear when somebody is holding one.\n\nThe room code is the largest thing in the header, because it is the only thing on this screen anyone in the room has to act on."
+    },
+    {
+      "id": "shapes",
+      "x": 0,
+      "y": 1560,
+      "w": 820,
+      "text": "One page, four shapes — it is the same screen on a wall, a tablet or a phone, and it decides for itself.\n\nWIDE is A to F: the board in a column beside the moment and the table. TALL (H, I) folds that into one column, puts the moment at the top where it is read first, and lets the page scroll rather than squeeze; a phone (I) also sheds the two header facts it can spare. Every size on the page is one em, and that em is clamp(15px, 1.25vw, 32px) — 16px across a laptop, 24px on a 1080p television.\n\nG is the fourth: the map and nothing else, one tap on the board away and remembered, with a single quiet line under it so the room can still be joined and the clock still read. On a landscape screen the map turns on its side to fill it; on a phone it stays upright."
+    },
+    {
+      "id": "direction",
+      "x": 0,
+      "y": 2920,
+      "w": 660,
+      "text": "J is the open question, and it is worth deciding before this goes further.\n\nThe board is portrait because a phone is. A television is not — so A spends a third of its width on the map and leaves the rest of the wall over, while J turns the same board on its side and gets a map two and a half times bigger, running right to left the way the room reads.\n\nWhat J costs: the wall and the phone stop drawing the same picture. On the phone the race still runs up the page, and somebody glancing from one to the other has to turn it round in their head.\n\nThe turned board already ships — it is what G draws. The question is only whether it should also be the default in the full screen."
+    }
+  ],
+  "launch": { "view": "canvas" }
+}

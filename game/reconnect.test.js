@@ -10,12 +10,14 @@ const REMOTE = process.env.ASIMON_BASE || "";
 const BASE = REMOTE || ("http://127.0.0.1:" + PORT);
 /* a deployed server runs the real 12s grace; a local one is told to use a short one */
 const GRACE = REMOTE ? 12000 : 1200;
+/* same for the heartbeat, which a phone uses to tell a quiet stream from a dead one */
+const BEAT  = REMOTE ? 20000 : 400;
 const bad = [];
 const ok = (c, m) => { if(!c) bad.push(m); };
 const wait = ms => new Promise(r => setTimeout(r, ms));
 
 class Phone {
-  constructor(name){ this.name = name; this.states = []; this.state = null; this.drops = 0; }
+  constructor(name){ this.name = name; this.states = []; this.state = null; this.drops = 0; this.beats = 0; }
   async create(){ const r = await post("/api/create", { name:this.name, lang:"en" });
                   this.code = r.code; this.pid = r.pid; }
   async join(code){ const r = await post("/api/join", { code, name:this.name });
@@ -41,6 +43,7 @@ class Phone {
             if(!line) continue;
             const msg = JSON.parse(line.slice(6));
             if(msg.type === "state"){ this.state = msg.state; this.states.push(msg.state); }
+            if(msg.type === "beat") this.beats++;
           }
         }
       }catch(e){}
@@ -62,7 +65,8 @@ async function post(p, body){
 (async () => {
   const server = REMOTE ? null
     : spawn(process.execPath, [path.join(__dirname, "..", "server.js")],
-        { env: Object.assign({}, process.env, { PORT:String(PORT), LS_GRACE_MS:String(GRACE) }),
+        { env: Object.assign({}, process.env,
+            { PORT:String(PORT), LS_GRACE_MS:String(GRACE), LS_BEAT_MS:String(BEAT) }),
           stdio:["ignore","ignore","inherit"] });
   const cleanup = () => { try{ if(server) server.kill(); }catch(e){} };
   process.on("exit", cleanup);
@@ -147,7 +151,19 @@ async function post(p, body){
     try{ await guest.act({ type:"skip" }); }catch(e){ notStuck = (e.data||{}).error === "not_stuck"; }
     ok(notStuck, "a room that was not stuck could still be skipped");
 
-    /* ---- 5. a host who leaves for good hands the room on ---- */
+    /* ---- 5. a quiet stream still says it is there ----
+       The phone cannot tell a room where nothing is happening from a socket
+       that died while it was asleep, unless the quiet stream keeps speaking.
+       This used to go down as an SSE comment, which EventSource swallows
+       without telling the page — so it had to become a message. */
+    {
+      const watcher = [a,b,c].find(p => p.ctrl && p.pid !== hostPid);
+      const before = watcher.beats;
+      await wait(BEAT * 2 + 400);
+      ok(watcher.beats > before, "a quiet stream sent nothing a phone could hear");
+    }
+
+    /* ---- 6. a host who leaves for good hands the room on ---- */
     host.lock();
     await wait(GRACE + 500);
     const stillHere = [a,b,c].find(p => p.pid !== hostPid && p.ctrl && p.state);
