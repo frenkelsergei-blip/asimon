@@ -164,7 +164,7 @@ function playOne(cfg){
       g.spent = 0;                 /* seconds of this round's clock already counted */
       count(g.mods, R.mod);
       g.thisMod = R.mod;
-      (g.byMod[R.mod] = g.byMod[R.mod] || { dealt:0, landed:0, pay:0, secs:0 }).dealt++;
+      (g.byMod[R.mod] = g.byMod[R.mod] || { dealt:0, landed:0, pay:0, secs:0, won:0, lost:0 }).dealt++;
       g.perUnit[e.unitOf(R.giver).id].gave++;
       R.words.forEach(w => { if(g.words.indexOf(w.text) >= 0) g.repeats++; else g.words.push(w.text); });
 
@@ -220,7 +220,7 @@ function playOne(cfg){
       g.rounds++; g.seconds += SECONDS.blindPick;
       count(g.mods, "B"); count(g.challenges, "open");
       g.thisMod = "B";
-      (g.byMod.B = g.byMod.B || { dealt:0, landed:0, pay:0, secs:0 }).dealt++;
+      (g.byMod.B = g.byMod.B || { dealt:0, landed:0, pay:0, secs:0, won:0, lost:0 }).dealt++;
       g.perUnit[e.unitOf(R.giver).id].gave++;
       R.words.forEach(w => { if(g.words.indexOf(w.text) >= 0) g.repeats++; else g.words.push(w.text); });
       const gp = phoneOf(R.giver);
@@ -390,7 +390,8 @@ function playOne(cfg){
       if(g.thisMod && g.byMod[g.thisMod]){
         const bm = g.byMod[g.thisMod];
         const gr = (S.result.rows || []).find(r => r.giver);
-        if(gr && gr.pts > 0) bm.landed++;
+        if(gr && gr.pts > 0){ bm.landed++; bm.won += gr.pts; }
+        else bm.lost += gr ? gr.pts : 0;
         bm.pay  += gr ? gr.pts : 0;
         bm.secs += g.spent || 0;
       }
@@ -821,22 +822,26 @@ const BY_MOD = {};
 {
   const bm = BY_MOD;
   runs.forEach(g => Object.keys(g.byMod).forEach(k => {
-    const a = bm[k] = bm[k] || { dealt:0, landed:0, pay:0, secs:0 };
-    ["dealt","landed","pay","secs"].forEach(f => a[f] += g.byMod[k][f]);
+    const a = bm[k] = bm[k] || { dealt:0, landed:0, pay:0, secs:0, won:0, lost:0 };
+    ["dealt","landed","pay","secs","won","lost"].forEach(f => a[f] += (g.byMod[k][f] || 0));
   }));
   table([{ h:"round", w:11 }, { h:"share", w:7, r:1 }, { h:"dealt", w:9, r:1 },
-         { h:"landed", w:8, r:1 }, { h:"paid the giver", w:15, r:1 },
-         { h:"clock spent", w:12, r:1 }],
+         { h:"lands", w:7, r:1 }, { h:"when it does", w:13, r:1 },
+         { h:"when it does not", w:17, r:1 }, { h:"on average", w:11, r:1 },
+         { h:"clock", w:7, r:1 }],
     ALL_MODS.filter(k => bm[k]).map(k => {
-      const a = bm[k];
+      const a = bm[k], died = a.dealt - a.landed;
       return [MOD_NAME[k], n1(shareOf(modsAll, k)) + "%", thou(a.dealt),
               n1(100 * a.landed / Math.max(1, a.dealt)) + "%",
+              "+" + n1(a.won / Math.max(1, a.landed)),
+              n1(a.lost / Math.max(1, died)),
               n1(a.pay / Math.max(1, a.dealt)),
               n1(a.secs / Math.max(1, a.dealt)) + "s"];
     }));
   line();
-  line("  Landed is the giver being paid at all — the round arriving somewhere rather than dying.");
-  line("  A kind of round that never lands is one the table will learn to walk around.");
+  line("  What the giver takes when the round lands, what it costs them when it does not,");
+  line("  and the two together. A square worth standing on is one where the first number");
+  line("  is worth the second — and a square with no second number is not a bet at all.");
 }
 
 head("what a round is worth in ground");
@@ -1047,8 +1052,11 @@ const AUDIT = {
   modNames: ALL_MODS.map(k => MOD_NAME[k]),
   rounds: ALL_MODS.filter(k => BY_MOD[k]).map(k => {
     const b = BY_MOD[k];
+    const died = b.dealt - b.landed;
     return { name:MOD_NAME[k], share:shareOf(modsAll, k), dealt:b.dealt,
              landed:100 * b.landed / Math.max(1, b.dealt),
+             won:b.won / Math.max(1, b.landed),
+             lost:b.lost / Math.max(1, died),
              pay:b.pay / Math.max(1, b.dealt),
              secs:b.secs / Math.max(1, b.dealt) };
   }),

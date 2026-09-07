@@ -288,12 +288,14 @@ function render(a, opts){
 
 /* the round */
 '<section><h2>Each kind of round, and how it plays</h2><div class="panel">' +
-  table(["round", "share", "dealt", "landed", "paid the giver", "clock spent"],
+  table(["round", "share", "dealt", "lands", "when it does", "when it does not",
+         "on average", "clock"],
     (a.rounds || []).map(r => [esc(r.name), n1(r.share) + "%", thou(r.dealt),
-      n1(r.landed) + "%", n1(r.pay), n1(r.secs) + "s"])) +
-  '<p class="small">Landed is the giver being paid at all &mdash; the round arriving ' +
-  'somewhere rather than dying. A kind of round that never lands is one the table ' +
-  'learns to walk around.</p>' +
+      n1(r.landed) + "%", "+" + n1(r.won), n1(r.lost), n1(r.pay), n1(r.secs) + "s"])) +
+  '<p class="small">What the giver takes when the round lands, what it costs them when ' +
+  'it does not, and the two together. A square worth standing on is one where the first ' +
+  'number is worth the second &mdash; and a square with no second number is not a bet ' +
+  'at all.</p>' +
 '</div></section>' +
 
 '<section><h2>The round</h2>' +
