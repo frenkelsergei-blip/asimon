@@ -115,6 +115,7 @@ function playOne(cfg){
     unsolved: 0, lockouts: 0, swapDeadlock: 0, insightOnCold: 0,
     stopwatchPlays: 0, stopwatchLateBand: 0, wildHits: 0, giverPts: 0, giverRounds: 0,
     stepHist: {}, bigRound: 0, leaderRows: [], bands: {}, solved: 0, buzzes: 0,
+    byMod: {},          /* per round type: dealt, landed, the giver's pay, seconds */
     seats: 0, seatRounds2: 0, unitCount: 0,
     words: [], repeats: 0,
     perUnit: {}, halfLeader: null, boardWinner: null, scoreWinner: null,
@@ -157,6 +158,8 @@ function playOne(cfg){
       g.rounds++; g.seconds += SECONDS.giver;
       g.spent = 0;                 /* seconds of this round's clock already counted */
       count(g.mods, R.mod);
+      g.thisMod = R.mod;
+      (g.byMod[R.mod] = g.byMod[R.mod] || { dealt:0, landed:0, pay:0, secs:0 }).dealt++;
       g.perUnit[e.unitOf(R.giver).id].gave++;
       R.words.forEach(w => { if(g.words.indexOf(w.text) >= 0) g.repeats++; else g.words.push(w.text); });
 
@@ -211,6 +214,8 @@ function playOne(cfg){
     if(room.phase === "blind"){
       g.rounds++; g.seconds += SECONDS.blindPick;
       count(g.mods, "B"); count(g.challenges, "open");
+      g.thisMod = "B";
+      (g.byMod.B = g.byMod.B || { dealt:0, landed:0, pay:0, secs:0 }).dealt++;
       g.perUnit[e.unitOf(R.giver).id].gave++;
       R.words.forEach(w => { if(g.words.indexOf(w.text) >= 0) g.repeats++; else g.words.push(w.text); });
       const gp = phoneOf(R.giver);
@@ -232,7 +237,8 @@ function playOne(cfg){
         /* the same hand the phone would show: Switch is the giver's alone, and
            a Link round has nothing for it to switch to */
         const holdable = u.cards.filter(k =>
-          k !== "swap" || (isGiverUnit && R.mod !== "L"));
+          (k !== "swap" || (isGiverUnit && R.mod !== "L")) &&
+          !((k === "veto" || k === "mime") && (R.mod === "L" || R.mod === "B")));
         if(!holdable.length) return;
         const key = pick(holdable);
         const before = e.remainMs();
@@ -374,6 +380,14 @@ function playOne(cfg){
         if(v > 0) S.steps[uid] = v; else delete S.steps[uid];
       });
       g.seconds += SECONDS.reveal;
+      /* what the round just finished was worth, filed under its kind */
+      if(g.thisMod && g.byMod[g.thisMod]){
+        const bm = g.byMod[g.thisMod];
+        const gr = (S.result.rows || []).find(r => r.giver);
+        if(gr && gr.pts > 0) bm.landed++;
+        bm.pay  += gr ? gr.pts : 0;
+        bm.secs += g.spent || 0;
+      }
       const scored = {};
       (S.result.rows || []).forEach(r => {
         scored[r.id] = r.pts > 0; g.perUnit[r.id].pts += r.pts;
@@ -796,6 +810,28 @@ checkMin("The round", "the rarest square is still met", rarestMod.v,
       "a square nobody lands on is a rule nobody meets — reweight the map patterns");
 
 /* ---------- 7. what a round moves ---------- */
+head("each kind of round, and how it plays");
+{
+  const bm = {};
+  runs.forEach(g => Object.keys(g.byMod).forEach(k => {
+    const a = bm[k] = bm[k] || { dealt:0, landed:0, pay:0, secs:0 };
+    ["dealt","landed","pay","secs"].forEach(f => a[f] += g.byMod[k][f]);
+  }));
+  table([{ h:"round", w:11 }, { h:"share", w:7, r:1 }, { h:"dealt", w:9, r:1 },
+         { h:"landed", w:8, r:1 }, { h:"paid the giver", w:15, r:1 },
+         { h:"clock spent", w:12, r:1 }],
+    ALL_MODS.filter(k => bm[k]).map(k => {
+      const a = bm[k];
+      return [MOD_NAME[k], n1(shareOf(modsAll, k)) + "%", thou(a.dealt),
+              n1(100 * a.landed / Math.max(1, a.dealt)) + "%",
+              n1(a.pay / Math.max(1, a.dealt)),
+              n1(a.secs / Math.max(1, a.dealt)) + "s"];
+    }));
+  line();
+  line("  Landed is the giver being paid at all — the round arriving somewhere rather than dying.");
+  line("  A kind of round that never lands is one the table will learn to walk around.");
+}
+
 head("what a round is worth in ground");
 const stepKeys = Object.keys(stepHist).map(Number).sort((a, b) => a - b);
 const stepTot = stepKeys.reduce((t, k) => t + stepHist[k], 0) || 1;

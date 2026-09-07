@@ -586,6 +586,8 @@ function viewFor(room, pid){
       base.hand = (myUnit.cards || [])
         /* only the giver may switch words, and a link has nothing to switch to */
         .filter(k => k !== "swap" || (isGiverUnit && R.mod !== "L"))
+        /* nor is a card offered that this round gives it nothing to do */
+        .filter(k => !((k === "veto" || k === "mime") && (R.mod === "L" || R.mod === "B")))
         .map(k => ({ key:k, n:CARDS[k].n, d:CARDS[k].d }));
       base.canPlay = room.phase === "table" && base.hand.length > 0;
     }
@@ -1317,6 +1319,12 @@ function applyAction(room, me, body, ctx){
     /* A link is the answer itself, not one of four words on offer, so there
        is nothing for Switch to change it to. */
     if(key === "swap" && R.mod === "L") return { error:"nothing_to_swap" };
+    /* Veto asks for a new sentence and Mime asks for the same one without
+       words. A Link round has no sentence, and a Blind one has the table
+       saying a word each — neither card has anything to act on, and a card
+       that does nothing should not be spendable. */
+    if((key === "veto" || key === "mime") && (R.mod === "L" || R.mod === "B"))
+      return { error:"nothing_to_say" };
     if(key === "swap" && R.words.length < 2 && !dealAlternative(e, R))
       return { error:"nothing_to_swap" };
 
@@ -1353,7 +1361,9 @@ function applyAction(room, me, body, ctx){
            banks and settled now, not reshuffled on every poll. */
         R.insightWords = R.words.length >= 4
           ? R.words.map(w => w.text)
-          : e.shuffle(R.words.map(w => w.text).concat(decoys(e, R, 4 - R.words.length)));
+          : e.shuffle(R.words.map(w => w.text).concat(
+              R.mod === "L" ? linkDecoys(e, R, 4 - R.words.length)
+                            : decoys(e, R, 4 - R.words.length)));
         break;
       case "veto":      R.veto     = true; break;
       case "mime":      R.mimeCard = true; break;
@@ -1431,6 +1441,16 @@ function dealAlternative(e, R){
   if(!spare.length) return false;
   R.words.push(spare[Math.floor(Math.random() * spare.length)]);
   return true;
+}
+
+/* Other links, for an Insight on a Link round. Padding one out of the word
+   banks put "India" beside "the last word" and "curious" — nothing else on the
+   list could be a link at all, so the card named the answer outright. */
+function linkDecoys(e, R, howMany){
+  const LINKS = e.packs().LINKS;
+  const taken = R.words.map(w => w.text);
+  const pool = Object.keys(LINKS).map(k => LINKS[k].n).filter(x => taken.indexOf(x) < 0);
+  return e.shuffle(pool).slice(0, howMany);
 }
 
 /* words that were never on the round, for an Insight that would otherwise be

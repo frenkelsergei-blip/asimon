@@ -185,7 +185,7 @@ function createEngine(){
    blind_table_h:"One word each, going round.", blind_table_d:"Each of you says a single word. {0} can shout a guess at any time, as often as they like.",
    blind_got:"{0} got it",
    w_word:"the word +{0}", w_wrong:"wrong shout &minus;{0}", w_early:"solved too fast +1",
-   w_mid:"landed well +{0}", w_late:"landed late +{0}", w_helped:"helped +1", w_half:"half of it +1", w_shot:"called the shot +{0}", w_partner:"partner got it +{0}", w_double:"doubled to {0}",
+   w_mid:"landed well +{0}", w_late:"landed late +{0}", w_helped:"helped +1", w_half:"half of it +1", w_both:"both of them +1", w_shot:"called the shot +{0}", w_partner:"partner got it +{0}", w_double:"doubled to {0}",
    w_fast:"read instantly +{0}", w_ok:"got through +{0}", w_slow:"only just +{0}", w_none:"nobody got it",
    board_k:"The board &mdash; {0} rows to the end",
    col_0:"Plain", col_1:"Cards", col_2:"Mixed", col_3:"Wild",
@@ -288,7 +288,7 @@ function createEngine(){
    blind_table_h:"מילה אחת מכל אחד, סביב השולחן.", blind_table_d:"כל אחד אומר מילה אחת. {0} יכול/ה לצעוק ניחוש מתי שרוצים, כמה פעמים שרוצים.",
    blind_got:"{0} קלט/ה",
    w_word:"המילה {0}+", w_wrong:"צעקה שגויה {0}&minus;", w_early:"נפתר מהר מדי 1+",
-   w_mid:"נחת יפה {0}+", w_late:"נחת מאוחר {0}+", w_helped:"עזרו 1+", w_half:"חצי מזה 1+", w_shot:"כיוון נכון {0}+", w_partner:"השותף/ה קלט/ה {0}+", w_double:"הוכפל ל&#8209;{0}",
+   w_mid:"נחת יפה {0}+", w_late:"נחת מאוחר {0}+", w_helped:"עזרו 1+", w_half:"חצי מזה 1+", w_both:"שתיהן נחתו 1+", w_shot:"כיוון נכון {0}+", w_partner:"השותף/ה קלט/ה {0}+", w_double:"הוכפל ל&#8209;{0}",
    w_fast:"נקרא מיד {0}+", w_ok:"עבר {0}+", w_slow:"בקושי {0}+", w_none:"אף אחד לא קלט",
    board_k:"הלוח &mdash; {0} שורות לסוף",
    col_0:"רגיל", col_1:"קלפים", col_2:"מעורב", col_3:"פרוע",
@@ -966,12 +966,23 @@ function createEngine(){
       });
       if(found.length >= 2){
         const last = found[found.length-1];
-        const val2 = wordValue(R, R.words[last.pick]);
+        /* The discount is there because two payments go out to whoever said
+           the words. The giver is still paid once, so taking it off their band
+           as well charged them twice for the same thing — and the sweep put a
+           Two words giver on 1.2 points against a Standard round's 2.3, the
+           worst square on the board to be standing on. Their band is read off
+           what the word is worth on its own. */
+        const val2 = wordValue(R, R.words[last.pick]) + 1;
         const frac = last.ms / (R.total*1000);
         const band = frac <= 0.25 ? {n:1,      w:t("w_early")}
                    : frac <= 0.70 ? {n:val2,   w:t("w_mid", val2)}
                                   : {n:val2+1, w:t("w_late", val2+1)};
         bump(gu.id, band.n, band.w);
+        /* Landing two words on one sentence is the harder ask, and paying it
+           the same as landing one made Two words the worst square on the board
+           to be standing on once the rounds that only half-landed were counted
+           in. Both of them home is worth a point of its own. */
+        bump(gu.id, 1, t("w_both"));
       } else if(found.length === 1){
         bump(gu.id, 1, t("w_half"));
       } else {
