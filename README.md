@@ -31,6 +31,7 @@ address; once it is hosted, it is the public one.
 | `public/manifest.webmanifest` | what a phone installs when it adds the game to its home screen |
 | `design/logo/` | the logo canvas the mark came out of |
 | `design/screen/` | the canvas the screen in the room was drawn on |
+| `design/poster/` | the printed sheets, built by `node design/poster/build.js` |
 
 The engine began as a lift out of the pass-and-play build, and `game/build-engine.js`
 is the script that did it. It does not run any more: the game modes, the five
@@ -173,6 +174,31 @@ Each is a single ceremony the whole table looks at &mdash; a shuffle, a card
 turning over, a face &mdash; with no second half to set beside it. The play
 order in particular animates across a full row and would wrap and break in half
 the width.
+
+## The poster, and the sheet beside it
+
+A poster is not the manual. It has one job &mdash; stop somebody across a
+room, land one idea, say where to go &mdash; so it carries one headline, one
+picture, the one rule that makes this game different from every other guessing
+game, and one address. The sheet next to it is the one that explains.
+
+```bash
+node design/poster/build.js            # the artboards
+node design/poster/build.js --print d  # those, plus print-ready HTML in d/
+```
+
+The token and the palette are lifted out of `public/art.js` and
+`public/style.css` rather than retyped, so a poster cannot quietly disagree
+with the game it is a poster for. `design/poster/canvas.json` keeps the two
+printed sheets on one page and two other poster directions on a second.
+
+The PDFs under `docs/assets/` are those print files rendered at A4:
+
+```bash
+"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
+  --headless --no-pdf-header-footer --virtual-time-budget=6000 \
+  --print-to-pdf=docs/assets/asimon-poster-A4.pdf d/Main.html
+```
 
 ## Versions, and getting a phone off an old one
 
