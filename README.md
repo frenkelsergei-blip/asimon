@@ -35,9 +35,10 @@ npm run build:engine -- /path/to/buzz.html
 npm test
 ```
 
-Five suites: the rules over 540 simulated games, the seven cards, a stalled
-room, a full round over real HTTP (asserting the giver's words never reach
-another phone), and phones dropping and reconnecting.
+Six suites: the rules over 540 simulated games, the seven cards, a stalled
+room, the copy (every key the phone asks for answers in both languages), a
+full round over real HTTP (asserting the giver's words never reach another
+phone), and phones dropping and reconnecting.
 
 ## Hosting it
 

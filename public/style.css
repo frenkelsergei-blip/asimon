@@ -391,3 +391,68 @@ input.code{font-family:var(--display);font-weight:400;font-size:34px;text-align:
   border-radius:14px;padding:13px 15px}
 .waitrow .wt{font-size:17px;font-weight:800;display:block}
 .waitrow .ws{font-size:13px;color:var(--muted);display:block;margin-top:1px}
+
+/* ---- how to play, and reading the board ---- */
+.learn{display:flex;align-items:center;gap:12px;width:100%;text-align:start;
+  background:var(--surface);border:1px solid var(--rule);border-radius:14px;padding:11px 14px;
+  color:var(--ink);font-weight:400;box-shadow:0 1px 2px rgba(23,22,28,.04)}
+.learn .li{flex:0 0 34px;width:34px;height:34px;border-radius:11px;background:var(--accent-soft);
+  color:var(--accent-ink);display:grid;place-items:center;
+  font-family:var(--display);font-size:17px;line-height:1}
+.learn .lt{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+.learn .lt b{font-size:15.5px;font-weight:800}
+.learn .lt span{font-size:12.5px;font-weight:600;color:var(--muted)}
+.learn .lc{color:var(--faint);font-size:21px;line-height:1}
+[dir="rtl"] .learn .lc{transform:scaleX(-1)}
+
+.sheet{position:fixed;inset:0;z-index:60;display:flex;align-items:flex-end;justify-content:center;
+  background:rgba(23,22,28,.44);animation:fadein .18s ease both}
+@keyframes fadein{from{opacity:0}to{opacity:1}}
+.sheetcard{width:100%;max-width:430px;max-height:92dvh;display:flex;flex-direction:column;
+  background:var(--paper);border-radius:22px 22px 0 0;overflow:hidden;
+  box-shadow:0 -10px 44px -14px rgba(23,22,28,.45);
+  animation:sheetup .28s cubic-bezier(.22,.7,.3,1) both}
+@keyframes sheetup{from{transform:translateY(22px)}to{transform:none}}
+.sheet.still,.sheet.still .sheetcard{animation:none}
+.sheethead{display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:15px 18px 13px;background:var(--surface);border-bottom:1px solid var(--rule)}
+.sheethead h2{font-family:var(--display);font-weight:400;font-size:22px;letter-spacing:0}
+.sheetx{width:34px;height:34px;flex:0 0 34px;padding:0;border-radius:50%;
+  background:var(--sunk);color:var(--second);display:grid;place-items:center;box-shadow:none}
+.sheetbody{overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;
+  padding:15px 18px 20px;display:flex;flex-direction:column;gap:11px}
+.sheetfoot{padding:12px 18px calc(15px + env(safe-area-inset-bottom));
+  background:var(--surface);border-top:1px solid var(--rule)}
+.sheetbody .lead{font-size:16.5px;line-height:1.5;color:var(--second)}
+.sheetbody .note{margin-top:-2px}
+
+/* a round, step by step — the numbers are the sequence, not decoration */
+.steps{list-style:none;margin:0;padding:0;counter-reset:st;display:flex;flex-direction:column;
+  background:var(--surface);border:1px solid var(--rule);border-radius:14px}
+.steps li{display:grid;grid-template-columns:24px 1fr;column-gap:12px;
+  padding:12px 15px;border-bottom:1px solid var(--hair)}
+.steps li:last-child{border-bottom:0}
+.steps li::before{counter-increment:st;content:counter(st);
+  font-family:var(--display);font-size:16px;line-height:1.35;color:var(--accent);direction:ltr}
+.steps li b{font-size:15.5px;font-weight:800;line-height:1.35}
+.steps li span{grid-column:2;font-size:13px;line-height:1.5;color:var(--muted);margin-top:3px}
+
+/* label / meaning pairs: who scores what, and what a square is */
+.keylist{display:flex;flex-direction:column;
+  background:var(--surface);border:1px solid var(--rule);border-radius:14px}
+.keyrow{display:grid;grid-template-columns:auto 1fr;column-gap:12px;align-items:start;
+  padding:11px 15px;border-bottom:1px solid var(--hair)}
+.keyrow:last-child{border-bottom:0}
+.keyrow .kn{font-size:14.5px;font-weight:800;white-space:nowrap;line-height:1.5}
+.keyrow .kd{font-size:13px;line-height:1.5;color:var(--muted)}
+.keyrow .kd b{color:var(--ink);font-weight:800}
+.keyrow .kd em{font-style:normal;font-weight:800;color:var(--second)}
+.lgswatch{width:16px;height:16px;border-radius:5px;margin-top:3px}
+.lgmini{width:40px;height:22px;flex:0 0 40px}
+.lgtag{display:inline-grid;place-items:center;min-width:42px;height:19px;padding:0 8px;
+  border:1.4px solid;border-radius:9.5px;background:var(--surface);
+  font-size:10.5px;font-weight:800;line-height:1;margin-top:2px}
+/* an SVG flex item with no height collapses — pin the ratio */
+.lgdiag{display:block;flex:none;width:min(100%,232px);aspect-ratio:220/104;height:auto;margin:0 auto}
+
+@media(prefers-reduced-motion:reduce){ .sheet,.sheetcard{animation:none!important} }

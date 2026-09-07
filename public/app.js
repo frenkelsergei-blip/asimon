@@ -45,7 +45,45 @@ const L = {
     e_not_now:"לא עכשיו.", e_bad_step:"לא בשלב הזה.", e_no_choice:"אין מה לבחור.",
     e_busy:"השרת עמוס כרגע, נסו שוב עוד רגע.", e_slow_down:"יותר מדי חדרים. חכו קצת.",
     e_host_only:"רק המארח/ת.", e_your_turn:"זה התור שלכם — אי אפשר לדלג על עצמכם.",
-    e_not_started:"המשחק לא התחיל." },
+    e_not_started:"המשחק לא התחיל.",
+    /* ---- איך משחקים ---- */
+    howto:"איך משחקים?", hw_teaser:"חדשים במשחק? כל הכללים בדקה.",
+    hw_k:"איך משחקים", hw_close:"סגירה", hw_got:"הבנתי, קדימה",
+    hw_idea:"מישהו אחד יודע את המילה ואומר עליה משפט אחד. השאר צריכים לקלוט מה זה. הטריק: הנותן לא רוצה שיקלטו מהר — הוא רוצה שיקלטו בשנייה האחרונה.",
+    hw_round_k:"סבב, שלב אחרי שלב",
+    hw_s1:"הנותן בוחר מילה", hw_s1d:"ארבע מילים על המסך שלו, שוות 2 עד 5 נקודות. ככל שהמילה שווה יותר, ככה היא קשה יותר.",
+    hw_s2:"ומכוון לאדם אחד", hw_s2d:"בשקט, בלי שאף אחד יידע. אם דווקא הוא זה שקולט — הנותן מקבל 2 בונוס.",
+    hw_s3:"משפט אחד. פעם אחת.", hw_s3d:"תשעים שניות על השעון. אסור לומר את המילה, ואסור לחזור על המשפט.",
+    hw_s4:"מי שקולט — לוחץ", hw_s4d:"לוחצים על הכפתור האדום ואומרים בקול. צדקתם? צברתם. טעיתם? יורדת נקודה ואתם בחוץ עד סוף הסבב.",
+    hw_when_k:"מתי הכי כדאי שיקלטו",
+    hw_b1:"מיד", hw_b1d:"הנותן לוקח 1", hw_b2:"באמצע", hw_b2d:"שווי המילה", hw_b3:"ברגע האחרון", hw_b3d:"שווי המילה +1",
+    hw_when_d:"אף אחד לא קלט? הנותן לא מקבל כלום. לכן רמז מעורפל מדי מסוכן בדיוק כמו רמז ברור מדי — צריך לכוון לשנייה האחרונה, לא אחריה.",
+    hw_score_k:"מי מקבל מה",
+    hw_p1:"הקולט", hw_p1d:"מקבל את שווי המילה במלואו, בלי קשר לתזמון.",
+    hw_p2:"הנותן", hw_p2d:"מקבל לפי התזמון שלמעלה, ועוד 2 אם זה האדם שכיוון אליו.",
+    hw_p3:"באזה שגוי", hw_p3d:"עולה נקודה אחת, ואתם מחוץ לסבב.",
+    hw_board_k:"והלוח",
+    hw_board_d:"כל נקודה שצברתם היא צעד על הלוח. הראשון שמגיע לסוף מנצח — בערך שמונה סבבים, כ־25 דקות. במסך התנועה יש הסבר מלא על הלוח.",
+    /* ---- מקרא הלוח ---- */
+    lg_open:"מה זה הלוח?", lg_teaser:"מסלולים, קלפים, ואיך בכלל זזים.",
+    lg_k:"קוראים את הלוח", lg_close:"סגירה",
+    lg_step_k:"איך זזים",
+    lg_step_d:"כל נקודה שצברתם בסבב היא צעד אחד. צעד = שורה אחת קדימה, ואפשר לגלוש מסלול אחד ימינה או שמאלה. אפשר לעצור בכל משבצת שמסומנת — לא חייבים לנצל את כל הצעדים.",
+    lg_lane_k:"המסלולים",
+    lg_lane_d:"ארבעה מסלולים, כל אחד בצבע שלו, וכל אחד נושא סוג אחר של סבבים.",
+    lg_lane_0:"רגוע — כמעט תמיד סבב רגיל",
+    lg_lane_1:"מהיר, מילה אחת — וכאן נמצאים הקלפים",
+    lg_lane_2:"כפול, מילה אחת, שותפים",
+    lg_lane_3:"פרוע — עיוור, פנטומימה, כפול",
+    lg_why_k:"למה זה משנה",
+    lg_why_d:"המשבצת שהנותן עומד עליה קובעת איזה סוג סבב יהיה כשיגיע תורו. אז כשאתם בוחרים לאן לזוז — אתם בוחרים איזה סבב תיתנו.",
+    lg_key_k:"מה יש על הלוח",
+    lg_dot:"משבצת ריקה", lg_dot_d:"סבב רגיל. תשעים שניות, משפט אחד.",
+    lg_card:"משבצת קלף", lg_card_d:"נחיתה עליה נותנת לכם קלף לבחירה.",
+    lg_end:"הסוף", lg_end_d:"הראשון שמגיע מנצח.",
+    lg_twist_k:"התוויות הצבעוניות",
+    lg_you:"אתם כאן",
+    e_dummy:"" },
   en:{ title:"Last Second", tag:"one sentence · one shot",
     yourname:"What is your name?", nameph:"Your name", create:"Open a new room",
     joinbtn:"Join with a code", join_k:"Room code", codeph:"ABCD", go:"Join", back:"Back",
@@ -81,7 +119,45 @@ const L = {
     e_not_now:"Not now.", e_bad_step:"Not at this step.", e_no_choice:"Nothing to choose.",
     e_busy:"The server is full just now — try again in a moment.", e_slow_down:"Too many rooms. Wait a little.",
     e_host_only:"Host only.", e_your_turn:"It is your turn — you cannot skip yourself.",
-    e_not_started:"The game has not started." }
+    e_not_started:"The game has not started.",
+    /* ---- how to play ---- */
+    howto:"How to play", hw_teaser:"New here? Every rule in a minute.",
+    hw_k:"How to play", hw_close:"Close", hw_got:"Got it — let's go",
+    hw_idea:"One person knows the word and says one sentence about it. Everyone else has to work out what it is. The catch: the giver does not want it caught quickly — they want it caught at the last second.",
+    hw_round_k:"A round, step by step",
+    hw_s1:"The giver picks a word", hw_s1d:"Four words on their phone, worth 2 to 5 points. The more it is worth, the harder it is.",
+    hw_s2:"and aims at one person", hw_s2d:"Quietly, without anyone knowing. If that is the person who gets it, the giver takes 2 more.",
+    hw_s3:"One sentence. Said once.", hw_s3d:"Ninety seconds on the clock. You may not say the word, and you may not repeat the sentence.",
+    hw_s4:"Whoever gets it buzzes", hw_s4d:"Hit the red button and say it out loud. Right? You score. Wrong? A point comes off and you are out for the round.",
+    hw_when_k:"When you want it to land",
+    hw_b1:"Instantly", hw_b1d:"the giver takes 1", hw_b2:"Midway", hw_b2d:"the word's value", hw_b3:"At the last second", hw_b3d:"the word's value +1",
+    hw_when_d:"Nobody gets it? The giver takes nothing. So a clue that is too vague is exactly as costly as one that is too obvious — aim for the last second, not past it.",
+    hw_score_k:"Who takes what",
+    hw_p1:"Whoever gets it", hw_p1d:"takes the word's full value, whenever they got it.",
+    hw_p2:"The giver", hw_p2d:"takes what the timing above is worth, plus 2 if it was the person they aimed at.",
+    hw_p3:"A wrong buzz", hw_p3d:"costs a point, and you are out for the rest of the round.",
+    hw_board_k:"And the board",
+    hw_board_d:"Every point you score is a step on the board. First to the end wins — about eight rounds, 25 minutes. The move screen explains the board in full.",
+    /* ---- the board legend ---- */
+    lg_open:"What is this board?", lg_teaser:"Lanes, cards, and how a step works.",
+    lg_k:"Reading the board", lg_close:"Close",
+    lg_step_k:"How you move",
+    lg_step_d:"Every point you scored this round is one step. A step is one row forward, and you may drift one lane left or right. Stop on any marked square — you do not have to spend them all.",
+    lg_lane_k:"The lanes",
+    lg_lane_d:"Four lanes, each its own colour, each carrying a different kind of round.",
+    lg_lane_0:"Calm — almost always an ordinary round",
+    lg_lane_1:"Fast, one word — and the cards live here",
+    lg_lane_2:"Double, one word, partners",
+    lg_lane_3:"Wild — blind, mime, double",
+    lg_why_k:"Why it matters",
+    lg_why_d:"The square the giver is standing on decides what kind of round it will be when their turn comes. So choosing where to move is choosing what round you will give.",
+    lg_key_k:"What is on the board",
+    lg_dot:"An empty square", lg_dot_d:"An ordinary round. Ninety seconds, one sentence.",
+    lg_card:"A card square", lg_card_d:"Landing here lets you take a card.",
+    lg_end:"The end", lg_end_d:"First one there wins.",
+    lg_twist_k:"The coloured tags",
+    lg_you:"You are here",
+    e_dummy:"" }
 };
 
 let lang = "he", pack = null, state = null, es = null, me = null;
@@ -99,6 +175,9 @@ const K_FACE = "lastsecond.face" + (SEAT ? "." + SEAT : "");
 let waitAt = 0, waitTimer = null, idleMs = 45000;
 const waitedMs = () => Date.now() - waitAt;
 let movePickLocal = null, showHand = false;
+/* the help sheet: null | "rules" | "legend". sheetSeen stops it sliding in again
+   every time the room pushes new state while it is open */
+let sheet = null, sheetSeen = false;
 
 function t(k, a, b){
   let v = (pack && pack.ui && pack.ui[k] !== undefined) ? pack.ui[k]
@@ -308,6 +387,7 @@ const offBox = () => online ? '' : '<div class="err">'+t("offline")+'</div>';
 function vName(){
   h('<div class="stack grow">'+
     '<div><p class="kicker">'+t("tag")+'</p><h1>'+t("title")+'</h1></div>'+
+    learnBtn("howto", t("howto"), t("hw_teaser"))+
     '<p class="kicker">'+t("lang_k")+'</p>'+
     '<div class="langsw"><button id="lhe" class="'+(lang==="he"?"on":"")+'">עברית</button>'+
     '<button id="len" class="'+(lang==="en"?"on":"")+'">English</button></div>'+
@@ -350,6 +430,7 @@ function vJoin(){
     '<p class="kicker">'+t("yourname")+'</p>'+
     '<input id="nm" type="text" maxlength="14" placeholder="'+t("nameph")+'">'+
     errBox()+'<div class="grow"></div>'+
+    learnBtn("howto", t("howto"), t("hw_teaser"))+
     '<button id="go">'+t("go")+'</button>'+
     '<button class="quiet" id="back">'+t("back")+'</button></div>');
   const cd = document.getElementById("cd"), nm = document.getElementById("nm");
@@ -408,6 +489,7 @@ function vLobby(){
         '<button class="quiet" id="facedone">'+t("face_done")+'</button>'
       : '<button class="ghost" id="facebtn">'+t("face_change")+'</button>')+
     errBox()+'<div class="grow"></div>'+
+    learnBtn("howto", t("howto"), t("hw_teaser"))+
     (s.isHost
       ? (list.length < 3 ? '<p class="note">'+t("waiting")+'</p>' : '')+
         '<p class="kicker">'+t("mode_k")+'</p>'+
@@ -825,6 +907,9 @@ function vMove(s){
   document.documentElement.dataset.tone = "live";
   const mv = s.move;
   if(!mv){ h('<div class="stack grow">'+offBox()+waitCard("…","")+'</div>'); return; }
+  /* the board is baffling the first time you meet it — open the legend unasked,
+     once per phone, on the first move this player is actually asked to make */
+  if(mv.mine && !sawBoard()){ markBoard(); sheet = "legend"; sheetSeen = false; }
   const picked = mv.mine ? (movePickLocal || mv.picked) : mv.picked;
   const sel = picked && mv.spots.find(p => p.r === picked.r && p.c === picked.c);
   const queue = mv.of < 2 ? "" :
@@ -850,6 +935,7 @@ function vMove(s){
         '<span class="ws">'+t("yourturn", esc(mv.unitName))+'</span></span></div>')+
     queue+stuckBar(s)+
     '<div class="boardwrap">'+boardSVG(s, mv.mine ? mv.spots : [], picked)+'</div>'+
+    learnBtn("boardhelp", t("lg_open"), t("lg_teaser"))+
     (mv.mine ? readout : "")+errBox()+
     (mv.mine ? '<button id="go"'+(sel?"":" disabled")+'>'+(sel?t("move_confirm"):t("move_pick"))+'</button>' : '')+
     '</div>');
@@ -885,7 +971,111 @@ function topbar(s){
 }
 
 /* ---------------- dispatch ---------------- */
+/* ---------------- how to play, and reading the board ---------------- */
+/* which lane each twist mostly lives in, so the legend is coloured like the board */
+const MOD_LANE = { T:0, F:1, O:1, D:2, B:3, M:3 };
+const K_SEEN = "lastsecond.sawboard";
+const sawBoard = () => { try{ return !!localStorage.getItem(K_SEEN); }catch(e){ return true; } };
+const markBoard = () => { try{ localStorage.setItem(K_SEEN, "1"); }catch(e){} };
+
+function learnBtn(id, label, teaser){
+  return '<button class="learn" id="'+id+'"><span class="li">?</span>'+
+    '<span class="lt"><b>'+label+'</b><span>'+teaser+'</span></span>'+
+    '<span class="lc" aria-hidden="true">›</span></button>';
+}
+function wireLearn(){
+  on("howto", () => { openSheet("rules"); });
+  on("boardhelp", () => { openSheet("legend"); });
+}
+function openSheet(which){ sheet = which; sheetSeen = false; render(); }
+
+function rulesBody(){
+  const step = i => '<li><b>'+t("hw_s"+i)+'</b><span>'+t("hw_s"+i+"d")+'</span></li>';
+  const pay  = (i,c) => '<div class="'+c+'"><b>'+t("hw_b"+i)+'</b><span>'+t("hw_b"+i+"d")+'</span></div>';
+  const who  = i => '<div class="keyrow"><span class="kn">'+t("hw_p"+i)+'</span>'+
+                    '<span class="kd">'+t("hw_p"+i+"d")+'</span></div>';
+  return '<p class="lead">'+t("hw_idea")+'</p>'+
+    '<p class="kicker">'+t("hw_round_k")+'</p>'+
+    '<ol class="steps">'+[1,2,3,4].map(step).join("")+'</ol>'+
+    '<p class="kicker">'+t("hw_when_k")+'</p>'+
+    '<div class="payoff">'+pay(1,"none")+pay(2,"meh")+pay(3,"best")+'</div>'+
+    '<p class="note">'+t("hw_when_d")+'</p>'+
+    '<p class="kicker">'+t("hw_score_k")+'</p>'+
+    '<div class="keylist">'+[1,2,3].map(who).join("")+'</div>'+
+    '<p class="kicker">'+t("hw_board_k")+'</p>'+
+    '<p class="note">'+t("hw_board_d")+'</p>';
+}
+/* one step: a row forward, and at most one lane sideways */
+function stepDiagram(){
+  const to = [46, 110, 174];
+  return '<svg class="lgdiag" viewBox="0 0 220 104" role="img" aria-hidden="true">'+
+    to.map(x => '<line x1="110" y1="72" x2="'+x+'" y2="34" stroke="var(--accent)" '+
+                'stroke-width="2" opacity=".38" stroke-linecap="round"/>').join("")+
+    to.map(x => '<circle cx="'+x+'" cy="30" r="10.5" fill="var(--accent-soft)" '+
+                'stroke="var(--accent)" stroke-width="2"/>').join("")+
+    '<circle cx="110" cy="74" r="12.5" fill="var(--accent)"/>'+
+    '<text x="110" y="100" text-anchor="middle" font-family="Assistant,sans-serif" '+
+    'font-size="11.5" font-weight="700" fill="var(--muted)">'+esc(t("lg_you"))+'</text></svg>';
+}
+function miniNode(kind){
+  const open = '<svg class="lgmini" viewBox="0 0 40 22" aria-hidden="true">';
+  if(kind === "dot")  return open+'<circle cx="20" cy="11" r="4.5" fill="var(--rule)"/></svg>';
+  if(kind === "card") return open+'<rect x="3" y="2.5" width="34" height="17" rx="8.5" fill="var(--good)"/>'+
+    '<text x="20" y="14.4" text-anchor="middle" font-family="Assistant,sans-serif" font-size="7.5" '+
+    'font-weight="800" fill="#FFFFFF">'+esc(t("card_node"))+'</text></svg>';
+  return open+'<circle cx="20" cy="11" r="10.5" fill="var(--ink)"/>'+
+    '<text x="20" y="14.2" text-anchor="middle" font-family="Assistant,sans-serif" font-size="8" '+
+    'font-weight="800" fill="#FFFFFF">'+(lang === "he" ? "סוף" : "END")+'</text></svg>';
+}
+function legendBody(){
+  const mods = (pack && pack.mods) || {};
+  const lanes = [0,1,2,3].map(i =>
+    '<div class="keyrow"><span class="lgswatch" style="background:'+COLC[i]+'"></span>'+
+    '<span class="kd">'+t("lg_lane_"+i)+'</span></div>').join("");
+  const key = ["dot","card","end"].map(k =>
+    '<div class="keyrow">'+miniNode(k)+'<span class="kd"><b>'+t("lg_"+k)+'</b> — '+t("lg_"+k+"_d")+'</span></div>').join("");
+  const tags = Object.keys(MOD_LANE).filter(k => mods[k]).map(k => {
+    const col = COLC[MOD_LANE[k]];
+    return '<div class="keyrow"><span class="lgtag" style="border-color:'+col+';color:'+col+'">'+
+      esc(mods[k].s)+'</span><span class="kd"><b>'+esc(mods[k].n)+'</b> — '+mods[k].d+'</span></div>';
+  }).join("");
+  return '<p class="kicker">'+t("lg_step_k")+'</p>'+stepDiagram()+
+    '<p class="note">'+t("lg_step_d")+'</p>'+
+    '<p class="kicker">'+t("lg_key_k")+'</p><div class="keylist">'+key+'</div>'+
+    '<p class="kicker">'+t("lg_lane_k")+'</p>'+
+    '<p class="note">'+t("lg_lane_d")+'</p><div class="keylist">'+lanes+'</div>'+
+    '<p class="kicker">'+t("lg_why_k")+'</p>'+
+    '<p class="note">'+t("lg_why_d")+'</p>'+
+    (tags ? '<p class="kicker">'+t("lg_twist_k")+'</p><div class="keylist">'+tags+'</div>' : '');
+}
+function paintSheet(){
+  const rules = sheet === "rules";
+  const html = '<div class="sheet'+(sheetSeen ? " still" : "")+'" id="sheet">'+
+    '<div class="sheetcard" role="dialog" aria-modal="true" aria-label="'+t(rules?"hw_k":"lg_k")+'">'+
+      '<div class="sheethead"><h2>'+t(rules ? "hw_k" : "lg_k")+'</h2>'+
+        '<button class="sheetx" id="sheetx" aria-label="'+t("hw_close")+'">'+
+        '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" '+
+        'stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>'+
+      '<div class="sheetbody">'+(rules ? rulesBody() : legendBody())+'</div>'+
+      '<div class="sheetfoot"><button id="sheetdone">'+t(rules ? "hw_got" : "lg_close")+'</button></div>'+
+    '</div></div>';
+  const holder = document.createElement("div");
+  holder.innerHTML = html;
+  app.appendChild(holder.firstChild);
+  sheetSeen = true;
+  const close = () => { sheet = null; render(); };
+  on("sheetx", close);
+  on("sheetdone", close);
+  const sh = document.getElementById("sheet");
+  if(sh) sh.addEventListener("click", e => { if(e.target === sh) close(); });
+}
+
 function render(){
+  paint();
+  wireLearn();
+  if(sheet) paintSheet();
+}
+function paint(){
   applyLang();
   if(screen !== "game") stopTicker();
   if(screen === "join"){ vJoin(); return; }

@@ -7,7 +7,7 @@
   "scripts": {
     "start": "node server.js",
     "build:engine": "node game/build-engine.js",
-    "test": "node game/engine.test.js && node game/cards.test.js && node game/stall.test.js && node game/server.test.js && node game/reconnect.test.js"
+    "test": "node game/engine.test.js && node game/cards.test.js && node game/stall.test.js && node game/copy.test.js && node game/server.test.js && node game/reconnect.test.js"
   },
   "engines": { "node": ">=18" }
 }
