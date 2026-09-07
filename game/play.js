@@ -175,7 +175,8 @@ function startGame(room, opts){
      each pair gives twice as often as a lone player and has two chances to be
      the one who gets it. Measured by heads, a pairs game ran three rounds short
      of the same table playing solo. Measured by racers, the two agree. */
-  e.setBoard(e.S.units.length, e.S.modeId, e.S.mapId);
+  e.setBoard(e.S.units.length, e.S.modeId, e.S.mapId,
+             e.S.players.length / Math.max(1, e.S.units.length));
   e.S.giverIdx = 0; e.S.round = 0; e.S.used = [];
   dealOpeningCard(e);
 
@@ -441,7 +442,7 @@ function resettle(room, ctx){
       return;
     }
     /* everybody who could still shout has gone: end it where it stands */
-    const alive = S.players.filter(p => p.id !== R.giver && R.lockedOut.indexOf(p.id) < 0);
+    const alive = stillIn(S, R);
     if(!alive.length){
       ctx.clearClock();
       e.pauseClock();
@@ -547,6 +548,14 @@ function viewFor(room, pid){
     if(R.shotPublic && R.shot){
       base.partner = { id:R.shot, name:e.playerById(R.shot).name };
     }
+    /* Whether the target was drawn or is the giver's to name — the phone keeps
+       the aim list up for a Duel so the giver can still change their mind. */
+    base.shotFixed = !!R.shotFixed;
+    /* A Duel is one name against another. Everybody else is watching, which is
+       not the same as being locked out: they have lost nothing and owe nothing,
+       so the phone says so in its own words rather than showing them a penalty. */
+    base.duel = R.only ? { id:R.only, name:e.playerById(R.only).name } : null;
+    base.watching = !!(R.only && !isGiver && !owns(room, pid, R.only));
     if(room.phase === "judge" && R.judging){
       base.judging = { id:R.judging, name:e.playerById(R.judging).name };
     }
@@ -1019,7 +1028,9 @@ function applyAction(room, me, body, ctx){
 
   case "aim": {
     if(room.phase !== "giver" || !isGiver) return { error:"not_your_turn" };
-    if(R.shotPublic) return { error:"bad_step" };
+    /* A drawn target cannot be changed. A Duel's target is public but the
+       giver's own to name, so it stays open until they are ready. */
+    if(R.shotFixed) return { error:"bad_step" };
     /* `pid` always means the phone that is asking — the target needs its own
        field, or an aim would rewrite who the request came from. */
     const target = body.target;
@@ -1040,7 +1051,9 @@ function applyAction(room, me, body, ctx){
     } else {
       if(room.phase !== "giver" || !isGiver) return { error:"not_your_turn" };
       if(R.pick === null) return { error:"pick_first" };
-      if(!R.shot && !R.shotPublic) return { error:"aim_first" };
+      if(!R.shot && !R.shotFixed) return { error:"aim_first" };
+      /* the whole of a Duel: from here the named person answers alone */
+      if(R.mod === "U") R.only = R.shot;
     }
     R.acc = 0; R.startedAt = Date.now();
     S.screen = "table"; room.phase = "table";
@@ -1055,6 +1068,8 @@ function applyAction(room, me, body, ctx){
     if(blind){ if(!isGiver) return { error:"not_your_turn" }; }
     else {
       if(isGiver) return { error:"not_your_turn" };
+      /* a Duel is one name against another: everybody else is watching */
+      if(R.only && !owns(room, me.id, R.only)) return { error:"not_your_turn" };
       if(R.lockedOut.indexOf(actingPerson(room, me.id)) >= 0) return { error:"you_are_out" };
     }
     /* first tap wins, and the server is the only clock that counts */
@@ -1088,7 +1103,7 @@ function applyAction(room, me, body, ctx){
     }
     R.lockedOut.push(pid);
     R.judging = null;
-    const alive = S.players.filter(p => p.id !== R.giver && R.lockedOut.indexOf(p.id) < 0);
+    const alive = stillIn(S, R);
     if(!alive.length || e.remainMs() <= 0){
       R.solvedBy = null; e.scoreRound();
       S.screen = "reveal"; room.phase = "reveal";
@@ -1321,6 +1336,15 @@ function decoys(e, R, howMany){
   const bag = e.shuffle(pool);
   while(out.length < howMany && bag.length) out.push(bag.pop());
   return out;
+}
+
+/* Everybody who could still answer. Not the giver, not anybody already locked
+   out — and in a Duel, nobody but the one person named, so a single wrong
+   shout leaves the round with nowhere to go. */
+function stillIn(S, R){
+  return S.players.filter(p => p.id !== R.giver
+    && R.lockedOut.indexOf(p.id) < 0
+    && (!R.only || p.id === R.only));
 }
 
 /* a move is finished: next mover, or the next round, or the end */

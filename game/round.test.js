@@ -1,8 +1,10 @@
-/* Two things a round has to get right about who knows what.
+/* Three things a round has to get right about who may do what.
 
    A Blind round turns the table inside out: the giver becomes the guesser and
    is the only person who never sees the word, so the verdict cannot sit on
-   their phone. And the game is a race — it ends when somebody crosses the
+   their phone. A Duel closes the round down to one name, and everybody else is
+   watching rather than locked out — which matters, because being locked out
+   costs points. And the game is a race: it ends when somebody crosses the
    line, which is not always whoever tops the score column, so the podium has
    to name the one who actually won.
 
@@ -84,7 +86,96 @@ const P = (r, id) => r.players.find(p => p.id === id);
      "the giver could not judge an ordinary round");
 }
 
-/* ---- 2. the podium names whoever won, not whoever counted highest ---- */
+/* ---- 2. a Duel: one name against another, and the rest watching ---- */
+/* Put the giver's unit on a Duel square and deal again, rather than waiting for
+   the board to hand us one. classic column 0 is S,U,S,F,T,U — row 2 is a U. */
+function duelRound(n){
+  const r = room(n), e = r.engine;
+  for(let i = 0; i < 40; i++){
+    e.S.units.forEach(u => { u.pos = { r:2, c:0 }; });
+    e.S.giverIdx = i;
+    e.newRound();
+    if(e.S.r.mod === "U"){ r.phase = "giver"; return r; }
+  }
+  return null;
+}
+{
+  const r = duelRound(4);
+  ok(!!r, "no Duel round could be dealt from a Duel square");
+  if(r){
+    const e = r.engine, R = e.S.r, g = R.giver;
+    const others = r.players.filter(p => p.id !== g);
+
+    ok(R.shotPublic === true, "a Duel's target is not public");
+    ok(R.shotFixed === false, "a Duel's target was drawn instead of named");
+    ok(R.shot === null, "a Duel came with a target already chosen");
+    ok(play.viewFor(r, others[0].id).shotFixed === false,
+       "the phone was told the target is fixed, so the giver could not re-name");
+
+    /* the giver names one, out loud, and may change their mind until ready */
+    play.applyAction(r, P(r, g), { type:"challenge", k:"open" }, CTX);
+    play.applyAction(r, P(r, g), { type:"pick", i:1 }, CTX);
+    ok(play.applyAction(r, P(r, g), { type:"ready" }, CTX).error === "aim_first",
+       "a Duel started without anybody named");
+    play.applyAction(r, P(r, g), { type:"aim", target:others[0].id }, CTX);
+    ok(play.viewFor(r, others[1].id).partner.id === others[0].id,
+       "the table was not told who was named");
+    ok(!play.applyAction(r, P(r, g), { type:"aim", target:others[1].id }, CTX).error,
+       "the giver could not change who they named");
+    ok(R.shot === others[1].id, "the second naming did not take");
+
+    play.applyAction(r, P(r, g), { type:"ready" }, CTX);
+    const target = others[1], watcher = others[0];
+    ok(R.only === target.id, "the round did not close down to the one name");
+
+    /* the buzzer belongs to the named person and to nobody else */
+    const wv = play.viewFor(r, watcher.id);
+    ok(wv.watching === true, "a watcher was not told they are watching");
+    ok(wv.iAmOut !== true, "a watcher was shown as locked out, which costs points they never lost");
+    ok((wv.duel || {}).id === target.id, "the watcher was not told who is answering");
+    ok(play.viewFor(r, target.id).watching === false, "the named person was told to watch");
+    ok(play.viewFor(r, g).watching === false, "the giver was told to watch");
+
+    ok(play.applyAction(r, watcher, { type:"buzz" }, CTX).error === "not_your_turn",
+       "somebody who was not named answered a Duel");
+    ok(R.lockedOut.length === 0, "watching a Duel put somebody in the locked-out list");
+
+    /* and a wrong shout from the one who was named ends it */
+    play.applyAction(r, target, { type:"buzz" }, CTX);
+    ok(r.phase === "judge", "the named person could not answer");
+    play.applyAction(r, P(r, g), { type:"judge", yes:false }, CTX);
+    ok(r.phase === "reveal", "a wrong shout in a Duel left the round running with nobody to answer");
+    ok(e.S.result.solvedBy === null, "the round was scored as solved");
+    const rows = e.S.result.rows;
+    const lost = rows.filter(x => x.pts < 0);
+    ok(lost.length === 1 && lost[0].id === e.unitOf(target.id).id,
+       "a Duel docked " + lost.length + " units; only the one who shouted should pay");
+  }
+}
+
+/* the giver takes more for calling a Duel than for a secret aim */
+{
+  const r = duelRound(4);
+  if(r){
+    const e = r.engine, R = e.S.r, g = R.giver;
+    const target = r.players.find(p => p.id !== g);
+    play.applyAction(r, P(r, g), { type:"challenge", k:"open" }, CTX);
+    play.applyAction(r, P(r, g), { type:"pick", i:3 }, CTX);
+    play.applyAction(r, P(r, g), { type:"aim", target:target.id }, CTX);
+    play.applyAction(r, P(r, g), { type:"ready" }, CTX);
+    R.acc = Math.round(R.total * 1000 * 0.5); R.startedAt = Date.now();
+    play.applyAction(r, target, { type:"buzz" }, CTX);
+    play.applyAction(r, P(r, g), { type:"judge", yes:true }, CTX);
+    const giverRow = e.S.result.rows.find(x => x.giver);
+    const val = e.S.result.val;
+    ok(giverRow.pts === val + 2,
+       "calling a Duel paid the giver " + giverRow.pts + " on a word worth " + val +
+       "; the band plus two was expected");
+    ok(giverRow.why.some(w => /2/.test(w)), "the reason given does not name the raised bonus");
+  }
+}
+
+/* ---- 3. the podium names whoever won, not whoever counted highest ---- */
 /* Points are steps you spend, but a wrong shout costs points without costing
    ground — so the score column and the finish line disagree about one game in
    five, and the phone crowns the head of that list. */
@@ -124,5 +215,6 @@ const P = (r, id) => r.players.find(p => p.id === id);
 }
 
 console.log(bad.length ? "FAIL (" + bad.length + "):\n" + [...new Set(bad)].join("\n")
-  : "round ok — a blind verdict belongs to the table, and the podium names the winner");
+  : "round ok — a blind verdict belongs to the table, a Duel belongs to one name, "+
+    "and the podium names the winner");
 process.exit(bad.length ? 1 : 0);

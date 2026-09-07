@@ -39,6 +39,7 @@ const L = {
     youout:"אתם בחוץ בסבב הזה", giverwait:"אתם נותנים את הרמז — אין באזר.",
     blind_nobuzz:"{0} מנחש/ת — הבאזר שלהם.", time_up_wait:"הזמן נגמר — הסבב נסגר",
     someone:"{0} לחץ/ה", judging:"{0} בודק/ת את התשובה…", waitjudge:"מחכים לנותן/ת הרמז.",
+    duelwatch:"דו־קרב &mdash; {0} עונה לבד.",
     waitjudge_b:"מחכים לכל השאר.",
     aim_at:"כוונו לאדם אחד", pass_note:"הטלפון נשאר אצלכם — אף אחד אחר לא רואה את המילים.",
     mode_k:"איך משחקים?", mode_solo:"כל אחד לעצמו", mode_teams:"בזוגות",
@@ -111,7 +112,7 @@ const L = {
     lg_step_d:"כל נקודה שצברתם בסבב היא צעד אחד. צעד = שורה אחת קדימה, ואפשר לגלוש מסלול אחד ימינה או שמאלה. אפשר לעצור בכל משבצת שמסומנת — לא חייבים לנצל את כל הצעדים.",
     lg_lane_k:"המסלולים",
     lg_lane_d:"ארבעה מסלולים, כל אחד בצבע שלו, וכל אחד נושא סוג אחר של סבבים.",
-    lg_lane_0:"רגוע — כמעט תמיד סבב רגיל",
+    lg_lane_0:"עדין — דו־קרב, שותפים, מהיר",
     lg_lane_1:"מהיר, מילה אחת — וכאן נמצאים הקלפים",
     lg_lane_2:"כפול, מילה אחת, שותפים",
     lg_lane_3:"פרוע — עיוור, פנטומימה, כפול",
@@ -168,6 +169,7 @@ const L = {
     youout:"You are out for this round", giverwait:"You are giving the clue — no buzzer for you.",
     blind_nobuzz:"{0} is guessing — the buzzer is theirs.", time_up_wait:"Time is up — the round is closing",
     someone:"{0} buzzed", judging:"{0} is checking the answer…", waitjudge:"Waiting for the giver.",
+    duelwatch:"A duel &mdash; {0} answers alone.",
     waitjudge_b:"Waiting for everybody else.",
     aim_at:"Aim at one person", pass_note:"The phone stays with you — nobody else can see these.",
     mode_k:"How are you playing?", mode_solo:"Every player for themselves", mode_teams:"In pairs",
@@ -240,7 +242,7 @@ const L = {
     lg_step_d:"Every point you scored this round is one step. A step is one row forward, and you may drift one lane left or right. Stop on any marked square — you do not have to spend them all.",
     lg_lane_k:"The lanes",
     lg_lane_d:"Four lanes, each its own colour, each carrying a different kind of round.",
-    lg_lane_0:"Calm — almost always an ordinary round",
+    lg_lane_0:"Gentle — duels, partners, fast",
     lg_lane_1:"Fast, one word — and the cards live here",
     lg_lane_2:"Double, one word, partners",
     lg_lane_3:"Wild — blind, mime, double",
@@ -889,7 +891,9 @@ function notes(s){
   if(s.topic) out += '<div class="sentence art">'+topicSvg(s.topicKey, 36)+
     '<span class="mt"><span class="sl">'+t("topic_is")+'</span>'+
     '<span class="sw">'+s.topic+'</span></span></div>';
-  if(s.partner) out += '<div class="sentence"><span class="sl">'+t("partner_k")+'</span><span class="sw">'+esc(s.partner.name)+'</span></div>';
+  if(s.partner) out += '<div class="sentence"><span class="sl">'+
+    (s.mod.key === "U" ? t("duel_is") : t("partner_k"))+'</span>'+
+    '<span class="sw">'+esc(s.partner.name)+'</span></div>';
   if(s.insight) out += '<div class="sentence art">'+cardEmblem("insight", 36)+
     '<span class="mt"><span class="sl">'+t("insight_k")+'</span>'+
     '<span class="sw" style="font-size:17px">'+s.insight.map(esc).join(" · ")+'</span></span></div>';
@@ -966,6 +970,8 @@ function vGiver(s){
   /* step 3 — the word, and who it is aimed at */
   const sec = s.secret || { words:[], pick:null };
   const cold = s.challenge === "cold";
+  /* a Duel's target is public, but it is still the giver's to name */
+  const duel = s.mod.key === "U";
   const aimed = sec.shot;
   const canGo = sec.pick !== null && (aimed || s.partner);
   /* Two decisions, and on a phone you scroll from one to the other: which
@@ -981,8 +987,9 @@ function vGiver(s){
     modBlock(s)+notes(s)+
     wordCards(s, sec.pick, cold)+
     (twoSided ? '</div><div class="pane">' : '')+
-    (s.partner ? '' :
-      '<p class="kicker">'+t("shot_k")+'</p><p class="note">'+t("shot_d")+'</p>'+
+    (s.shotFixed ? '' :
+      '<p class="kicker">'+(duel ? t("duel_k") : t("shot_k"))+'</p>'+
+      '<p class="note">'+(duel ? t("duel_d") : t("shot_d"))+'</p>'+
       '<div class="suslist stagger">'+s.players.filter(p => p.id !== s.you).map(p =>
         '<button class="sus'+(aimed===p.id?" on":"")+'" data-aim="'+p.id+'">'+
         av(p.name, colorOf(p.id), "", p.face)+'<span class="nm">'+esc(p.name)+'</span><span class="dotpick"></span></button>').join("")+'</div>')+
@@ -1039,7 +1046,7 @@ function vTable(s){
       (s.secret.shotName ? '<span class="sr">'+t("shot_k")+': '+esc(s.secret.shotName)+'</span>' : '')+'</div>'
     : "";
 
-  const canBuzz = blind ? s.isGiver : (!s.isGiver && !s.iAmOut && left > 0);
+  const canBuzz = blind ? s.isGiver : (!s.isGiver && !s.iAmOut && !s.watching && left > 0);
   /* The box that stands in for the buzzer has to say why it is not one. It
      used to fall through to the buzzer's own label, so a phone that simply
      ran out of clock got a dead grey panel reading "I have it!" — which is
@@ -1050,6 +1057,7 @@ function vTable(s){
       ? (s.isGiver ? t("buzznow") : t("blind_nobuzz", esc(s.giverName)))
       : s.isGiver  ? t("giverwait")
       : s.iAmOut   ? t("youout")
+      : s.watching ? t("duelwatch", esc((s.duel || {}).name || ""))
       : t("time_up_wait");
 
   h('<div class="stack grow">'+offBox()+topbar(s)+

@@ -43,12 +43,27 @@ ok(S.units.every(u => u.members.length === 3), "each unit holds its whole group"
 ok(S.units.map(u => u.name).join() === "Frogs,Squids,Ants", "units carry the group names");
 ok(S.mode === "solo", "the engine stays in solo, so the aim is secret and chosen");
 
-/* the board is a race between units, not between heads */
+/* The board is a race between units, not between heads — but a unit with
+   three people behind it has three chances at the word and gives just as
+   often, so it is the three-unit board lengthened for the crowd, and nothing
+   like the board nine separate players would get. */
 const solo = tableOfThrees("solo");
 solo.people = solo.people.filter(p => p.id === p.phoneId);       /* one each */
 play.startGame(solo, {});
-ok(room.engine.ROWS() === solo.engine.ROWS(),
-   "three groups run the three-unit board, not the nine-player one");
+const nine = { code:"N", lang:"en", hostId:"q0", phase:"lobby", lanUrl:"x", mapId:"classic",
+               seating:"solo", players:[], people:[] };
+for(let i = 0; i < 9; i++){
+  nine.players.push({ id:"q"+i, name:"N"+i, online:true, face:"f"+i });
+  play.addPerson(nine, "q"+i, "N"+i, "f"+i);
+}
+play.startGame(nine, {});
+ok(room.engine.ROWS() > nine.engine.ROWS(),
+   "three groups ran the nine-player board (" + room.engine.ROWS() + " rows), not a three-unit one");
+ok(room.engine.ROWS() >= solo.engine.ROWS(),
+   "three groups ran a shorter board than three lone players, though each group has three at it");
+ok(room.engine.ROWS() - solo.engine.ROWS() <= 4,
+   "the crowd allowance ran away with the board: " +
+   (room.engine.ROWS() - solo.engine.ROWS()) + " rows over the three-unit board");
 
 /* the giving turn goes round the groups, not down the roster */
 const unitOfPerson = id => S.units.find(u => u.members.indexOf(id) >= 0).name;
