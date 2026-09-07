@@ -460,25 +460,36 @@ function createEngine(){
      Five boards. Each one keeps the same 4-column, "step up or drift a lane"
      shape as the original, but carries its own mod-type cycle (the grid the
      original TYPE_PATTERN was), its own card-square rule, its own row-count
-     nudge, and a themeId the client repaints the board with. "classic" is
-     byte-for-byte the board this game always had, so mapId "classic" with
-     modeId "regular" reproduces today's game exactly. */
+     nudge, and a themeId the client repaints the board with.
+
+     Column 0 is the lane a player hugs when they want a quiet round, and the
+     sweep says they hug it hard — over half of every round played came out
+     Standard while Mime sat at 3%. So the quiet lane is no longer empty. It
+     carries Partners and Fast, and none of Double, Mime or Blind: quiet has to
+     mean a round that cannot punish you, and Double is not gentle — it doubles
+     what a wrong shout costs as surely as it doubles the word. That holds on
+     every map but chaos, which is named for what it is. Left is calm, right is
+     where the awkward rounds live, and now the calm side still has something
+     happening on it. Sprint was the worst board of the five at three rounds in
+     four plain, being six Standards in a single column; it keeps its own
+     promise instead, which is that a short board never asks anyone to mime or
+     to play blind. */
   const MAPS = {
    classic:{ id:"classic", themeId:"classic", rowsDelta:0,
-     pattern:{ 0:["S","S","T","S","S","S"], 1:["S","F","S","O","S","F"],
-               2:["O","D","S","T","D","S"], 3:["B","M","D","B","M","B"] },
+     pattern:{ 0:["S","T","S","F","T","S"], 1:["S","F","T","O","S","F"],
+               2:["O","D","S","T","D","O"], 3:["B","M","D","B","M","B"] },
      cardRule:{ col:1, every:3 }, wildRule:{ col:3, every:5 } },
    twist:{ id:"twist", themeId:"twist", rowsDelta:0,
-     pattern:{ 0:["S","S","S","T","S","S"], 1:["F","S","O","S","F","T"],
-               2:["S","D","T","D","S","O"], 3:["M","B","B","D","M","B"] },
+     pattern:{ 0:["S","F","S","T","S","F"], 1:["F","S","O","S","F","T"],
+               2:["S","D","T","D","O","O"], 3:["M","B","B","D","M","B"] },
      cardRule:{ col:2, every:4 }, wildRule:{ col:0, every:5 } },
    storm:{ id:"storm", themeId:"storm", rowsDelta:2,
      pattern:{ 0:["S","T","S","S","T","S"], 1:["F","O","F","D","O","F"],
                2:["D","B","T","B","D","B"], 3:["M","B","M","B","M","D"] },
      cardRule:{ col:1, every:4 }, wildRule:{ col:2, every:4 } },
    sprint:{ id:"sprint", themeId:"sprint", rowsDelta:-3,
-     pattern:{ 0:["S","S","S","S","S","S"], 1:["S","F","S","F","S","T"],
-               2:["F","S","D","S","F","O"], 3:["O","T","S","D","O","S"] },
+     pattern:{ 0:["S","F","S","T","S","T"], 1:["S","F","T","F","D","T"],
+               2:["F","D","D","S","F","O"], 3:["O","T","D","D","O","F"] },
      cardRule:{ col:0, every:3 }, wildRule:{ col:3, every:4 } },
    chaos:{ id:"chaos", themeId:"chaos", rowsDelta:0,
      pattern:{ 0:["S","T","D","S","T","S"], 1:["O","D","T","F","D","O"],
@@ -509,7 +520,16 @@ function createEngine(){
   function ROWS(){ return (S && S.rows) || 16; }
   /* the map's raw pattern, nudged by the mode's weight table. "regular" has
      no modWeights at all, so it always hands back the map's pattern as-is —
-     no randomness, no regression risk, whatever mapId ends up in play. */
+     no randomness, no regression risk, whatever mapId ends up in play.
+
+     Every cell is re-rolled, Standard included. It used to skip them — a
+     `cell === "S" ||` short-circuited before the draw — which quietly made
+     Standard an absorbing state: a variant square could decay into a plain
+     one and no plain one could ever become interesting. Quick and Slow bled
+     about a fifth of their variant squares that way, every game, and half of
+     every round played came out Standard. A mode's weights are a target share
+     now rather than a one-way drain, so a mode with harsh taste can reach into
+     the quiet lanes — which is the whole of what Challenge is for. */
   function buildPattern(map, modeId){
     const mode = MODES[modeId] || MODES.regular;
     const base = map.pattern;
@@ -523,7 +543,7 @@ function createEngine(){
     };
     const out = {};
     Object.keys(base).forEach(c => {
-      out[c] = base[c].map(cell => (cell === "S" || Math.random() >= mode.reweighChance) ? cell : weighted());
+      out[c] = base[c].map(cell => (Math.random() >= mode.reweighChance) ? cell : weighted());
     });
     return out;
   }
@@ -536,8 +556,25 @@ function createEngine(){
     S.cardRule = map.cardRule;
     S.wildRule = map.wildRule;
   }
+  /* The start line is not a square on the board — it is where a unit waits
+     until it has scored something, so it is the most-played ground in the
+     game: a quarter of every round is given from row 0. And 54% of units go
+     four rounds or more without scoring, which means the people meeting the
+     same plain round again and again are precisely the ones already losing.
+     So it rotates — by round number, so the whole table is standing on the
+     same one and it can be said out loud. Standard, Partners, Fast, and back.
+     Double is deliberately not among them: the start line is the one place a
+     player is stuck without having chosen it, and a mod that doubles the cost
+     of a wrong shout is the last thing to hand somebody who is already behind.
+     Putting it here cost 2 points on the share of players who finish a game
+     having scored nothing at all. Round zero is Standard, which keeps a
+     table's first round the simple on-ramp it ought to be. Past the finish
+     stays Standard: that unit has won and is not giving again. Row 0 is not
+     part of boardLayout(), which starts at 1, so nothing here disturbs the
+     board cache. */
+  const START_LANE = ["S","T","F"];
   function nodeTypeAt(r,c){
-    if(r <= 0) return "S";
+    if(r <= 0) return START_LANE[((S && S.round) || 0) % START_LANE.length];
     if(r > ROWS()) return "S";
     const pattern = (S && S.pattern) || MAPS.classic.pattern;
     const col = pattern[c] || MAPS.classic.pattern[c];
