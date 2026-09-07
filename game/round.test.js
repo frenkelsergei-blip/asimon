@@ -175,7 +175,152 @@ function duelRound(n){
   }
 }
 
-/* ---- 3. the podium names whoever won, not whoever counted highest ---- */
+/* ---- 3. Two words: one sentence for both, and each pays whoever said it ---- */
+/* classic column 0 is S,U,W,F,T,U — row 3 is the Two words square. */
+function twoRound(n){
+  const r = room(n), e = r.engine;
+  for(let i = 0; i < 40; i++){
+    e.S.units.forEach(u => { u.pos = { r:3, c:0 }; });
+    e.S.giverIdx = i;
+    e.newRound();
+    if(e.S.r.mod === "W"){ r.phase = "giver"; return r; }
+  }
+  return null;
+}
+function openTwo(r, aimAt){
+  const e = r.engine, R = e.S.r, g = R.giver;
+  play.applyAction(r, P(r, g), { type:"challenge", k:"open" }, CTX);
+  return { e, R, g };
+}
+{
+  const r = twoRound(4);
+  ok(!!r, "no Two words round could be dealt from a Two words square");
+  if(r){
+    const { e, R, g } = openTwo(r);
+    const others = r.players.filter(p => p.id !== g);
+
+    /* each word is worth a point less than it would be on its own */
+    const plain = room(4);
+    ok(e.wordValue(R, R.words[3]) === R.words[3].value - 1,
+       "a Two words word was not discounted: " + e.wordValue(R, R.words[3]) +
+       " against " + R.words[3].value);
+
+    /* two taps, and the dearer of them leads whatever order they came in */
+    play.applyAction(r, P(r, g), { type:"pick", i:0 }, CTX);
+    ok(play.applyAction(r, P(r, g), { type:"aim", target:others[0].id }, CTX) &&
+       play.applyAction(r, P(r, g), { type:"ready" }, CTX).error === "pick_first",
+       "a Two words round started on one word");
+    play.applyAction(r, P(r, g), { type:"pick", i:3 }, CTX);
+    ok(R.pick === 3 && R.pick2 === 0,
+       "the dearer word did not lead: pick=" + R.pick + " pick2=" + R.pick2);
+
+    /* tapping again takes it back */
+    play.applyAction(r, P(r, g), { type:"pick", i:0 }, CTX);
+    ok(R.pick === 3 && R.pick2 === null, "a second tap did not put the word back");
+    play.applyAction(r, P(r, g), { type:"pick", i:1 }, CTX);
+    ok(R.pick === 3 && R.pick2 === 1, "the round did not come back to two words");
+
+    /* the giver holds both; the table holds neither */
+    const gv = play.viewFor(r, g);
+    ok(gv.secret.pick === 3 && gv.secret.pick2 === 1, "the giver was not sent both words");
+    ok(!play.viewFor(r, others[0].id).secret, "LEAK: a guesser was sent the words");
+
+    play.applyAction(r, P(r, g), { type:"ready" }, CTX);
+    const dear = R.words[3].text, cheap = R.words[1].text;
+
+    /* the first word lands, and the round keeps running for the other */
+    R.acc = Math.round(R.total * 1000 * 0.3); R.startedAt = Date.now();
+    play.applyAction(r, others[0], { type:"buzz" }, CTX);
+    play.applyAction(r, P(r, g), { type:"judge", word:3 }, CTX);
+    ok(r.phase === "table", "the round ended on the first of two words");
+    ok(R.found.length === 1, "the first word was not recorded");
+
+    /* it is public now, and the one still out is not */
+    const tv = play.viewFor(r, others[1].id);
+    ok(tv.two && tv.two.found.length === 1 && tv.two.found[0].text === dear,
+       "the table was not told which word had been said");
+    ok(JSON.stringify(tv).indexOf(cheap) < 0,
+       "LEAK: the word still out there reached a guesser's phone");
+
+    /* and the second ends it */
+    R.acc = Math.round(R.total * 1000 * 0.8); R.startedAt = Date.now();
+    play.applyAction(r, others[1], { type:"buzz" }, CTX);
+    play.applyAction(r, P(r, g), { type:"judge", word:1 }, CTX);
+    ok(r.phase === "reveal", "the round did not end once both words were found");
+
+    const res = e.S.result;
+    ok(res.pair && res.pair.length === 2, "the result did not carry both words");
+    const rows = res.rows;
+    const first = rows.find(x => x.id === e.unitOf(others[0].id).id);
+    const second = rows.find(x => x.id === e.unitOf(others[1].id).id);
+    ok(first.pts === e.wordValue(R, R.words[3]),
+       "the first finder took " + first.pts + " for a word worth " + e.wordValue(R, R.words[3]));
+    ok(second.pts === e.wordValue(R, R.words[1]),
+       "the second finder took " + second.pts);
+    /* the giver is paid on the second landing, which was late */
+    const giverRow = rows.find(x => x.giver);
+    ok(giverRow.pts >= e.wordValue(R, R.words[1]) + 1,
+       "the giver took " + giverRow.pts + "; a late second landing should pay the band plus one");
+  }
+}
+
+/* half the job done pays the giver the least, and Cold deals two */
+{
+  const r = twoRound(4);
+  if(r){
+    const { e, R, g } = openTwo(r);
+    const other = r.players.find(p => p.id !== g);
+    play.applyAction(r, P(r, g), { type:"pick", i:3 }, CTX);
+    play.applyAction(r, P(r, g), { type:"pick", i:0 }, CTX);
+    play.applyAction(r, P(r, g), { type:"aim", target:other.id }, CTX);
+    play.applyAction(r, P(r, g), { type:"ready" }, CTX);
+    R.acc = Math.round(R.total * 1000 * 0.9); R.startedAt = Date.now();
+    play.applyAction(r, other, { type:"buzz" }, CTX);
+    play.applyAction(r, P(r, g), { type:"judge", word:R.pick }, CTX);
+    play.applyAction(r, P(r, g), { type:"nobody" }, CTX);
+    ok(r.phase === "reveal", "the round did not end when the table gave up");
+    const giverRow = e.S.result.rows.find(x => x.giver);
+    /* one for half the job done, and one for having called who would get it */
+    ok(giverRow.pts === 2,
+       "one word of two paid the giver " + giverRow.pts +
+       "; one for half the job and one for the aim was expected");
+    ok(giverRow.why.some(w => /half/i.test(w)), "the reason does not say half the job was done");
+  }
+}
+{
+  const r = twoRound(4);
+  if(r){
+    const e = r.engine, R = e.S.r, g = R.giver;
+    play.applyAction(r, P(r, g), { type:"challenge", k:"cold" }, CTX);
+    ok(R.words.length === 2, "Cold dealt " + R.words.length + " words to a Two words round");
+    ok(R.pick === 0 && R.pick2 === 1, "the two cold words were not both taken");
+    ok(R.words[0].value >= R.words[1].value, "the dearer cold word does not lead");
+    const other = r.players.find(p => p.id !== g);
+    play.applyAction(r, P(r, g), { type:"aim", target:other.id }, CTX);
+    ok(!play.applyAction(r, P(r, g), { type:"ready" }, CTX).error,
+       "a Cold Two words round could not start");
+  }
+}
+
+/* a wrong shout costs the shouter both words */
+{
+  const r = twoRound(4);
+  if(r){
+    const { e, R, g } = openTwo(r);
+    const others = r.players.filter(p => p.id !== g);
+    play.applyAction(r, P(r, g), { type:"pick", i:3 }, CTX);
+    play.applyAction(r, P(r, g), { type:"pick", i:0 }, CTX);
+    play.applyAction(r, P(r, g), { type:"aim", target:others[0].id }, CTX);
+    play.applyAction(r, P(r, g), { type:"ready" }, CTX);
+    play.applyAction(r, others[0], { type:"buzz" }, CTX);
+    play.applyAction(r, P(r, g), { type:"judge", word:-1 }, CTX);
+    ok(R.lockedOut.indexOf(others[0].id) >= 0, "a wrong shout did not lock the shouter out");
+    ok(play.applyAction(r, others[0], { type:"buzz" }, CTX).error === "you_are_out",
+       "somebody locked out of one word could still answer the other");
+  }
+}
+
+/* ---- 4. the podium names whoever won, not whoever counted highest ---- */
 /* Points are steps you spend, but a wrong shout costs points without costing
    ground — so the score column and the finish line disagree about one game in
    five, and the phone crowns the head of that list. */
@@ -216,5 +361,5 @@ function duelRound(n){
 
 console.log(bad.length ? "FAIL (" + bad.length + "):\n" + [...new Set(bad)].join("\n")
   : "round ok — a blind verdict belongs to the table, a Duel belongs to one name, "+
-    "and the podium names the winner");
+    "Two words pays each of them, and the podium names the winner");
 process.exit(bad.length ? 1 : 0);

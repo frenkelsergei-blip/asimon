@@ -42,7 +42,7 @@ const MODEL = {
      1 up to 4 — the bank's four tiers, priced a notch below their tier. */
   solveByValue: { 1:0.94, 2:0.87, 3:0.75, 4:0.62 },
   /* ...nudged by the square the giver was standing on */
-  solveByMod: { S:1, F:0.90, O:0.84, M:0.80, D:1, T:1, U:0.95, B:0.78 },
+  solveByMod: { S:1, F:0.90, O:0.84, M:0.80, D:1, T:1, U:0.95, W:0.88, B:0.78 },
   /* ...and by how much help the giver asked for */
   solveByChallenge: { topic:1.12, open:1, cold:0.95 },
   /* more heads guessing, more chance one of them lands it */
@@ -155,6 +155,7 @@ function playOne(cfg){
     /* ---- the giver's phone ---- */
     if(room.phase === "giver"){
       g.rounds++; g.seconds += SECONDS.giver;
+      g.spent = 0;                 /* seconds of this round's clock already counted */
       count(g.mods, R.mod);
       g.perUnit[e.unitOf(R.giver).id].gave++;
       R.words.forEach(w => { if(g.words.indexOf(w.text) >= 0) g.repeats++; else g.words.push(w.text); });
@@ -177,6 +178,11 @@ function playOne(cfg){
                    : how === "safe"   ? Math.min(...vals)
                    : vals.slice().sort((a,b)=>a-b)[Math.floor(vals.length/2)];
         act(R.giver, { type:"pick", i: R.words.findIndex(w => w.value === want) });
+        if(R.mod === "W"){
+          /* a second word, whichever the first one was not */
+          const other = R.words.findIndex((w, i) => i !== R.pick);
+          if(other >= 0) act(R.giver, { type:"pick", i: other });
+        }
       }
       if(!R.shotFixed){
         const mine = e.unitOf(R.giver).members;
@@ -214,16 +220,19 @@ function playOne(cfg){
         if(!holdable.length) return;
         const key = pick(holdable);
         const before = e.remainMs();
+        const fracBefore = e.elapsedMs() / (R.total * 1000);
         const res = act(u.members[0] === R.giver || !isGiverUnit ? u.members[0] : R.giver, { type:"playcard", key });
         if(res && res.ok){
           count(g.cardsPlayed, key);
           g.perUnit[u.id].played++;
           if(key === "stopwatch" && before > 30000){
             g.stopwatchPlays++;
-            /* the card used to jump the elapsed clock, which parked every
-               second that remained inside the giver's top band before the
-               table had said a word */
-            if(e.elapsedMs() / (R.total * 1000) > 0.70) g.stopwatchLateBand++;
+            /* What is measured is the card's own doing: whether playing it
+               PUSHED the round into the giver's top band. A round already
+               past that line when the card came down was not put there by
+               the card, and the card now declines to act on one. */
+            if(e.elapsedMs() / (R.total * 1000) > 0.70 && fracBefore <= 0.70)
+              g.stopwatchLateBand++;
           }
           if(key === "insight" && R.words.length === 1) g.insightOnCold++;
         }
@@ -305,21 +314,35 @@ function playOne(cfg){
         R.acc = Math.round(f * R.total * 1000); R.startedAt = Date.now();
         if(e.remainMs() <= 0){ R.acc = R.total * 1000 - 500; }
         const who = pick(solverAlive).id;
-        g.seconds += Math.round(e.elapsedMs() / 1000);
+        /* Two words comes back to the table for the second one, and it is the
+           same clock — only the part of it that had not been counted yet. */
+        const spentNow = e.elapsedMs() / 1000;
+        g.seconds += Math.round(Math.max(0, spentNow - (g.spent || 0)));
+        g.spent = spentNow;
         act(who, { type:"buzz" });
         if(room.phase === "judge"){
           g.seconds += SECONDS.judge;
           /* blind puts the verdict on a phone that can see the word */
           const verdict = blind
             ? pick(S.players.filter(p => phoneOf(p.id) !== giverPhone)).id : R.giver;
-          act(verdict, { type:"judge", yes:true });
+          if(R.mod === "W"){
+            /* name whichever of the two is still out there */
+            const out = [R.pick, R.pick2].filter(i =>
+              i !== null && !R.found.some(f => f.pick === i));
+            act(verdict, { type:"judge", word: out.length ? out[0] : -1 });
+          } else {
+            act(verdict, { type:"judge", yes:true });
+          }
           g.perUnit[e.unitOf(who).id].solved++;
-          g.solved++; g.buzzes++;
-          count(g.bands, f <= 0.25 ? "early" : f <= 0.70 ? "mid" : "late");
+          g.buzzes++;
+          if(room.phase === "reveal"){
+            g.solved++;
+            count(g.bands, f <= 0.25 ? "early" : f <= 0.70 ? "mid" : "late");
+          }
         }
       } else {
         g.unsolved++;
-        g.seconds += R.total;
+        g.seconds += Math.max(0, R.total - (g.spent || 0));
         R.acc = R.total * 1000; R.startedAt = null;
         act(R.giver, { type:"nobody" });
       }
@@ -525,9 +548,9 @@ const stepHist = merge(runs, g => g.stepHist);
 const topicsSeen = merge(runs, g => g.topics);
 const ALL_TOPICS = Object.keys(SAMPLE.packs().TOPICS);
 const ALL_CARDS = Object.keys(SAMPLE.packs().CARDS);
-const ALL_MODS = ["S","F","O","M","B","D","T","U"];
+const ALL_MODS = ["S","F","O","M","B","D","T","U","W"];
 const MOD_NAME = { S:"Standard", F:"Fast", O:"One word", M:"Mime", B:"Blind",
-                   D:"Double", T:"Partners", U:"Duel" };
+                   D:"Double", T:"Partners", U:"Duel", W:"Two words" };
 
 /* ---- json for anything downstream ---- */
 if(has("json")){

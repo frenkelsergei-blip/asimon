@@ -897,6 +897,15 @@ function notes(s){
   if(s.insight) out += '<div class="sentence art">'+cardEmblem("insight", 36)+
     '<span class="mt"><span class="sl">'+t("insight_k")+'</span>'+
     '<span class="sw" style="font-size:17px">'+s.insight.map(esc).join(" · ")+'</span></span></div>';
+  if(s.two){
+    (s.two.found || []).forEach(f => {
+      out += '<div class="sentence"><span class="sl">'+t("got_tag")+'</span>'+
+        '<span class="sw">'+esc(f.text)+'</span>'+
+        '<span class="sr">'+esc(f.name)+'</span></div>';
+    });
+    if((s.two.found || []).length < s.two.need)
+      out += '<div class="mod"><span class="mt"><span class="sl">'+t("two_left")+'</span></span></div>';
+  }
   if(s.veto)     out += '<div class="mod art">'+cardEmblem("veto", 36)+
     '<span class="mt"><span class="sl">'+t("veto_k")+'</span><span class="sr">'+t("veto_d")+'</span></span></div>';
   if(s.mimeCard) out += '<div class="mod art">'+cardEmblem("mime", 36)+
@@ -914,8 +923,11 @@ function valuePip(fill){
     'transform="rotate(-30 20 20)"/></svg>'+'</i>';
 }
 function wordCards(s, sel, disabled){
+  /* Two words rounds carry a second choice, and both wear the same mark —
+     which of them leads is the engine's business, not a matter of tap order. */
+  const also = s.secret ? s.secret.pick2 : null;
   return '<div class="cardgrid stagger">'+s.secret.words.map((w,i) => {
-    const on = sel === i;
+    const on = sel === i || (also !== null && also !== undefined && also === i);
     const tint = VAL_TINT[Math.min(5, Math.max(1, w.value))] || VAL_TINT[5];
     return '<button class="wordcard'+(on?" on":"")+'" data-w="'+i+'"'+(disabled?" disabled":"")+'>'+
       '<span class="wt">'+esc(w.text)+'</span>'+
@@ -973,7 +985,9 @@ function vGiver(s){
   /* a Duel's target is public, but it is still the giver's to name */
   const duel = s.mod.key === "U";
   const aimed = sec.shot;
-  const canGo = sec.pick !== null && (aimed || s.partner);
+  const two = s.mod.key === "W";
+  const canGo = sec.pick !== null && (!two || (sec.pick2 !== null && sec.pick2 !== undefined))
+                && (aimed || s.partner);
   /* Two decisions, and on a phone you scroll from one to the other: which
      word, and who to aim it at. Lying down there is room to hold both at
      once, so they are named as halves — but only when there really are two.
@@ -982,8 +996,8 @@ function vGiver(s){
   const twoSided = !s.partner;
   h('<div class="stack grow'+(twoSided ? " split" : "")+'">'+topbar(s)+
     (twoSided ? '<div class="pane">' : '')+
-    '<h2>'+(cold ? t("cold_k") : t("pick_word"))+'</h2>'+
-    '<p class="note">'+(cold ? t("cold_d") : t("pick_word_d"))+'</p>'+
+    '<h2>'+(cold ? t("cold_k") : two ? t("two_k") : t("pick_word"))+'</h2>'+
+    '<p class="note">'+(cold ? t("cold_d") : two ? t("two_d") : t("pick_word_d"))+'</p>'+
     modBlock(s)+notes(s)+
     wordCards(s, sec.pick, cold)+
     (twoSided ? '</div><div class="pane">' : '')+
@@ -1041,8 +1055,18 @@ function vTable(s){
                : (mimed ? t("hear_it_mime_d") : s.mod.key === "O" ? t("hear_it_one_d") : t("hear_it_d"));
 
   const mine = s.secret && s.secret.pick !== null && s.secret.words[s.secret.pick];
+  const gotAlready = ((s.two && s.two.found) || []).map(f => f.text);
+  const held = (s.isGiver && s.secret)
+    ? [s.secret.pick, s.secret.pick2]
+        .filter(i => i !== null && i !== undefined)
+        .map(i => s.secret.words[i]).filter(Boolean)
+    : [];
   const yourWord = (s.isGiver && mine)
-    ? '<div class="sentence"><span class="sl">'+t("yourword")+'</span><span class="sw">'+esc(mine.text)+'</span>'+
+    ? '<div class="sentence"><span class="sl">'+t("yourword")+'</span>'+
+      '<span class="sw">'+held.map(w =>
+        gotAlready.indexOf(w.text) >= 0
+          ? '<s style="opacity:.45">'+esc(w.text)+'</s>'
+          : esc(w.text)).join(' <span style="opacity:.4">·</span> ')+'</span>'+
       (s.secret.shotName ? '<span class="sr">'+t("shot_k")+': '+esc(s.secret.shotName)+'</span>' : '')+'</div>'
     : "";
 
@@ -1241,16 +1265,33 @@ function vJudge(s){
     wireSkip();
     return;
   }
+  /* Two words asks which, not whether. The giver is the only phone holding
+     both of them, so the buttons can carry the words themselves. */
+  const two = s.mod.key === "W" && s.secret;
+  const gone = ((s.two && s.two.found) || []).map(f => f.text);
+  const stillOut = !two ? [] : [s.secret.pick, s.secret.pick2]
+    .filter(i => i !== null && i !== undefined)
+    .map(i => ({ i, w:s.secret.words[i] }))
+    .filter(x => x.w && gone.indexOf(x.w.text) < 0);
+
   /* who buzzed and what you have to decide about them, and the deciding */
   h('<div class="stack grow split">'+topbar(s)+
     '<div class="pane">'+
     '<div class="panel center grow" style="justify-content:center">'+
     (s.judging ? pav(s.judging.id) : "")+
-    '<h2>'+t("judge_q", esc(who))+'</h2></div>'+
+    '<h2>'+(two ? t("judge_which", esc(who)) : t("judge_q", esc(who)))+'</h2></div>'+
     '</div><div class="pane">'+errBox()+
-    '<button class="good" id="yes">'+t("judge_yes")+'</button>'+
-    '<button class="quiet" id="no">'+t("judge_no")+'</button>'+
+    (two
+      ? stillOut.map(x => '<button class="good" data-said="'+x.i+'">'+esc(x.w.text)+'</button>').join("")+
+        '<button class="quiet" id="no">'+t("judge_neither")+'</button>'
+      : '<button class="good" id="yes">'+t("judge_yes")+'</button>'+
+        '<button class="quiet" id="no">'+t("judge_no")+'</button>')+
     '</div></div>');
+  if(two){
+    each("[data-said]", b => b.onclick = () => act({ type:"judge", word:Number(b.dataset.said) }));
+    on("no", () => act({ type:"judge", word:-1 }));
+    return;
+  }
   on("yes", () => act({ type:"judge", yes:true }));
   on("no",  () => act({ type:"judge", yes:false }));
 }
@@ -1273,7 +1314,9 @@ function vReveal(s){
     '<p class="kicker">'+t("solved_k", s.round)+'</p>'+
     '<div><div class="hero '+(solved?"good":"none")+'">'+watermark(s.topicKey, 132)+
     '<p class="kicker">'+t("the_word")+'</p>'+
-    '<div class="bigword">'+esc(r.word)+'</div>'+
+    '<div class="bigword">'+(r.pair
+      ? r.pair.map(w => esc(w.text)).join('<span style="opacity:.35"> · </span>')
+      : esc(r.word))+'</div>'+
     '<div class="herorow">'+
       (solved
         ? '<span class="hw">'+(function(){ const wu = s.units.find(x => x.id === winnerUnit);

@@ -88,7 +88,8 @@ function createEngine(){
    B:{n:"Blind",    s:"BLIND", d:"Everything turns around. The giver becomes the guesser, everybody else sees the word, and you each give one word until they crack it."},
    D:{n:"Double",   s:"\u00d72", d:"Every word is worth double this round. A wrong buzz costs 2."},
    T:{n:"Partners", s:"PAIR", d:"The game draws the giver a partner. If that partner gets it, they both score."},
-   U:{n:"Duel",     s:"DUEL", d:"The giver names one person out loud, and only that person may answer. Everybody else watches. One shout, right or wrong, and the round is over."}
+   U:{n:"Duel",     s:"DUEL", d:"The giver names one person out loud, and only that person may answer. Everybody else watches. One shout, right or wrong, and the round is over."},
+   W:{n:"Two words", s:"TWO", d:"The giver holds two words and gets one sentence for both. Each is worth a point less, and the round runs until both are found or the clock stops. Whoever says one takes it."}
   };
   const HE_MODS = {
    S:{n:"רגיל",     s:"", d:"תשעים שניות. משפט אחד, נאמר פעם אחת."},
@@ -98,7 +99,8 @@ function createEngine(){
    B:{n:"עיוור",    s:"עיוור", d:"הכול מתהפך. הנותן הופך למנחש, כל השאר רואים את המילה, וכל אחד אומר מילה אחת עד שהוא קולט."},
    D:{n:"כפול",     s:"\u00d72", d:"כל מילה שווה כפול בסבב הזה. באזה שגוי עולה 2."},
    T:{n:"שותפים",   s:"זוג", d:"המשחק מגריל לנותן שותף. אם השותף קולט — שניהם מקבלים."},
-   U:{n:"דו־קרב",   s:"קרב", d:"הנותן בוחר אדם אחד בקול, ורק הוא יכול לענות. כל השאר מסתכלים. צעקה אחת, נכונה או לא, והסבב נגמר."}
+   U:{n:"דו־קרב",   s:"קרב", d:"הנותן בוחר אדם אחד בקול, ורק הוא יכול לענות. כל השאר מסתכלים. צעקה אחת, נכונה או לא, והסבב נגמר."},
+   W:{n:"שתי מילים", s:"שתיים", d:"הנותן מחזיק שתי מילים ומקבל משפט אחד לשתיהן. כל אחת שווה נקודה פחות, והסבב רץ עד ששתיהן נמצאו או שהשעון נגמר. מי שאומר מילה לוקח אותה."}
   };
 
   /* ============ game modes ============
@@ -110,7 +112,7 @@ function createEngine(){
      engine played before modes existed at all. That is the safety net. */
   const MODES = {
    quick:    { id:"quick",     timer:{ normal:60,  fast:30 }, rowsDelta:-3,
-               reweighChance:0.35, modWeights:{ S:6, F:3, O:1, D:1, T:1, U:2, M:0, B:0 }, win:"first" },
+               reweighChance:0.35, modWeights:{ S:6, F:3, O:1, D:1, T:1, U:2, W:2, M:0, B:0 }, win:"first" },
    regular:  { id:"regular",   timer:{ normal:90,  fast:45 }, rowsDelta:0,
                reweighChance:0,    modWeights:null, win:"first" },
    /* Slow is the long clock and nothing else. Two minutes a round is already
@@ -118,9 +120,9 @@ function createEngine(){
       games past forty minutes — first at four rows, then again at one once
       Duel started leaving more rounds unanswered. */
    slow:     { id:"slow",      timer:{ normal:120, fast:60 }, rowsDelta:0,
-               reweighChance:0.35, modWeights:{ S:6, F:1, O:1, D:1, T:1, U:2, M:0, B:0 }, win:"first" },
+               reweighChance:0.35, modWeights:{ S:6, F:1, O:1, D:1, T:1, U:2, W:2, M:0, B:0 }, win:"first" },
    challenge:{ id:"challenge", timer:{ normal:75,  fast:35 }, rowsDelta:0,
-               reweighChance:0.5,  modWeights:{ S:1, F:1, O:3, M:3, B:3, D:2, T:1, U:2 }, win:"score", scoreTarget:20 }
+               reweighChance:0.5,  modWeights:{ S:1, F:1, O:3, M:3, B:3, D:2, T:1, U:2, W:2 }, win:"score", scoreTarget:20 }
   };
 
   /* ============ interface strings ============ */
@@ -151,6 +153,9 @@ function createEngine(){
    shot_k:"Aim at one person", shot_d:"Secretly. If they are the one who gets it, you take one more.",
    duel_k:"Name your opponent", duel_d:"Out loud, and the whole table hears it. Only they may answer &mdash; and one shout, right or wrong, ends the round.",
    duel_is:"Answering alone",
+   two_k:"Pick two words", two_d:"One sentence for both of them, and each is worth a point less. Tap two &mdash; tap again to change your mind.",
+   two_left:"One still out there", two_got:"{0} said {1}",
+   judge_which:"Which one did {0} say?", judge_neither:"Neither of them",
    partner_k:"Your partner this round", partner_d:"If they get it, you both score. The other side can still steal it.",
    ready:"Ready &mdash; put the phone in the middle",
    table_k:"Round {0}", say_it:"Say your sentence. Once.",
@@ -174,7 +179,7 @@ function createEngine(){
    blind_table_h:"One word each, going round.", blind_table_d:"Each of you says a single word. {0} can shout a guess at any time, as often as they like.",
    blind_got:"{0} got it",
    w_word:"the word +{0}", w_wrong:"wrong shout &minus;{0}", w_early:"solved too fast +1",
-   w_mid:"landed well +{0}", w_late:"landed late +{0}", w_helped:"helped +1", w_shot:"called the shot +{0}", w_partner:"partner got it +{0}", w_double:"doubled to {0}",
+   w_mid:"landed well +{0}", w_late:"landed late +{0}", w_helped:"helped +1", w_half:"half of it +1", w_shot:"called the shot +{0}", w_partner:"partner got it +{0}", w_double:"doubled to {0}",
    w_fast:"read instantly +{0}", w_ok:"got through +{0}", w_slow:"only just +{0}", w_none:"nobody got it",
    board_k:"The board &mdash; {0} rows to the end",
    col_0:"Plain", col_1:"Cards", col_2:"Mixed", col_3:"Wild",
@@ -247,6 +252,9 @@ function createEngine(){
    shot_k:"כוונו לאדם אחד", shot_d:"בסתר. אם דווקא הם יקלטו, אתם לוקחים נקודה נוספת.",
    duel_k:"בחרו יריב", duel_d:"בקול, וכל השולחן שומע. רק הוא יכול לענות &mdash; וצעקה אחת, נכונה או לא, מסיימת את הסבב.",
    duel_is:"עונה לבד",
+   two_k:"בחרו שתי מילים", two_d:"משפט אחד לשתיהן, וכל אחת שווה נקודה פחות. הקישו על שתיים &mdash; והקישו שוב כדי לשנות.",
+   two_left:"אחת עוד בחוץ", two_got:"{0} אמר/ה {1}",
+   judge_which:"איזו מהן {0} אמר/ה?", judge_neither:"אף אחת מהן",
    partner_k:"השותף/ה שלכם בסבב הזה", partner_d:"אם הם יקלטו, שניכם מקבלים. הצד השני עדיין יכול לגנוב.",
    ready:"מוכן &mdash; שימו את הטלפון באמצע",
    table_k:"סבב {0}", say_it:"תגידו את המשפט. פעם אחת.",
@@ -270,7 +278,7 @@ function createEngine(){
    blind_table_h:"מילה אחת מכל אחד, סביב השולחן.", blind_table_d:"כל אחד אומר מילה אחת. {0} יכול/ה לצעוק ניחוש מתי שרוצים, כמה פעמים שרוצים.",
    blind_got:"{0} קלט/ה",
    w_word:"המילה {0}+", w_wrong:"צעקה שגויה {0}&minus;", w_early:"נפתר מהר מדי 1+",
-   w_mid:"נחת יפה {0}+", w_late:"נחת מאוחר {0}+", w_helped:"עזרו 1+", w_shot:"כיוון נכון {0}+", w_partner:"השותף/ה קלט/ה {0}+", w_double:"הוכפל ל&#8209;{0}",
+   w_mid:"נחת יפה {0}+", w_late:"נחת מאוחר {0}+", w_helped:"עזרו 1+", w_half:"חצי מזה 1+", w_shot:"כיוון נכון {0}+", w_partner:"השותף/ה קלט/ה {0}+", w_double:"הוכפל ל&#8209;{0}",
    w_fast:"נקרא מיד {0}+", w_ok:"עבר {0}+", w_slow:"בקושי {0}+", w_none:"אף אחד לא קלט",
    board_k:"הלוח &mdash; {0} שורות לסוף",
    col_0:"רגיל", col_1:"קלפים", col_2:"מעורב", col_3:"פרוע",
@@ -428,7 +436,9 @@ function createEngine(){
   const SHOT_BONUS = 1;
   function shotBonus(R){ return SHOT_BONUS + (R.mod === "U" ? 1 : 0); }
   function valueDelta(R){ return CHALLENGES[R.challenge] !== undefined ? CHALLENGES[R.challenge] : 0; }
-  function wordValue(R, w){ return Math.max(1, w.value + (R.mod === "D" ? 2 : 0) + valueDelta(R)); }
+  function wordValue(R, w){
+    return Math.max(1, w.value + (R.mod === "D" ? 2 : 0) + (R.mod === "W" ? -1 : 0) + valueDelta(R));
+  }
   function dealTopic(key){
     const R = S.r, T0 = TOPICS[key] || {};
     const byTier = {2:[],3:[],4:[],5:[]};
@@ -493,23 +503,26 @@ function createEngine(){
      to play blind. */
   const MAPS = {
    classic:{ id:"classic", themeId:"classic", rowsDelta:0,
-     pattern:{ 0:["S","U","S","F","T","U"], 1:["S","F","T","O","U","F"],
+     pattern:{ 0:["S","U","W","F","T","U"], 1:["S","F","T","W","U","F"],
                2:["O","D","S","T","D","O"], 3:["B","M","D","B","M","B"] },
      cardRule:{ col:1, every:3 }, wildRule:{ col:3, every:5 } },
    twist:{ id:"twist", themeId:"twist", rowsDelta:0,
-     pattern:{ 0:["S","F","U","T","S","U"], 1:["F","U","O","S","F","T"],
+     pattern:{ 0:["S","F","U","T","W","U"], 1:["F","U","O","W","F","T"],
                2:["S","D","T","D","O","O"], 3:["M","B","B","D","M","B"] },
      cardRule:{ col:2, every:4 }, wildRule:{ col:0, every:5 } },
-   storm:{ id:"storm", themeId:"storm", rowsDelta:2,
-     pattern:{ 0:["S","T","U","S","U","S"], 1:["F","O","F","D","U","F"],
+   /* Storm is the wild board, not the long one — its character is in the
+      pattern, and two extra rows on top of it ran one game in eight past
+      forty minutes once the rounds themselves grew longer. */
+   storm:{ id:"storm", themeId:"storm", rowsDelta:1,
+     pattern:{ 0:["S","T","U","W","U","S"], 1:["F","O","W","D","U","F"],
                2:["D","B","T","B","D","B"], 3:["M","B","M","B","M","D"] },
      cardRule:{ col:1, every:4 }, wildRule:{ col:2, every:4 } },
    sprint:{ id:"sprint", themeId:"sprint", rowsDelta:-3,
-     pattern:{ 0:["S","F","U","T","S","U"], 1:["S","F","T","F","U","T"],
+     pattern:{ 0:["S","F","U","T","W","U"], 1:["S","W","T","F","U","T"],
                2:["F","D","D","S","F","O"], 3:["O","T","D","D","O","F"] },
      cardRule:{ col:0, every:3 }, wildRule:{ col:3, every:4 } },
    chaos:{ id:"chaos", themeId:"chaos", rowsDelta:0,
-     pattern:{ 0:["S","U","D","S","T","U"], 1:["O","D","U","F","D","O"],
+     pattern:{ 0:["S","U","D","W","T","U"], 1:["O","D","U","W","D","O"],
                2:["D","T","B","T","D","M"], 3:["B","M","B","M","B","D"] },
      cardRule:{ col:3, every:3 }, wildRule:{ col:1, every:4 } }
   };
@@ -767,6 +780,7 @@ function createEngine(){
     S.r = { giver, words, pick:null, challenge: (mod==="B" ? "open" : null), topic:null,
             shot: (mod==="B"?null:shot), shotPublic: (mod==="B"?false:shotPublic),
             shotFixed: (mod==="B"?false:shotFixed), only:null, mod,
+            pick2:null, found:[],
             total: (mod==="F") ? modeTimer.fast : modeTimer.normal,
             acc:0, startedAt:null, lockedOut:[], solvedBy:null, solveMs:null,
             judging:null, doubles:[], insight:false, veto:false, mimeCard:false, swapped:false };
@@ -803,6 +817,60 @@ function createEngine(){
       });
       S.result = { rows:rowsB, word:R.words[R.pick], solvedBy:R.solvedBy, solveMs:R.solveMs, total:R.total, val, mod:R.mod };
       S.steps = {}; rowsB.forEach(r=>{ if(r.pts>0) S.steps[r.id]=r.pts; });
+      S.moveSeat = 0; S.giverIdx += 1;
+      return;
+    }
+    if(R.mod === "W"){
+      /* Two words, one sentence, and each of them pays whoever said it. The
+         giver is paid once, on the timing of the SECOND word — that is the
+         one they were really holding out for. Half the job done pays them the
+         same as a word that landed instantly: something, but the least. */
+      const found = (R.found || []).slice().sort((a,b) => a.ms - b.ms);
+      found.forEach(f => {
+        const w = R.words[f.pick];
+        if(!w) return;
+        bump(unitOf(f.by).id, wordValue(R, w), t("w_word", wordValue(R, w)));
+      });
+      if(found.length >= 2){
+        const last = found[found.length-1];
+        const val2 = wordValue(R, R.words[last.pick]);
+        const frac = last.ms / (R.total*1000);
+        const band = frac <= 0.25 ? {n:1,      w:t("w_early")}
+                   : frac <= 0.70 ? {n:val2,   w:t("w_mid", val2)}
+                                  : {n:val2+1, w:t("w_late", val2+1)};
+        bump(gu.id, band.n, band.w);
+      } else if(found.length === 1){
+        bump(gu.id, 1, t("w_half"));
+      } else {
+        bump(gu.id, 0, t("w_none"));
+      }
+      if(R.shot && found.some(f => f.by === R.shot))
+        bump(gu.id, shotBonus(R), t("w_shot", shotBonus(R)));
+      /* a unit that both gave the clue and said one of the words is paid once,
+         the better of the two, the same way a partner who gets it is */
+      const gv = add[gu.id];
+      if(gv && found.some(f => unitOf(f.by).id === gu.id)){
+        const mine = found.filter(f => unitOf(f.by).id === gu.id)
+                          .reduce((n,f) => n + wordValue(R, R.words[f.pick]), 0);
+        const asGiver = gv.pts - mine;
+        gv.pts = Math.max(mine, asGiver);
+      }
+      (R.doubles||[]).forEach(uid=>{ const e=add[uid]; if(e && e.pts>0){ e.pts*=2; e.why.push(t("w_double", e.pts)); } });
+      const rowsW = S.units.map(u=>{
+        const e = add[u.id] || {pts:0, why:[]};
+        u.score = Math.max(0, u.score + e.pts);
+        return { id:u.id, name:u.name, pts:e.pts, why:e.why, giver:u.id===gu.id };
+      });
+      const last = found[found.length-1];
+      S.result = { rows:rowsW, word:R.words[R.pick], mod:R.mod, total:R.total, val,
+                   solvedBy: last ? last.by : null, solveMs: last ? last.ms : null,
+                   /* both words, said out loud by now, and who said each */
+                   pair: [R.pick, R.pick2].map(i => {
+                     const f = found.find(x => x.pick === i);
+                     return { text:(R.words[i]||{}).text, value:R.words[i] ? wordValue(R, R.words[i]) : 0,
+                              by: f ? f.by : null, ms: f ? f.ms : null };
+                   }) };
+      S.steps = {}; rowsW.forEach(r=>{ if(r.pts>0) S.steps[r.id]=r.pts; });
       S.moveSeat = 0; S.giverIdx += 1;
       return;
     }

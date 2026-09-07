@@ -67,13 +67,24 @@ for(const mode of ["solo","teams"]){
                      : e.S.players.filter(p => p.id !== R.giver)[0].id) : null;
         R.solveMs = solved ? Math.random()*R.total*1000 : null;
         const frac = solved ? R.solveMs/(R.total*1000) : null;
+        /* Two words is scored off what was found rather than off one solver:
+           the round holds a second word and a list of who said what. */
+        if(R.mod === "W" && R.words.length > 1){
+          R.pick2 = (R.pick + 1) % R.words.length;
+          const takers = e.S.players.filter(p => p.id !== R.giver);
+          R.found = solved
+            ? [{ pick:R.pick,  by:takers[0].id, ms:R.solveMs * 0.6 },
+               { pick:R.pick2, by:takers[takers.length-1].id, ms:R.solveMs }]
+            : [];
+        }
 
         e.scoreRound();
         const grow = e.S.result.rows.find(r => r.id === gu);
         if(!solved){
           giverZeroes++;
           ok(grow.pts === 0, "nobody solved yet the giver took " + grow.pts);
-        } else if(frac > 0.70 && R.mod !== "B" && R.mod !== "M" && e.unitOf(R.solvedBy).id !== gu){
+        } else if(frac > 0.70 && R.mod !== "B" && R.mod !== "M" && R.mod !== "W" &&
+                  e.unitOf(R.solvedBy).id !== gu){
           lateWins++;
           ok(grow.pts >= 1, "a late solve paid the giver " + grow.pts);
         }

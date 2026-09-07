@@ -541,6 +541,7 @@ function viewFor(room, pid){
       base.secret = {
         words: R.words.map(w => ({ text:w.text, value:e.wordValue(R, w) })),
         pick: R.pick,
+        pick2: R.pick2,
         shot: isGiver ? R.shot : null,
         shotName: (isGiver && R.shot) ? e.playerById(R.shot).name : null
       };
@@ -555,6 +556,13 @@ function viewFor(room, pid){
        not the same as being locked out: they have lost nothing and owe nothing,
        so the phone says so in its own words rather than showing them a penalty. */
     base.duel = R.only ? { id:R.only, name:e.playerById(R.only).name } : null;
+    /* A word that has been said out loud is nobody's secret any more, so the
+       table is told which of the two are down and who said them. The one
+       still out there is named to the giver alone, as it always was. */
+    if(R.mod === "W"){
+      base.two = { need:2, found:(R.found || []).map(f => ({
+        text:(R.words[f.pick] || {}).text, by:f.by, name:e.playerById(f.by).name })) };
+    }
     base.watching = !!(R.only && !isGiver && !owns(room, pid, R.only));
     if(room.phase === "judge" && R.judging){
       base.judging = { id:R.judging, name:e.playerById(R.judging).name };
@@ -590,6 +598,7 @@ function viewFor(room, pid){
     const res = S.result;
     base.result = {
       word: res.word.text,
+      pair: res.pair || null,
       solvedBy: res.solvedBy,
       solvedName: res.solvedBy ? e.playerById(res.solvedBy).name : null,
       solveMs: res.solveMs,
@@ -994,10 +1003,20 @@ function applyAction(room, me, body, ctx){
     if(!(k in e.CHALLENGES)) return { error:"bad_choice" };
     R.challenge = k;
     if(k === "cold"){
-      const v = [2,3,4,5][Math.floor(Math.random()*4)];
-      const bank = e.packs().W[v];
-      R.words = [{ text: bank[Math.floor(Math.random()*bank.length)], value:e.wordPoints(v) }];
+      /* Cold is one word dealt to you and no way out of it — and a Two words
+         round needs two, so it is dealt two. No choice either way, which is
+         the whole of what Cold means. */
+      const want = (R.mod === "W") ? 2 : 1;
+      R.words = [];
+      while(R.words.length < want){
+        const v = [2,3,4,5][Math.floor(Math.random()*4)];
+        const bank = e.packs().W[v];
+        const text = bank[Math.floor(Math.random()*bank.length)];
+        if(!R.words.some(w => w.text === text)) R.words.push({ text, value:e.wordPoints(v) });
+      }
+      R.words.sort((a, b) => b.value - a.value);
       R.pick = 0;
+      R.pick2 = want > 1 ? 1 : null;
     }
     return { ok:true };
   }
@@ -1021,6 +1040,21 @@ function applyAction(room, me, body, ctx){
     }
     const i = Number(body.i);
     if(!(i >= 0 && i < R.words.length)) return { error:"bad_choice" };
+    if(R.mod === "W" && !blind){
+      /* Two words, taken by tapping and untaken by tapping again. Which of
+         them is the primary is not the giver's to decide by tap order — the
+         dearer one leads, so R.pick keeps meaning what it means everywhere
+         else in the game. A third tap pushes out the older of the two. */
+      let chosen = [R.pick, R.pick2].filter(x => x !== null && x !== undefined);
+      const at = chosen.indexOf(i);
+      if(at >= 0) chosen.splice(at, 1);
+      else if(chosen.length < 2) chosen.push(i);
+      else chosen = [chosen[1], i];
+      chosen.sort((a, b) => R.words[b].value - R.words[a].value);
+      R.pick  = chosen.length     ? chosen[0] : null;
+      R.pick2 = chosen.length > 1 ? chosen[1] : null;
+      return { ok:true };
+    }
     R.pick = i;
     if(blind){ S.screen = "blindShow"; room.phase = "blind"; }
     return { ok:true };
@@ -1051,6 +1085,7 @@ function applyAction(room, me, body, ctx){
     } else {
       if(room.phase !== "giver" || !isGiver) return { error:"not_your_turn" };
       if(R.pick === null) return { error:"pick_first" };
+      if(R.mod === "W" && R.pick2 === null) return { error:"pick_first" };
       if(!R.shot && !R.shotFixed) return { error:"aim_first" };
       /* the whole of a Duel: from here the named person answers alone */
       if(R.mod === "U") R.only = R.shot;
@@ -1089,6 +1124,40 @@ function applyAction(room, me, body, ctx){
     if(R.mod === "B" ? isGiver : !isGiver) return { error:"not_your_turn" };
     const pid = R.judging;
     if(!pid) return { error:"bad_step" };
+    /* Two words is the one round where the verdict is not yes or no but
+       which — the giver says which of the two was said, or neither. A word
+       already taken counts as neither: it was not the shout the round is
+       still waiting for. */
+    if(R.mod === "W"){
+      const w = Number(body.word);
+      const isOne = (w === R.pick || w === R.pick2) && !R.found.some(f => f.pick === w);
+      if(isOne){
+        R.found.push({ pick:w, by:pid, ms:R.solveMs });
+        R.judging = null;
+        if(R.found.length >= 2 || e.remainMs() <= 0){
+          ctx.clearClock();
+          e.scoreRound();
+          S.screen = "reveal"; room.phase = "reveal";
+        } else {
+          S.screen = "table"; room.phase = "table";
+          e.resumeClock(); ctx.armClock();
+        }
+        return { ok:true };
+      }
+      /* neither: a wrong shout, and it costs them both words */
+      R.lockedOut.push(pid);
+      R.judging = null;
+      const left = stillIn(S, R);
+      if(!left.length || e.remainMs() <= 0){
+        ctx.clearClock();
+        e.scoreRound();
+        S.screen = "reveal"; room.phase = "reveal";
+      } else {
+        S.screen = "table"; room.phase = "table";
+        e.resumeClock(); ctx.armClock();
+      }
+      return { ok:true };
+    }
     if(body.yes){
       R.solvedBy = pid;
       e.scoreRound();
@@ -1232,9 +1301,18 @@ function applyAction(room, me, body, ctx){
            card meant to squeeze the table would be paying the giver its top
            rate. Shortening the whole clock keeps all three bands in play. */
         e.pauseClock();
-        /* exactly thirty, not rounded up to the next whole second — the
-           round's length is only ever read as a number of milliseconds */
-        if(e.remainMs() > 30000) R.total = (e.elapsedMs() + 30000) / 1000;
+        /* Exactly thirty, not rounded up to the next whole second — the
+           round's length is only ever read as a number of milliseconds.
+
+           And only while thirty seconds still leaves the ending open. Late in
+           a long round, cutting the clock to thirty puts what is left of it
+           past the giver's late-landing threshold before the table has said a
+           word, which hands them the top band for nothing. Past that point the
+           card has almost nothing to squeeze anyway, so it declines to. */
+        const CUT = 30000, LATE = 0.70;
+        const openTo = CUT * LATE / (1 - LATE);      /* 70s: elapsed/(elapsed+30s) = .70 */
+        if(e.remainMs() > CUT && e.elapsedMs() <= openTo)
+          R.total = (e.elapsedMs() + CUT) / 1000;
         e.resumeClock();
         ctx.armClock();
         break;
