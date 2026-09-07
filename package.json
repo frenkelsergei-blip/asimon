@@ -2,7 +2,7 @@
   "name": "asimon",
   "version": "0.1.0",
   "private": true,
-  "description": "Asimon — a party game played across phones on one Wi-Fi. No dependencies.",
+  "description": "Asimon — a game for the whole family, played across phones on one Wi-Fi. No dependencies.",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

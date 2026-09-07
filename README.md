@@ -1,7 +1,7 @@
 # Asimon
 
-A party game played across phones. One sentence, said once — and you want it
-understood at the last possible moment.
+A game for the whole family, played across phones. One sentence, said once —
+and you want it understood at the last possible moment.
 
 *Asimon* (אסימון) is the old Israeli telephone token. `נפל האסימון` — *the
 token dropped* — is what you say when somebody finally gets it.
