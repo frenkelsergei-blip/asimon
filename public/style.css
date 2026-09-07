@@ -232,13 +232,20 @@ input.code{font-family:var(--display);font-weight:400;font-size:34px;text-align:
 .sus.on .av{background:#fff!important;color:var(--accent)}
 
 /* notices */
-.sentence,.mod{background:var(--surface);border:1px solid var(--rule);border-radius:10px;padding:13px 15px;
-  display:flex;flex-direction:column;gap:3px;border-inline-start:3px solid var(--tone)}
-.mod{border-inline-start-color:var(--guilty)}
-.sentence .sl{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--tone-ink)}
+.sentence,.mod{background:var(--surface);border:1px solid var(--rule);border-radius:14px;
+  padding:13px 16px 14px;display:flex;flex-direction:column;gap:4px;
+  box-shadow:0 1px 2px rgba(23,22,28,.04)}
+.sentence .sl,.mod .sl{font-size:10.5px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--muted)}
+.sentence .sw{font-family:var(--display);font-weight:400;font-size:23px;line-height:1.22;color:var(--ink)}
+.mod .sw{font-family:var(--display);font-weight:400;font-size:19px;line-height:1.3;color:var(--ink)}
+.sentence .sr,.mod .sr{font-size:13px;line-height:1.5;color:var(--muted)}
+.sentence .sw + .sr,.mod .sw + .sr{margin-top:10px;padding-top:10px;border-top:1px solid var(--hair)}
+/* a twist this round: tinted, but still calm */
+.mod{background:var(--guilty-soft);border-color:#F7CDC3;box-shadow:none}
 .mod .sl{color:var(--guilty-ink)}
-.sentence .sw{font-size:20px;font-weight:800;line-height:1.2}
-.sentence .sr{font-size:13px;line-height:1.5;color:var(--muted)}
+.mod .sr{color:#8E4231}
+.mod .sw + .sr{border-top-color:rgba(216,53,28,.18)}
 
 /* segmented rows */
 .payoff,.band{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;padding:4px;background:var(--surface);
