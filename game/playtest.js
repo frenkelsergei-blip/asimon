@@ -42,7 +42,7 @@ const MODEL = {
      1 up to 4 — the bank's four tiers, priced a notch below their tier. */
   solveByValue: { 1:0.94, 2:0.87, 3:0.75, 4:0.62 },
   /* ...nudged by the square the giver was standing on */
-  solveByMod: { S:1, F:0.90, O:0.84, M:0.80, D:1, T:1, U:0.95, W:0.88, B:0.78, L:0.82 },
+  solveByMod: { S:1, F:0.90, O:0.84, M:0.80, G:1, T:1, U:0.95, W:0.88, B:0.78, L:0.82 },
   /* ...and by how much help the giver asked for */
   solveByChallenge: { topic:1.12, open:1, cold:0.95 },
   /* more heads guessing, more chance one of them lands it */
@@ -58,7 +58,7 @@ const MODEL = {
      in five to one in four when the cost doubles and the word is only half
      again as dear. Not a halving, but not nothing. */
   wrongBuzz: 0.11,               /* per guesser, per round */
-  wrongBuzzOnDouble: 0.75,       /* how much of that a doubled penalty leaves */
+  wrongBuzzOnGamble: 0.75,       /* how much of that a doubled penalty leaves */
   /* a held card is thrown this often, per round it is held */
   playCard: 0.42,
   /* the giver's taste in words: greedy takes the dearest, safe the cheapest */
@@ -140,6 +140,11 @@ function playOne(cfg){
   const P = id => room.players.find(p => p.id === id);
   const act = (personId, body) => {
     const r = play.applyAction(room, P(phoneOf(personId)), body, CTX);
+    /* The harness owns the clock: R.acc is the whole of the elapsed time and
+       a running startedAt would fold real milliseconds in behind it. Left
+       running, those few milliseconds decide which side of a boundary a round
+       falls on, and a seeded run stops repeating. */
+    if(e.S.r && e.S.r.startedAt) e.S.r.startedAt = null;
     if(r && r.error) g.stuck = g.stuck || (room.phase + ":" + body.type + ":" + r.error);
     return r;
   };
@@ -297,11 +302,15 @@ function playOne(cfg){
 
       /* a wrong shout, first */
       const early = aliveNow();
-      const rash = MODEL.wrongBuzz * (R.mod === "D" ? MODEL.wrongBuzzOnDouble : 1);
+      const rash = MODEL.wrongBuzz * (R.mod === "G" ? MODEL.wrongBuzzOnGamble : 1);
       if(!blind && early.length > 1 && chance(1 - Math.pow(1 - rash, early.length))){
         const who = pick(early).id;
         const at = Math.max(0.02, Math.min(0.9, 0.10 + rnd() * 0.5));
-        R.acc = Math.round(at * R.total * 1000); R.startedAt = Date.now();
+        /* the clock is wound by hand and then stopped, so elapsed is exactly
+           what was set — a running startedAt adds a few real milliseconds and
+           those are enough to change which side of a boundary a round falls
+           on, which is what made a seeded run unrepeatable */
+        R.acc = Math.round(at * R.total * 1000); R.startedAt = null;
         if(e.remainMs() > 0){
           act(who, { type:"buzz" });
           if(room.phase === "judge"){
@@ -339,7 +348,7 @@ function playOne(cfg){
            in time that is already gone */
         const gone = e.elapsedMs() / (R.total * 1000);
         f = Math.max(f, Math.min(0.97, gone + 0.02));
-        R.acc = Math.round(f * R.total * 1000); R.startedAt = Date.now();
+        R.acc = Math.round(f * R.total * 1000); R.startedAt = null;
         if(e.remainMs() <= 0){ R.acc = R.total * 1000 - 500; }
         const who = pick(solverAlive).id;
         /* Two words comes back to the table for the second one, and it is the
@@ -499,6 +508,11 @@ const has = k => argv.indexOf("--" + k) >= 0;
 
 const SEED = Number(arg("seed", 20260907));
 rnd = mulberry32(SEED);
+/* The engine reaches for Math.random directly — for the words a round deals,
+   the shuffles, the wildcard roll, the board's own re-rolling. Seeding only
+   the bot's choices left all of that loose, so two runs of the same seed
+   never agreed. One stream, seeded once, and a run repeats. */
+Math.random = mulberry32(SEED ^ 0x5f3759df);
 
 const MAPS = play.MAP_IDS, MODES = play.MODE_IDS;
 const wantPlayers = arg("players") ? [Number(arg("players"))] : [3,4,5,6,7,8];
@@ -585,9 +599,9 @@ const stepHist = merge(runs, g => g.stepHist);
 const topicsSeen = merge(runs, g => g.topics);
 const ALL_TOPICS = Object.keys(SAMPLE.packs().TOPICS);
 const ALL_CARDS = Object.keys(SAMPLE.packs().CARDS);
-const ALL_MODS = ["S","F","O","M","B","D","T","U","W","L"];
+const ALL_MODS = ["S","F","O","M","B","G","T","U","W","L"];
 const MOD_NAME = { S:"Standard", F:"Fast", O:"One word", M:"Mime", B:"Blind",
-                   D:"Double", T:"Partners", U:"Duel", W:"Two words", L:"The link" };
+                   G:"Gamble", T:"Partners", U:"Duel", W:"Two words", L:"The link" };
 
 /* ---- json for anything downstream ---- */
 if(has("json")){

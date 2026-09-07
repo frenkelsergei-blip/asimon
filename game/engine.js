@@ -86,7 +86,7 @@ function createEngine(){
    O:{n:"One word", s:"ONE", d:"The giver&rsquo;s clue must be a single word. Not two."},
    M:{n:"Mime",     s:"MIME", d:"No speaking at all &mdash; the giver acts it out. And the clock flips: here the giver wants it read <em>fast</em>, not late."},
    B:{n:"Blind",    s:"BLIND", d:"Everything turns around. The giver becomes the guesser, everybody else sees the word, and you each give one word until they crack it."},
-   D:{n:"Double",   s:"\u00d72", d:"Every word is worth a point more and a wrong buzz costs two &mdash; and if nobody gets it at all, the giver loses one. Everybody has something on this table."},
+   G:{n:"Gamble",   s:"BET", d:"Everything here is worth more, in both directions. The word pays a point more, a wrong shout costs two &mdash; and if nobody gets it at all, the giver loses one. The only square you can go backwards on."},
    T:{n:"Partners", s:"PAIR", d:"The game draws the giver a partner. If that partner gets it, they both score."},
    U:{n:"Duel",     s:"DUEL", d:"The giver names one person out loud, and only that person may answer. Everybody else watches. One shout, right or wrong, and the round is over."},
    W:{n:"Two words", s:"TWO", d:"The giver holds two words and gets one sentence for both. Each is worth a point less, and the round runs until both are found or the clock stops. Whoever says one takes it."},
@@ -98,7 +98,7 @@ function createEngine(){
    O:{n:"מילה אחת", s:"מילה", d:"הרמז של הנותן חייב להיות מילה אחת. לא שתיים."},
    M:{n:"פנטומימה", s:"מחזה", d:"בלי לדבר בכלל &mdash; הנותן ממחיז. והשעון מתהפך: כאן הנותן רוצה שיקלטו <em>מהר</em>, לא מאוחר."},
    B:{n:"עיוור",    s:"עיוור", d:"הכול מתהפך. הנותן הופך למנחש, כל השאר רואים את המילה, וכל אחד אומר מילה אחת עד שהוא קולט."},
-   D:{n:"כפול",     s:"\u00d72", d:"כל מילה שווה נקודה יותר, ובאזה שגוי עולה 2 &mdash; ואם אף אחד לא קולט בכלל, הנותן מאבד נקודה. לכולם יש מה להפסיד כאן."},
+   G:{n:"הימור",    s:"הימור", d:"הכול כאן שווה יותר, לשני הכיוונים. המילה שווה נקודה יותר, באזה שגוי עולה 2 &mdash; ואם אף אחד לא קולט בכלל, הנותן מאבד נקודה. המשבצת היחידה שאפשר לרדת בה אחורה."},
    T:{n:"שותפים",   s:"זוג", d:"המשחק מגריל לנותן שותף. אם השותף קולט — שניהם מקבלים."},
    U:{n:"דו־קרב",   s:"קרב", d:"הנותן בוחר אדם אחד בקול, ורק הוא יכול לענות. כל השאר מסתכלים. צעקה אחת, נכונה או לא, והסבב נגמר."},
    W:{n:"שתי מילים", s:"שתיים", d:"הנותן מחזיק שתי מילים ומקבל משפט אחד לשתיהן. כל אחת שווה נקודה פחות, והסבב רץ עד ששתיהן נמצאו או שהשעון נגמר. מי שאומר מילה לוקח אותה."},
@@ -114,7 +114,7 @@ function createEngine(){
      engine played before modes existed at all. That is the safety net. */
   const MODES = {
    quick:    { id:"quick",     timer:{ normal:60,  fast:30 }, rowsDelta:-3,
-               reweighChance:0.35, modWeights:{ S:6, F:3, O:1, D:1, T:1, U:2, W:2, M:0, B:0, L:0 }, win:"first" },
+               reweighChance:0.35, modWeights:{ S:6, F:3, O:1, G:1, T:1, U:2, W:2, M:0, B:0, L:0 }, win:"first" },
    regular:  { id:"regular",   timer:{ normal:90,  fast:45 }, rowsDelta:0,
                reweighChance:0,    modWeights:null, win:"first" },
    /* Slow is the long clock and nothing else. Two minutes a round is already
@@ -122,9 +122,9 @@ function createEngine(){
       games past forty minutes — first at four rows, then again at one once
       Duel started leaving more rounds unanswered. */
    slow:     { id:"slow",      timer:{ normal:120, fast:60 }, rowsDelta:0,
-               reweighChance:0.35, modWeights:{ S:6, F:1, O:1, D:1, T:1, U:2, W:2, M:0, B:0, L:1 }, win:"first" },
+               reweighChance:0.35, modWeights:{ S:6, F:1, O:1, G:1, T:1, U:2, W:2, M:0, B:0, L:1 }, win:"first" },
    challenge:{ id:"challenge", timer:{ normal:75,  fast:35 }, rowsDelta:0,
-               reweighChance:0.5,  modWeights:{ S:1, F:1, O:3, M:3, B:3, D:2, T:1, U:2, W:2, L:3 }, win:"score", scoreTarget:20 }
+               reweighChance:0.5,  modWeights:{ S:1, F:1, O:3, M:3, B:3, G:2, T:1, U:2, W:2, L:3 }, win:"score", scoreTarget:20 }
   };
 
   /* ============ interface strings ============ */
@@ -229,7 +229,7 @@ function createEngine(){
     '<p class="note">Savta takes 4. Dana takes 4 for landing in the good window, plus 1 because Savta was exactly who she aimed at. Ilan went too early on a hunch and paid for it &mdash; that is the whole game.</p>'+
     '<hr class="hr"><p class="kicker">Two more things</p>'+
     '<div class="opening"><span class="ol">Cards</span><span class="orl">Score well and you take one. Slam the clock to 30 seconds, reveal all four words, force a mime, or &mdash; if you are the giver &mdash; switch words when you feel them getting close.</span></div>'+
-    '<div class="opening"><span class="ol">The board</span><span class="orl">Points are <strong>steps you spend</strong>. Each step goes straight up or one column across, and you land wherever you choose &mdash; so the route is yours, every single round. The square you stop on sets your next round: Fast, One word, Double, Partners, <strong>Duel</strong> &mdash; where you name one person and only they may answer &mdash; <strong>Two words</strong>, Mime, a card, <strong>The link</strong> &mdash; three words and no sentence at all &mdash; or <strong>Blind</strong>, where it all turns around and you become the guesser. The left column is the gentle one; the right is where the awkward rounds live.</span></div>'
+    '<div class="opening"><span class="ol">The board</span><span class="orl">Points are <strong>steps you spend</strong>. Each step goes straight up or one column across, and you land wherever you choose &mdash; so the route is yours, every single round. The square you stop on sets your next round: Fast, One word, Gamble, Partners, <strong>Duel</strong> &mdash; where you name one person and only they may answer &mdash; <strong>Two words</strong>, Mime, a card, <strong>The link</strong> &mdash; three words and no sentence at all &mdash; or <strong>Blind</strong>, where it all turns around and you become the guesser. The left column is the gentle one; the right is where the awkward rounds live.</span></div>'
   };
   const HE_UI = {
    lang_k:"שפה", kick:"משפט אחד &middot; הזדמנות אחת", tagline:"בוחרים מילה. מכוונים משפט אחד לאדם אחד. וגורמים לזה לנחות כמה שיותר מאוחר.",
@@ -332,7 +332,7 @@ function createEngine(){
     '<p class="note">סבתא לוקחת 4. דנה לוקחת 4 על נחיתה בחלון הטוב, ועוד 1 כי סבתא הייתה בדיוק מי שהיא כיוונה אליה. אילן הלך מוקדם מדי על תחושה ושילם על זה &mdash; וזה כל המשחק.</p>'+
     '<hr class="hr"><p class="kicker">עוד שני דברים</p>'+
     '<div class="opening"><span class="ol">קלפים</span><span class="orl">מי שצובר יפה לוקח קלף. להוריד את השעון ל־30 שניות, לחשוף את כל ארבע המילים, לכפות פנטומימה, או &mdash; אם אתם הנותן &mdash; להחליף מילה כשאתם מרגישים שהם מתקרבים.</span></div>'+
-    '<div class="opening"><span class="ol">הלוח</span><span class="orl">נקודות הן <strong>צעדים שאתם מוציאים</strong>. כל צעד הוא ישר למעלה או עמודה אחת הצידה, ואתם נוחתים איפה שתבחרו &mdash; אז המסלול שלכם, בכל סבב מחדש. המשבצת שתעצרו עליה קובעת את הסבב הבא שלכם: מהיר, מילה אחת, כפול, שותפים, <strong>דו־קרב</strong> &mdash; שבו בוחרים אדם אחד ורק הוא עונה &mdash; <strong>שתי מילים</strong>, פנטומימה, קלף, <strong>הקישור</strong> &mdash; שלוש מילים ובלי משפט בכלל &mdash; או <strong>עיוור</strong> שבו הכול מתהפך ואתם הופכים למנחשים. העמודה השמאלית היא העדינה, הימנית היא המקום שבו יושבים הסבבים המסובכים.</span></div>'
+    '<div class="opening"><span class="ol">הלוח</span><span class="orl">נקודות הן <strong>צעדים שאתם מוציאים</strong>. כל צעד הוא ישר למעלה או עמודה אחת הצידה, ואתם נוחתים איפה שתבחרו &mdash; אז המסלול שלכם, בכל סבב מחדש. המשבצת שתעצרו עליה קובעת את הסבב הבא שלכם: מהיר, מילה אחת, הימור, שותפים, <strong>דו־קרב</strong> &mdash; שבו בוחרים אדם אחד ורק הוא עונה &mdash; <strong>שתי מילים</strong>, פנטומימה, קלף, <strong>הקישור</strong> &mdash; שלוש מילים ובלי משפט בכלל &mdash; או <strong>עיוור</strong> שבו הכול מתהפך ואתם הופכים למנחשים. העמודה השמאלית היא העדינה, הימנית היא המקום שבו יושבים הסבבים המסובכים.</span></div>'
   };
 
   /* Topics are curated slices of the same word bank, so the values still stand. */
@@ -559,7 +559,7 @@ function createEngine(){
     /* Double adds one, not two. At two it was the best square on the board by
        a distance — the only round that paid near the top while landing near
        the top, because the word was dearer without the round being harder. */
-    return Math.max(1, w.value + (R.mod === "D" ? 1 : 0) + (R.mod === "W" ? -1 : 0) + valueDelta(R));
+    return Math.max(1, w.value + (R.mod === "G" ? 1 : 0) + (R.mod === "W" ? -1 : 0) + valueDelta(R));
   }
   function dealTopic(key){
     const R = S.r, T0 = TOPICS[key] || {};
@@ -639,26 +639,26 @@ function createEngine(){
   const MAPS = {
    classic:{ id:"classic", themeId:"classic", rowsDelta:0,
      pattern:{ 0:["S","U","W","F","T","U"], 1:["S","F","T","W","U","F"],
-               2:["O","D","L","T","D","O"], 3:["B","M","D","L","M","B"] },
+               2:["O","G","L","T","G","O"], 3:["B","M","G","L","M","B"] },
      cardRule:{ col:1, every:3 }, wildRule:{ col:3, every:5 } },
    twist:{ id:"twist", themeId:"twist", rowsDelta:0,
      pattern:{ 0:["S","F","U","T","W","U"], 1:["F","U","O","W","F","T"],
-               2:["S","D","L","D","O","O"], 3:["M","B","L","D","M","B"] },
+               2:["S","G","L","G","O","O"], 3:["M","B","L","G","M","B"] },
      cardRule:{ col:2, every:4 }, wildRule:{ col:0, every:5 } },
    /* Storm is the wild board, not the long one — its character is in the
       pattern, and two extra rows on top of it ran one game in eight past
       forty minutes once the rounds themselves grew longer. */
    storm:{ id:"storm", themeId:"storm", rowsDelta:1,
-     pattern:{ 0:["S","T","U","W","U","S"], 1:["F","O","W","D","U","F"],
-               2:["D","B","L","B","D","B"], 3:["M","L","M","B","M","D"] },
+     pattern:{ 0:["S","T","U","W","U","S"], 1:["F","O","W","G","U","F"],
+               2:["G","B","L","B","G","B"], 3:["M","L","M","B","M","G"] },
      cardRule:{ col:1, every:4 }, wildRule:{ col:2, every:4 } },
    sprint:{ id:"sprint", themeId:"sprint", rowsDelta:-3,
      pattern:{ 0:["S","F","U","T","W","U"], 1:["S","W","T","F","U","T"],
-               2:["F","D","L","S","F","O"], 3:["O","T","D","L","O","F"] },
+               2:["F","G","L","S","F","O"], 3:["O","T","G","L","O","F"] },
      cardRule:{ col:0, every:3 }, wildRule:{ col:3, every:4 } },
    chaos:{ id:"chaos", themeId:"chaos", rowsDelta:0,
-     pattern:{ 0:["S","U","D","W","T","U"], 1:["O","D","U","W","D","O"],
-               2:["D","L","B","T","D","M"], 3:["B","M","L","M","B","D"] },
+     pattern:{ 0:["S","U","G","W","T","U"], 1:["O","G","U","W","G","O"],
+               2:["G","L","B","T","G","M"], 3:["B","M","L","M","B","G"] },
      cardRule:{ col:3, every:3 }, wildRule:{ col:1, every:4 } }
   };
   /* How long the board is, by how many units are racing on it. A unit scores
@@ -931,7 +931,7 @@ function createEngine(){
   function scoreRound(){
     const R = S.r;
     const val = wordValue(R, R.words[R.pick]);
-    const wrongCost = (R.mod === "D") ? 2 : 1;
+    const wrongCost = (R.mod === "G") ? 2 : 1;
     const add = {};
     const bump = (uid,n,why)=>{ const e = add[uid] = add[uid] || {pts:0, why:[]}; e.pts += n; if(why) e.why.push(why); };
     R.lockedOut.forEach(pid => bump(unitOf(pid).id, -wrongCost, t("w_wrong", wrongCost)));
@@ -1040,7 +1040,7 @@ function createEngine(){
         bump(gu.id, band.n, band.w);
         if(R.shot && R.shot === R.solvedBy) bump(gu.id, shotBonus(R), t("w_shot", shotBonus(R)));
       }
-    } else if(R.mod === "D"){
+    } else if(R.mod === "G"){
       /* Double raises everybody's stake but the giver's: the word is worth two
          more to whoever gets it, the wrong shout costs two — and the giver had
          nothing of their own on the table. A round nobody gets costs them one,

@@ -427,7 +427,7 @@ function linkRound(n){
   for(let i = 0; i < 40 && !found; i++){
     e.S.units.forEach(u => { u.pos = { r:2, c:2 }; });
     e.S.giverIdx = i; e.newRound();
-    if(e.S.r.mod === "D"){ r.phase = "giver"; found = true; }
+    if(e.S.r.mod === "G"){ r.phase = "giver"; found = true; }
   }
   ok(!!found, "no Double round could be dealt from a Double square");
   if(found){

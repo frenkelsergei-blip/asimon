@@ -26,155 +26,91 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700;800&family=Rubik:wght@500;700;800&display=swap">
 <style>
-  /* One committed visual world: the game's own secret-round amber struck on
-     ink. Every colour is painted explicitly so the page holds on any ground. */
+  /* ------------------------------------------------------------------ *
+     One scale, one grid, one action.
+
+     The page this replaces had four different heading sizes and four
+     different column systems across five peer sections — which is what
+     "nothing lines up" actually is when you go looking for it. Every
+     size below comes off one ramp and every two-part section uses the
+     same two columns, so the page has one rhythm instead of five.
+   * ------------------------------------------------------------------ */
   :root{
     --ink:#14131A; --ink-2:#1A1922; --raise:#201E29; --edge:rgba(255,252,246,.11);
-    --paper:#FFFCF6; --muted:#A3A1B0; --dim:#7E7B8C;
+    --paper:#FFFCF6; --soft:#D6D3E0; --muted:#A3A1B0; --dim:#7E7B8C;
     --amber:#FFB020; --amber-deep:#D18A08; --amber-soft:rgba(255,176,32,.13);
     --good:#12B886; --good-soft:rgba(18,184,134,.14);
     --hot:#FF5A3D; --hot-soft:rgba(255,90,61,.14);
     --display:"Rubik",system-ui,sans-serif;
     --body:"Assistant","Arial Hebrew",system-ui,sans-serif;
+
+    /* the ramp — nothing on the page sets a size that is not one of these */
+    --t-lockup:clamp(60px,12vw,124px);
+    --t-head:clamp(29px,4.6vw,44px);       /* EVERY section head */
+    --t-lead:clamp(19px,2.3vw,22px);
+    --t-body:17px;
+    --t-small:14.5px;
+
+    /* the rhythm */
+    --gap:14px; --step:24px; --band:84px;
+    --col:296px;                            /* EVERY sidebar column */
   }
   *{box-sizing:border-box}
-  html{-webkit-text-size-adjust:100%}
+  html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+  @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
   body{margin:0;background:var(--ink);color:var(--paper);font-family:var(--body);
-    font-size:17px;line-height:1.55;direction:rtl;
+    font-size:var(--t-body);line-height:1.55;direction:rtl;
     -webkit-font-smoothing:antialiased;overflow-x:hidden}
   .wrap{max-width:1060px;margin:0 auto;padding:0 22px}
-  section{padding:72px 0;border-top:1px solid var(--edge)}
-  section:first-of-type{border-top:0}
 
-  .coin{width:1em;height:1em;display:inline-block;vertical-align:-.05em}
+  /* a section is always: marker, head, lead, then the thing itself */
+  section{padding:var(--band) 0;border-top:1px solid var(--edge)}
+  section:first-of-type{border-top:0}
+  .eyebrow{display:flex;align-items:center;gap:9px;font-size:13px;font-weight:800;
+    letter-spacing:.16em;color:var(--amber);margin:0 0 var(--gap)}
+  .eyebrow svg{width:15px;height:15px;flex:0 0 15px}
   h1,h2,h3{font-family:var(--display);font-weight:800;margin:0;line-height:1.06;
     letter-spacing:-.01em;text-wrap:balance}
+  h2{font-size:var(--t-head)}
+  h3{font-size:19px;line-height:1.2}
   p{margin:0}
+  .lead{font-size:var(--t-lead);line-height:1.5;color:var(--soft);max-width:56ch;
+    margin-top:var(--gap);text-wrap:pretty}
+  .lead b{color:var(--paper);font-weight:800}
+  .note{font-size:var(--t-small);color:var(--dim);margin-top:12px}
+  .num{font-variant-numeric:tabular-nums}
+  .coin{width:1em;height:1em;display:inline-block;vertical-align:-.05em}
 
-  /* the section marker is the mark itself, not a number */
-  .eyebrow{display:flex;align-items:center;gap:9px;font-size:13px;font-weight:800;
-    letter-spacing:.16em;color:var(--amber);margin-bottom:16px}
-  .eyebrow svg{width:15px;height:15px;flex:0 0 15px;vertical-align:0}
+  /* the body of a section always starts one --step below its lead */
+  .body{margin-top:var(--step)}
+
+  /* ---------- one grid: a wide half and a fixed column, everywhere ---------- */
+  .split{display:grid;grid-template-columns:1fr var(--col);gap:44px;align-items:start}
+  .trio{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}
 
   /* ---------- hero ---------- */
-  .hero{position:relative;padding:78px 0 68px;overflow:hidden}
-  .hero > *{position:relative;z-index:1}
-  .hero > svg.hero-coin{position:absolute;top:24px;left:-215px;width:430px;height:430px;
+  .hero{position:relative;padding:76px 0 var(--band);overflow:hidden}
+  .hero>*{position:relative;z-index:1}
+  .hero>svg.hero-coin{position:absolute;top:20px;left:-215px;width:430px;height:430px;
     opacity:.055;pointer-events:none;z-index:0}
   .kicker{font-size:14.5px;font-weight:800;letter-spacing:.18em;color:var(--muted)}
-  .lockup{font-family:var(--display);font-weight:800;font-size:clamp(62px,13vw,132px);
-    line-height:1;margin:14px 0 0;letter-spacing:-.005em}
+  .lockup{font-size:var(--t-lockup);line-height:1;margin-top:12px;letter-spacing:-.005em}
   .lockup .coin{width:.78em;height:.78em}
   @media(prefers-reduced-motion:no-preference){
     .lockup .coin{animation:settle .7s cubic-bezier(.22,.7,.3,1) both}
   }
   @keyframes settle{from{transform:translateY(-14px) rotate(-24deg)}to{transform:none}}
-  .tagline{font-size:clamp(20px,3.4vw,27px);font-weight:700;color:var(--amber);
-    letter-spacing:.02em;margin-top:14px}
-  .pitch{font-size:clamp(18px,2.3vw,21px);line-height:1.5;color:#D6D3E0;
-    max-width:60ch;margin-top:22px;text-wrap:pretty}
-  .pitch b{color:var(--paper);font-weight:800}
+  .tagline{font-size:clamp(19px,3vw,25px);font-weight:700;color:var(--amber);
+    letter-spacing:.02em;margin-top:12px}
 
-  .facts{display:flex;flex-wrap:wrap;gap:9px;margin-top:28px}
-  .facts > span{font-size:15px;font-weight:700;color:#CFCCDA;background:var(--ink-2);
+  /* four facts. A fifth is one nobody reads — and one of them is lit,
+     because "nothing to install" is the sentence that removes the excuse. */
+  .facts{display:flex;flex-wrap:wrap;gap:9px;margin-top:26px}
+  .facts>span{font-size:15px;font-weight:700;color:#CFCCDA;background:var(--ink-2);
     border:1px solid var(--edge);border-radius:999px;padding:9px 17px}
-  .num{font-variant-numeric:tabular-nums}
+  .facts>span.lit{color:#17161C;background:var(--amber);border-color:var(--amber);
+    font-weight:800}
 
-  /* ---------- the trailer ---------- */
-  .screen{margin-top:34px;border-radius:16px;overflow:hidden;background:#000;
-    border:1px solid var(--edge);box-shadow:0 40px 90px -50px rgba(0,0,0,.9)}
-  .screen video{display:block;width:100%;height:auto}
-  .caption{font-size:14.5px;color:var(--dim);margin-top:11px}
-
-  /* ---------- the timing scale: the one bold moment ---------- */
-  .scale-track{height:9px;border-radius:999px;margin-bottom:14px;
-    background:linear-gradient(to left,var(--hot),#6E5A50 42%,#3E6B5C 72%,var(--good))}
-  .scale{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
-  .stop{background:var(--raise);border:1px solid var(--edge);border-radius:14px;
-    padding:20px 20px 18px;display:flex;flex-direction:column;gap:5px}
-  .stop.now{border-color:rgba(255,90,61,.5);background:var(--hot-soft)}
-  .stop.best{border-color:rgba(18,184,134,.55);background:var(--good-soft)}
-  .stop .when{font-family:var(--display);font-weight:800;font-size:24px;line-height:1.1}
-  .stop.now .when{color:var(--hot)} .stop.best .when{color:var(--good)}
-  .stop .gets{font-size:16.5px;font-weight:700;color:#CFCCDA}
-  .stop.best .gets{color:#8FE9C8}
-  .stop .gets em{font-style:normal;font-weight:800;color:var(--paper)}
-  .warn{margin-top:20px;font-size:17px;line-height:1.5;color:var(--muted);
-    max-width:64ch;text-wrap:pretty}
-  .warn b{color:var(--paper);font-weight:800}
-
-  /* ---------- steps: a real sequence, so it gets numbers ---------- */
-  .two{display:grid;grid-template-columns:1fr 300px;gap:48px;align-items:start}
-  .steps{display:flex;flex-direction:column}
-  .step{display:grid;grid-template-columns:42px 1fr;column-gap:16px;
-    padding:19px 0;border-bottom:1px solid var(--edge)}
-  .step:last-child{border-bottom:0}
-  .step .n{font-family:var(--display);font-weight:800;font-size:26px;line-height:1.1;
-    color:var(--amber);font-variant-numeric:tabular-nums}
-  .step h3{font-size:20px;margin-bottom:4px}
-  .step p{font-size:16.5px;line-height:1.5;color:var(--muted);text-wrap:pretty}
-
-  /* ---------- phones ---------- */
-  .phone{border-radius:30px;background:linear-gradient(160deg,#2A2833,#0B0A0F 62%);
-    padding:9px;border:1px solid var(--edge);
-    box-shadow:0 46px 90px -52px rgba(0,0,0,.95)}
-  .phone img{display:block;width:100%;height:auto;border-radius:23px}
-  .phone-note{font-size:14px;color:var(--dim);text-align:center;margin-top:12px}
-
-  /* ---------- what is inside ---------- */
-  .inside{display:grid;grid-template-columns:260px 1fr;gap:44px;align-items:start}
-  .chipset{display:flex;flex-direction:column;gap:26px}
-  .chiphead{font-size:13px;font-weight:800;letter-spacing:.16em;color:var(--dim);
-    margin-bottom:12px}
-  .rounds{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px}
-  .round{background:var(--ink-2);border:1px solid var(--edge);border-radius:12px;
-    padding:13px 16px;display:flex;flex-direction:column;gap:2px}
-  .rounds.sum .round:last-child{grid-column:1/-1}
-  .round b{font-size:16.5px;font-weight:800}
-  .round span{font-size:14.5px;color:var(--muted);line-height:1.4}
-  .cards{display:flex;flex-wrap:wrap;gap:8px}
-  .cards > span{font-size:15px;font-weight:700;color:#CFCCDA;background:var(--amber-soft);
-    border:1px solid rgba(255,176,32,.3);border-radius:999px;padding:8px 15px}
-
-  /* ---------- start ---------- */
-  .start{display:grid;grid-template-columns:1fr 1fr;gap:44px;align-items:start}
-  .howto{display:flex;flex-direction:column;gap:14px}
-  .howto div{display:grid;grid-template-columns:30px 1fr;column-gap:14px;align-items:baseline}
-  .howto .n{font-family:var(--display);font-weight:800;font-size:19px;color:var(--amber);
-    font-variant-numeric:tabular-nums}
-  .howto p{font-size:17.5px;line-height:1.45}
-  .ticket{background:var(--raise);border:1px solid var(--edge);border-radius:16px;
-    padding:24px}
-  .ticket .lab{font-size:12.5px;font-weight:800;letter-spacing:.14em;color:var(--dim)}
-  .code{font-family:var(--display);font-weight:800;font-size:44px;letter-spacing:.16em;
-    direction:ltr;margin-top:6px;color:var(--paper)}
-  .slot{margin-top:18px;border:1.5px dashed rgba(255,252,246,.34);border-radius:11px;
-    padding:14px 16px;display:flex;align-items:baseline;gap:11px;flex-wrap:wrap}
-  .slot .lab{white-space:nowrap}
-  .slot .val{font-size:17px;font-weight:700;color:var(--muted)}
-  .privacy{margin-top:20px;font-size:15.5px;line-height:1.5;color:var(--dim);
-    max-width:52ch;text-wrap:pretty}
-
-  /* ---------- footer ---------- */
-  footer{border-top:1px solid var(--edge);padding:44px 0 60px;
-    display:flex;align-items:center;justify-content:space-between;gap:22px;flex-wrap:wrap}
-  .en-lockup{font-family:var(--display);font-weight:800;font-size:34px;letter-spacing:.05em;
-    direction:ltr;line-height:1}
-  .en-lockup .coin{width:.78em;height:.78em;vertical-align:-.06em}
-  footer p{font-size:15px;color:var(--dim)}
-
-  /* the faces: the family, as the game draws them */
-  /* fifteen faces: 15 or 5 across, so no row is ever left with strays */
-  .facegrid{display:grid;grid-template-columns:repeat(15,minmax(0,1fr));gap:12px;margin-top:30px;
-    justify-items:center}
-  .fc{display:block;width:100%;max-width:82px;aspect-ratio:1;border-radius:50%;
-    box-shadow:0 0 0 3px rgba(255,252,246,.10),0 12px 22px -12px rgba(0,0,0,.8)}
-  .fc svg{display:block;width:100%;height:100%}
-  .facenote{margin-top:20px;font-size:15.5px;color:var(--dim)}
-  @media(max-width:900px){ .facegrid{grid-template-columns:repeat(5,minmax(0,1fr));gap:16px} }
-  @media(max-width:560px){ .facegrid{gap:12px} }
-
-  /* the one action on the page */
   .cta-row{display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin-top:30px}
   .cta{display:inline-block;text-decoration:none;font-family:var(--display);font-weight:800;
     font-size:23px;line-height:1;color:#17161C;background:var(--amber);
@@ -183,39 +119,104 @@
     transition:transform .1s ease,box-shadow .1s ease}
   .cta:hover{transform:translateY(2px);box-shadow:0 8px 0 var(--amber-deep),0 20px 34px -22px rgba(255,176,32,.5)}
   .cta:active{transform:translateY(8px);box-shadow:0 2px 0 var(--amber-deep)}
-  .cta-sm{margin-top:18px;font-size:19px;padding:15px 26px;box-shadow:0 8px 0 var(--amber-deep)}
+  .cta-sm{font-size:19px;padding:15px 26px;box-shadow:0 8px 0 var(--amber-deep);margin-top:18px}
   .cta-note{font-size:15px;line-height:1.45;color:var(--dim);max-width:31ch}
-  .addr{font-size:19px;font-weight:800;color:var(--amber);text-decoration:none;
-    direction:ltr;border-bottom:1.5px solid rgba(255,176,32,.4)}
-  .addr:hover{border-bottom-color:var(--amber)}
   @media(prefers-reduced-motion:reduce){.cta{transition:none}}
+
+  .screen{margin-top:34px;border-radius:16px;overflow:hidden;background:#000;
+    border:1px solid var(--edge);box-shadow:0 40px 90px -50px rgba(0,0,0,.9)}
+  .screen video{display:block;width:100%;height:auto}
+
+  /* ---------- the one idea, given the whole section ---------- */
+  .scale-track{height:9px;border-radius:999px;margin-bottom:14px;
+    background:linear-gradient(to left,var(--hot),#6E5A50 42%,#3E6B5C 72%,var(--good))}
+  .scale{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+  .stop{background:var(--raise);border:1px solid var(--edge);border-radius:14px;
+    padding:20px;display:flex;flex-direction:column;gap:5px}
+  .stop.now{border-color:rgba(255,90,61,.5);background:var(--hot-soft)}
+  .stop.best{border-color:rgba(18,184,134,.55);background:var(--good-soft)}
+  .stop .when{font-family:var(--display);font-weight:800;font-size:23px;line-height:1.1}
+  .stop.now .when{color:var(--hot)} .stop.best .when{color:var(--good)}
+  .stop .gets{font-size:16.5px;font-weight:700;color:#CFCCDA}
+  .stop.best .gets{color:#8FE9C8}
+  .stop .gets em{font-style:normal;font-weight:800;color:var(--paper)}
+
+  /* ---------- phones: one width, wherever they appear ---------- */
+  .phone{border-radius:30px;background:linear-gradient(160deg,#2A2833,#0B0A0F 62%);
+    padding:9px;border:1px solid var(--edge);
+    box-shadow:0 46px 90px -52px rgba(0,0,0,.95)}
+  .phone img{display:block;width:100%;height:auto;border-radius:23px}
+  .shot{display:flex;flex-direction:column;gap:12px}
+  .shot p{font-size:var(--t-small);color:var(--muted);line-height:1.45;text-align:center;
+    text-wrap:pretty}
+
+  /* ---------- chips ---------- */
+  .rounds{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+  .round{background:var(--ink-2);border:1px solid var(--edge);border-radius:12px;
+    padding:13px 16px;display:flex;flex-direction:column;gap:2px}
+  .round b{font-size:16.5px;font-weight:800}
+  .round span{font-size:var(--t-small);color:var(--muted);line-height:1.4}
+
+  /* ---------- the family ---------- */
+  .facegrid{display:grid;grid-template-columns:repeat(15,minmax(0,1fr));gap:10px;
+    justify-items:center}
+  .fc{display:block;width:100%;max-width:60px;aspect-ratio:1;border-radius:50%;
+    box-shadow:0 0 0 3px rgba(255,252,246,.10),0 12px 22px -12px rgba(0,0,0,.8)}
+  .fc svg{display:block;width:100%;height:100%}
+  @media(max-width:900px){.facegrid{grid-template-columns:repeat(5,minmax(0,1fr));gap:14px}}
+
+  /* ---------- start ---------- */
+  .howto{display:flex;flex-direction:column;gap:14px}
+  .howto div{display:grid;grid-template-columns:28px 1fr;column-gap:14px;align-items:baseline}
+  .howto .n{font-family:var(--display);font-weight:800;font-size:19px;color:var(--amber);
+    font-variant-numeric:tabular-nums}
+  .howto p{font-size:17.5px;line-height:1.45}
+  .ticket{background:var(--raise);border:1px solid var(--edge);border-radius:16px;padding:24px}
+  .ticket .lab{font-size:12.5px;font-weight:800;letter-spacing:.14em;color:var(--dim)}
+  .code{font-family:var(--display);font-weight:800;font-size:44px;letter-spacing:.16em;
+    direction:ltr;margin-top:6px;color:var(--paper)}
+  .slot{margin-top:18px;border:1.5px dashed rgba(255,252,246,.34);border-radius:11px;
+    padding:14px 16px;display:flex;align-items:baseline;gap:11px;flex-wrap:wrap}
+  .slot .lab{white-space:nowrap}
+  .addr{font-size:17px;font-weight:800;color:var(--amber);text-decoration:none;direction:ltr;
+    border-bottom:1.5px solid rgba(255,176,32,.4)}
+  .addr:hover{border-bottom-color:var(--amber)}
+
+  /* ---------- kit ---------- */
+  .kit{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+  .dl{display:flex;flex-direction:column;gap:3px;text-decoration:none;background:var(--raise);
+    border:1px solid var(--edge);border-radius:14px;padding:18px 20px;
+    transition:border-color .18s ease,background .18s ease}
+  .dl:hover{border-color:rgba(255,176,32,.55);background:#252230}
+  .dl b{font-family:var(--display);font-weight:800;font-size:19px;color:var(--amber)}
+  .dl span{font-size:var(--t-small);color:var(--muted)}
+  @media(prefers-reduced-motion:reduce){.dl{transition:none}}
+
+  footer{border-top:1px solid var(--edge);padding:44px 0 60px;display:flex;align-items:center;
+    justify-content:space-between;gap:22px;flex-wrap:wrap}
+  .en-lockup{font-family:var(--display);font-weight:800;font-size:32px;letter-spacing:.05em;
+    direction:ltr;line-height:1}
+  .en-lockup .coin{width:.78em;height:.78em;vertical-align:-.06em}
+  footer p{font-size:15px;color:var(--dim);max-width:52ch;text-wrap:pretty}
 
   a{color:var(--amber)}
   a:focus-visible,video:focus-visible{outline:2.5px solid var(--amber);outline-offset:3px;
     border-radius:6px}
 
-  @media(max-width:560px){
-    /* two tempo cards side by side get too narrow to read on a phone */
-    .rounds:not(.sum){grid-template-columns:1fr!important}
-  }
   @media(max-width:880px){
-    section{padding:54px 0}
-    .two,.inside,.start{grid-template-columns:1fr;gap:34px}
-    .two .phone,.inside .phone{max-width:300px;margin:0 auto}
+    :root{--band:60px}
+    .split{grid-template-columns:1fr;gap:30px}
+    .rounds{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .split .phone{max-width:var(--col);margin:0 auto}
     .scale{grid-template-columns:1fr}
     .scale-track{display:none}
     .stop{flex-direction:row;align-items:baseline;justify-content:space-between}
   }
-
-  .kit{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
-  .dl{display:flex;flex-direction:column;gap:3px;text-decoration:none;
-    background:var(--raise);border:1px solid var(--edge);border-radius:14px;padding:18px 20px;
-    transition:border-color .18s ease,background .18s ease}
-  .dl:hover{border-color:rgba(255,176,32,.55);background:#252230}
-  .dl b{font-family:var(--display);font-weight:800;font-size:19px;color:var(--amber)}
-  .dl span{font-size:14.5px;color:var(--muted)}
-  .runit{margin-top:16px;font-size:15.5px;line-height:1.5;color:var(--dim)}
-  @media(prefers-reduced-motion:reduce){.dl{transition:none}}
+  @media(max-width:620px){
+    .trio{grid-template-columns:1fr;gap:28px}
+    .trio .phone{max-width:var(--col);margin:0 auto}
+    .rounds{grid-template-columns:1fr}
+  }
 </style>
 </head>
 <body>
@@ -239,20 +240,16 @@
     <p class="kicker">משחק לכל המשפחה · טלפון לכל אחד</p>
     <h1 class="lockup">א<svg class="coin" aria-hidden="true"><use href="#coin"/></svg>ימון</h1>
     <p class="tagline">משפט אחד · הזדמנות אחת</p>
-    <p class="pitch">
+    <p class="lead">
       מישהו אחד יודע את המילה ואומר עליה משפט אחד. השאר צריכים לקלוט מה זה.
-      <b>הטריק: הוא לא רוצה שיקלטו מהר — הוא רוצה שיקלטו בשנייה האחרונה.</b>
+      <b>והטריק: הוא לא רוצה שיקלטו מהר.</b>
     </p>
 
     <div class="facts">
       <span><span class="num">3–8</span> שחקנים</span>
-      <span>ארבעה מקצבים</span>
-      <span>חמישה לוחות</span>
-      <span>עברית ו־English</span>
-      <span>בלי הורדות</span>
-      <span>בלי חשבון</span>
       <span>לכל המשפחה</span>
-      <span>גם על הטלוויזיה</span>
+      <span>עברית ו־English</span>
+      <span class="lit">בלי הורדות</span>
     </div>
 
     <div class="cta-row">
@@ -267,180 +264,101 @@
         <source src="assets/trailer-720.mp4" type="video/mp4">
       </video>
     </div>
-    <p class="caption">שלושים ושמונה שניות · צולם ממשחק אמיתי על שלושה טלפונים</p>
+    <p class="note">שלושים ושמונה שניות · צולם ממשחק אמיתי על שלושה טלפונים</p>
   </section>
 
 
-  <!-- ============ who plays ============ -->
-  <section>
-    <p class="eyebrow"><svg aria-hidden="true"><use href="#coin"/></svg>מי משחק</p>
-    <h2 style="font-size:clamp(28px,4.8vw,44px)">מסבתא ועד הקטנים.</h2>
-    <p class="warn" style="margin-top:16px">
-      כל אחד בוחר פרצוף, וזה מה שרואים לידו כל המשחק — על הלוח, בניקוד, בכל סבב.
-      <b>שלושה עד שמונה שחקנים</b>, בדיוק גודל של ארוחת שישי.
-    </p>
-    <div class="facegrid"><span class="fc"><svg class="face" viewBox="0 0 40 40" width="64" height="64" aria-hidden="true"><circle cx="20" cy="20" r="20" fill="#2C6BFF"/><g clip-path="url(#lsface)"><path d="M5.5 40c0-8 6.5-11.6 14.5-11.6S34.5 32 34.5 40Z" fill="#1B4FD1"/><circle cx="20" cy="18.5" r="11" fill="#F2C79E"/><ellipse cx="20" cy="11.4" rx="11" ry="6.2" fill="#3B2A1A"/><circle cx="16" cy="18" r="1.6" fill="#2A2118"/><circle cx="24" cy="18" r="1.6" fill="#2A2118"/><path d="M16.4 23.4q3.6 3 7.2 0" stroke="#2A2118" stroke-width="1.5" fill="none" stroke-linecap="round"/></g></svg></span><span class="fc"><svg class="face" viewBox="0 0 40 40" width="64" height="64" aria-hidden="true"><circle cx="20" cy="20" r="20" fill="#DB2777"/><g clip-path="url(#lsface)"><path d="M5.5 40c0-8 6.5-11.6 14.5-11.6S34.5 32 34.5 40Z" fill="#A81A5B"/><circle cx="20" cy="18.5" r="11" fill="#F2C79E"/><rect x="8.2" y="13" width="4" height="16" rx="2" fill="#4A2C17"/><rect x="27.8" y="13" width="4" height="16" rx="2" fill="#4A2C17"/><ellipse cx="20" cy="12" rx="11.8" ry="7" fill="#4A2C17"/><circle cx="16" cy="18" r="1.6" fill="#2A2118"/><circle cx="24" cy="18" r="1.6" fill="#2A2118"/><path d="M16.4 23.4q3.6 3 7.2 0" stroke="#2A2118" stroke-width="1.5" fill="none" stroke-linecap="round"/></g></svg></span><span class="fc"><svg class="face" viewBox="0 0 40 40" width="64" height="64" aria-hidden="true"><circle cx="20" cy="20" r="20" fill="#78716C"/><g clip-path="url(#lsface)"><path d="M5.5 40c0-8 6.5-11.6 14.5-11.6S34.5 32 34.5 40Z" fill="#57534E"/><circle cx="20" cy="18.5" r="11" fill="#EFCBAA"/><ellipse cx="10.4" cy="16.5" rx="2.7" ry="4.6" fill="#D6D3D1"/><ellipse cx="29.6" cy="16.5" rx="2.7" ry="4.6" fill="#D6D3D1"/><ellipse cx="20" cy="9.6" rx="7.6" ry="2.4" fill="#D6D3D1"/><circle cx="16" cy="17.8" r="1.6" fill="#2A2118"/><circle cx="24" cy="17.8" r="1.6" fill="#2A2118"/><path d="M17.4 28.4h5.2" stroke="#2A2118" stroke-width="1.3" stroke-linecap="round"/><ellipse cx="20" cy="25.4" rx="5.4" ry="2.1" fill="#D6D3D1"/><circle cx="15.4" cy="17.8" r="3.6" fill="none" stroke="#3F3A36" stroke-width="1.1"/><circle cx="24.6" cy="17.8" r="3.6" fill="none" stroke="#3F3A36" stroke-width="1.1"/><path d="M19 17.8h2M11.8 17.2l-2.4-.6M28.2 17.2l2.4-.6" stroke="#3F3A36" stroke-width="1.1" stroke-linecap="round"/></g></svg></span><span class="fc"><svg class="face" viewBox="0 0 40 40" width="64" height="64" aria-hidden="true"><circle cx="20" cy="20" r="20" fill="#7A5AF8"/><g clip-path="url(#lsface)"><path d="M5.5 40c0-8 6.5-11.6 14.5-11.6S34.5 32 34.5 40Z" fill="#5E3FDB"/><circle cx="20" cy="18.5" r="11" fill="#EFCBAA"/><circle cx="20" cy="5.4" r="4.4" fill="#E7E5E4"/><ellipse cx="20" cy="11.6" rx="11.2" ry="6.6" fill="#E7E5E4"/><circle cx="16" cy="17.8" r="1.6" fill="#2A2118"/><circle cx="24" cy="17.8" r="1.6" fill="#2A2118"/><path d="M16.4 23.4q3.6 3 7.2 0" stroke="#2A2118" stroke-width="1.5" fill="none" stroke-linecap="round"/><circle cx="15.4" cy="17.8" r="3.6" fill="none" stroke="#3B2E6B" stroke-width="1.1"/><circle cx="24.6" cy="17.8" r="3.6" fill="none" stroke="#3B2E6B" stroke-width="1.1"/><path d="M19 17.8h2M11.8 17.2l-2.4-.6M28.2 17.2l2.4-.6" stroke="#3B2E6B" stroke-width="1.1" stroke-linecap="round"/></g></svg></span><span class="fc"><svg class="face" viewBox="0 0 40 40" width="64" height="64" aria-hidden="true"><circle cx="20" cy="20" r="20" fill="#12B886"/><g clip-path="url(#lsface)"><path d="M5.5 40c0-8 6.5-11.6 14.5-11.6S34.5 32 34.5 40Z" fill="#0D8F69"/><circle cx="20" cy="18.5" r="11" fill="#F2C79E"/><rect x="7.4" y="12" width="4.4" height="18" rx="2.2" fill="#7C4A21"/><rect x="28.2" y="12" width="4.4" height="18" rx="2.2" fill="#7C4A21"/><ellipse cx="20" cy="12" rx="12.2" ry="7.4" fill="#7C4A21"/><rect x="8" y="12.4" width="24" height="3.4" rx="1.7" fill="#FF5A3D"/><circle cx="15.2" cy="19.4" r="3.7" fill="#3A2405" opacity=".82"/><circle cx="24.8" cy="19.4" r="3.7" fill="#3A2405" opacity=".82"/><path d="M18.9 19.4h2.2" stroke="#3A2405" stroke-width="1.1"/><path d="M16.4 25q3.6 3 7.2 0" stroke="#2A2118" stroke-width="1.5" fill="none" stroke-linecap="round"/></g></svg></span><span class="fc"><svg class="face" viewBox="0 0 40 40" width="64" height="64" aria-hidden="true"><circle cx="20" cy="20" r="20" fill="#B45309"/><g clip-path="url(#lsface)"><path d="M5.5 40c0-8 6.5-11.6 14.5-11.6S34.5 32 34.5 40Z" fill="#92400E"/><circle cx="20" cy="18.5" r="11" fill="#D99A6C"/><ellipse cx="20" cy="10.4" rx="11" ry="5.6" fill="#2F241A"/><ellipse cx="20" cy="27.4" rx="9.4" ry="6.4" fill="#2F241A"/><ellipse cx="20" cy="22.6" rx="4.8" ry="1.8" fill="#2F241A"/><circle cx="16" cy="17.4" r="1.6" fill="#2A2118"/><circle cx="24" cy="17.4" r="1.6" fill="#2A2118"/><path d="M16.4 23.4q3.6 3 7.2 0" stroke="#2A2118" stroke-width="1.5" fill="none" stroke-linecap="round"/></g></svg></span><span class="fc"><svg class="face" viewBox="0 0 40 40" width="64" height="64" aria-hidden="true"><circle cx="20" cy="20" r="20" fill="#FF5A3D"/><g clip-path="url(#lsface)"><path d="M5.5 40c0-8 6.5-11.6 14.5-11.6S34.5 32 34.5 40Z" fill="#C2410C"/><circle cx="20" cy="18.5" r="11" fill="#8D5524"/><circle cx="11.8" cy="13.6" r="4.6" fill="#1E1712"/><circle cx="28.2" cy="13.6" r="4.6" fill="#1E1712"/><circle cx="15.6" cy="9.8" r="4.4" fill="#1E1712"/><circle cx="24.4" cy="9.8" r="4.4" fill="#1E1712"/><circle cx="20" cy="8.6" r="4.8" fill="#1E1712"/><circle cx="16" cy="18.4" r="1.6" fill="#1E1712"/><circle cx="24" cy="18.4" r="1.6" fill="#1E1712"/><path d="M16.4 23.8q3.6 3 7.2 0" stroke="#2A2118" stroke-width="1.5" fill="none" stroke-linecap="round"/></g></svg></span><span class="fc"><svg class="face" viewBox="0 0 40 40" width="64" height="64" aria-hidden="true"><circle cx="20" cy="20" r="20" fill="#0891B2"/><g clip-path="url(#lsface)"><path d="M5.5 40c0-8 6.5-11.6 14.5-11.6S34.5 32 34.5 40Z" fill="#0E7490"/><circle cx="20" cy="18.5" r="11" fill="#F2C79E"/><ellipse cx="20" cy="12.4" rx="11.2" ry="6.6" fill="#F97316"/><rect x="7.8" y="13.2" width="24.4" height="3.8" rx="1.9" fill="#EA580C"/><circle cx="20" cy="5" r="2.6" fill="#EA580C"/><circle cx="16" cy="20.4" r="1.6" fill="#2A2118"/><circle cx="24" cy="20.4" r="1.6" fill="#2A2118"/><path d="M16.4 25.4q3.6 3 7.2 0" stroke="#2A2118" stroke-width="1.5" fill="none" stroke-linecap="round"/></g></svg></span><span class="fc"><svg class="face" viewBox="0 0 40 40" width="64" height="64" aria-hidden="true"><circle cx="20" cy="20" r="20" fill="#17161C"/><g clip-path="url(#lsface)"><path d="M5.5 40c0-8 6.5-11.6 14.5-11.6S34.5 32 34.5 40Z" fill="#E2E8F0"/><rect x="4.6" y="16.4" width="3.4" height="6" rx="1.7" fill="#CBD5E1"/><rect x="32" y="16.4" width="3.4" height="6" rx="1.7" fill="#CBD5E1"/><circle cx="20" cy="19" r="12.4" fill="#F8FAFC"/><circle cx="20" cy="18.4" r="8.8" fill="#1E293B"/><path d="M14.6 15a6.4 6.4 0 0 1 5.2-3" stroke="#93C5FD" stroke-width="1.7" fill="none" stroke-linecap="round"/></g></svg></span><span class="fc"><svg class="face" viewBox="0 0 40 40" width="64" height="64" aria-hidden="true"><circle cx="20" cy="20" r="20" fill="#64748B"/><g clip-path="url(#lsface)"><path d="M5.5 40c0-8 6.5-11.6 14.5-11.6S34.5 32 34.5 40Z" fill="#334155"/><rect x="19.2" y="3.6" width="1.6" height="5.4" rx=".8" fill="#CBD5E1"/><circle cx="20" cy="3" r="2.2" fill="#FFB020"/><rect x="8.6" y="8.6" width="22.8" height="20.4" rx="6.4" fill="#E2E8F0"/><rect x="12.8" y="15" width="5.4" height="5.4" rx="1.7" fill="#0F172A"/><rect x="21.8" y="15" width="5.4" height="5.4" rx="1.7" fill="#0F172A"/><rect x="15.4" y="23.4" width="9.2" height="1.8" rx=".9" fill="#0F172A"/></g></svg></span><span class="fc"><svg class="face" viewBox="0 0 40 40" width="64" height="64" aria-hidden="true"><circle cx="20" cy="20" r="20" fill="#F97316"/><g clip-path="url(#lsface)"><path d="M7 12 11 3 16.5 9.5Z" fill="#C2410C"/><path d="M33 12 29 3 23.5 9.5Z" fill="#C2410C"/><ellipse cx="20" cy="26.5" rx="10" ry="7.5" fill="#FFF1E8"/><circle cx="16" cy="19" r="1.6" fill="#2A2118"/><circle cx="24" cy="19" r="1.6" fill="#2A2118"/><circle cx="20" cy="25" r="2.3" fill="#3A2318"/></g></svg></span><span class="fc"><svg class="face" viewBox="0 0 40 40" width="64" height="64" aria-hidden="true"><circle cx="20" cy="20" r="20" fill="#FACC15"/><g clip-path="url(#lsface)"><path d="M8 13 10.5 4 17 10Z" fill="#CA8A04"/><path d="M32 13 29.5 4 23 10Z" fill="#CA8A04"/><circle cx="16" cy="20" r="1.6" fill="#2A2118"/><circle cx="24" cy="20" r="1.6" fill="#2A2118"/><path d="M20 25 18.4 27h3.2Z" fill="#3A2318"/><path d="M6.5 22h5M6.5 25.5h5M33.5 22h-5M33.5 25.5h-5" stroke="#7C5E06" stroke-width="1.4" stroke-linecap="round"/></g></svg></span><span class="fc"><svg class="face" viewBox="0 0 40 40" width="64" height="64" aria-hidden="true"><circle cx="20" cy="20" r="20" fill="#6366F1"/><g clip-path="url(#lsface)"><path d="M8.5 11 13 4 17.5 10.5Z" fill="#4338CA"/><path d="M31.5 11 27 4 22.5 10.5Z" fill="#4338CA"/><circle cx="14.4" cy="20" r="6.4" fill="#EEF2FF"/><circle cx="25.6" cy="20" r="6.4" fill="#EEF2FF"/><circle cx="14.4" cy="20" r="2.6" fill="#1E1B4B"/><circle cx="25.6" cy="20" r="2.6" fill="#1E1B4B"/><path d="M20 25.5 17.4 29.5h5.2Z" fill="#FFB020"/></g></svg></span><span class="fc"><svg class="face" viewBox="0 0 40 40" width="64" height="64" aria-hidden="true"><circle cx="20" cy="20" r="20" fill="#4D7C0F"/><g clip-path="url(#lsface)"><circle cx="12.5" cy="11" r="6.2" fill="#3F6212"/><circle cx="27.5" cy="11" r="6.2" fill="#3F6212"/><circle cx="12.5" cy="11" r="3.6" fill="#FFFFFF"/><circle cx="27.5" cy="11" r="3.6" fill="#FFFFFF"/><circle cx="12.5" cy="11.4" r="1.8" fill="#14200A"/><circle cx="27.5" cy="11.4" r="1.8" fill="#14200A"/><path d="M11 25q9 7 18 0" stroke="#14200A" stroke-width="2.1" fill="none" stroke-linecap="round"/></g></svg></span><span class="fc"><svg class="face" viewBox="0 0 40 40" width="64" height="64" aria-hidden="true"><circle cx="20" cy="20" r="20" fill="#E7E5E4"/><g clip-path="url(#lsface)"><circle cx="9" cy="9.5" r="5.8" fill="#20202A"/><circle cx="31" cy="9.5" r="5.8" fill="#20202A"/><ellipse cx="13.8" cy="20" rx="5.2" ry="6" fill="#20202A" transform="rotate(-14 13.8 20)"/><ellipse cx="26.2" cy="20" rx="5.2" ry="6" fill="#20202A" transform="rotate(14 26.2 20)"/><circle cx="14.4" cy="20" r="1.9" fill="#FFFFFF"/><circle cx="25.6" cy="20" r="1.9" fill="#FFFFFF"/><ellipse cx="20" cy="27" rx="3" ry="2.2" fill="#20202A"/></g></svg></span></div>
-    <p class="facenote">חמישה־עשר פרצופים. אף אחד לא נשאר עם אות ראשונה בעיגול.</p>
-  </section>
-
-  <!-- ============ the thesis ============ -->
+  <!-- ============ the one idea ============ -->
   <section>
     <p class="eyebrow"><svg aria-hidden="true"><use href="#coin"/></svg>הרעיון</p>
-    <h2 style="font-size:clamp(30px,5.4vw,50px)">כל שנייה שלוקח להם — שווה לכם יותר.</h2>
-    <p class="warn" style="margin-top:18px;margin-bottom:34px">
-      הנותן צובר לפי <b>מתי</b> קלטו אותו, לא לפי אם קלטו. וזה הופך כל רמז להחלטה.
+    <h2>כל שנייה שלוקח להם — שווה לכם יותר.</h2>
+    <p class="lead">
+      הנותן צובר לפי <b>מתי</b> קלטו אותו, לא לפי אם קלטו. וזה הופך כל רמז להחלטה:
+      רמז מעורפל מדי מסוכן בדיוק כמו רמז ברור מדי.
     </p>
 
-    <div class="scale-track"></div>
-    <div class="scale">
-      <div class="stop now">
-        <span class="when">מיד</span>
-        <span class="gets">הנותן לוקח <em class="num">1</em></span>
-      </div>
-      <div class="stop">
-        <span class="when">באמצע</span>
-        <span class="gets">שווי המילה</span>
-      </div>
-      <div class="stop best">
-        <span class="when">ברגע האחרון</span>
-        <span class="gets">שווי המילה <em class="num">+1</em></span>
-      </div>
-    </div>
-
-    <p class="warn">
-      אף אחד לא קלט? <b>הנותן לא מקבל כלום.</b> לכן רמז מעורפל מדי מסוכן בדיוק כמו רמז
-      ברור מדי — צריך לכוון לשנייה האחרונה, לא אחריה.
-    </p>
-  </section>
-
-  <!-- ============ how to play ============ -->
-  <section>
-    <p class="eyebrow"><svg aria-hidden="true"><use href="#coin"/></svg>סבב, שלב אחרי שלב</p>
-    <div class="two">
-      <div class="steps">
-        <div class="step">
-          <span class="n">1</span>
-          <div>
-            <h3>הנותן בוחר מילה</h3>
-            <p>ארבע מילים על המסך שלו, שוות <span class="num">1</span> עד
-              <span class="num">4</span> נקודות. ככל שהמילה שווה יותר, ככה היא קשה יותר.</p>
-          </div>
+    <div class="body">
+      <div class="scale-track"></div>
+      <div class="scale">
+        <div class="stop now">
+          <span class="when">מיד</span>
+          <span class="gets">הנותן לוקח <em class="num">1</em></span>
         </div>
-        <div class="step">
-          <span class="n">2</span>
-          <div>
-            <h3>ומכוון לאדם אחד</h3>
-            <p>בשקט, בלי שאף אחד יידע. אם דווקא הוא זה שקולט — הנותן מקבל נקודה נוספת.</p>
-          </div>
+        <div class="stop">
+          <span class="when">באמצע</span>
+          <span class="gets">שווי המילה</span>
         </div>
-        <div class="step">
-          <span class="n">3</span>
-          <div>
-            <h3>משפט אחד. פעם אחת.</h3>
-            <p>תשעים שניות ברגיל — פחות במקצב מהיר, יותר ברגוע. אסור לומר את המילה,
-              ואסור לחזור על המשפט.</p>
-          </div>
-        </div>
-        <div class="step">
-          <span class="n">4</span>
-          <div>
-            <h3>מי שקולט — לוחץ</h3>
-            <p>לוחצים על הכפתור האדום ואומרים בקול. צדקתם? צברתם. טעיתם? יורדת נקודה
-              ואתם בחוץ עד סוף הסבב.</p>
-          </div>
+        <div class="stop best">
+          <span class="when">ברגע האחרון</span>
+          <span class="gets">שווי המילה <em class="num">+1</em></span>
         </div>
       </div>
-      <div>
-        <div class="phone"><img src="assets/shot-words.png" width="620" height="1307"
-          alt="מסך הנותן: ארבע מילים עם ניקוד, ורשימת השחקנים לכוון אליהם"></div>
-        <p class="phone-note">המסך הזה נראה רק לנותן</p>
-      </div>
+      <p class="note">אף אחד לא קלט? הנותן לא מקבל כלום.</p>
     </div>
   </section>
+
 
   <!-- ============ what is inside ============ -->
   <section>
     <p class="eyebrow"><svg aria-hidden="true"><use href="#coin"/></svg>מה יש בפנים</p>
-    <h2 style="font-size:clamp(28px,4.6vw,42px);margin-bottom:14px">
-      הלוח הוא זה שקובע איזה סבב תשחקו.</h2>
-    <p class="warn" style="margin-top:0;margin-bottom:30px">
-      המשבצת שהנותן עומד עליה קובעת את סוג הסבב. <b>מי שמתקדם, מתקדם לתוך
-      סבבים קשים יותר</b> — וזה אומר שאותו לוח לא משחק אותו דבר פעמיים.
+    <h2>אותו לוח לא משחק אותו דבר פעמיים.</h2>
+    <p class="lead">
+      המשבצת שהנותן עומד עליה קובעת את סוג הסבב — <b>ומי שמתקדם, מתקדם לתוך סבבים
+      קשים יותר</b>.
     </p>
 
-    <div class="inside">
-      <div>
+    <div class="body trio">
+      <div class="shot">
+        <div class="phone"><img src="assets/shot-words.png" width="620" height="1307"
+          alt="מסך הנותן: ארבע מילים עם ניקוד, ורשימת השחקנים לכוון אליהם"></div>
+        <p>ארבע מילים, שוות <span class="num">1</span> עד <span class="num">4</span>.
+          המסך הזה נראה רק לנותן.</p>
+      </div>
+      <div class="shot">
         <div class="phone"><img src="assets/shot-board.png" width="620" height="1307"
           alt="לוח המשחק: ארבעה נתיבים צבעוניים, כל משבצת סוג סבב אחר"></div>
-        <p class="phone-note">כל נקודה היא צעד. הראשון לסוף מנצח.</p>
+        <p>כל נקודה היא צעד. הראשון לסוף מנצח.</p>
       </div>
-
-      <div class="chipset">
-        <div>
-          <p class="chiphead">סוגי הסבבים</p>
-          <div class="rounds sum">
-            <div class="round"><b>עיוור</b><span>הכול מתהפך: הנותן הוא שמנחש</span></div>
-            <div class="round"><b>פנטומימה</b><span>בלי לדבר — וכאן דווקא כדאי שיקלטו מהר</span></div>
-            <div class="round"><b>דו־קרב</b><span>אדם אחד בקול, צעקה אחת, והסבב נגמר</span></div>
-            <div class="round"><b>שתי מילים</b><span>שתי מילים, משפט אחד לשתיהן</span></div>
-            <div class="round"><b>הקישור</b><span>שלוש מילים עקומות, ושם אחד שמחבר</span></div>
-            <div class="round"><b>ועוד</b><span>מהיר, מילה אחת, כפול, שותפים…</span></div>
-          </div>
-        </div>
-        <div>
-          <p class="chiphead">והקלפים, לשבור איתם סבב</p>
-          <div class="cards">
-            <span>סטופר</span><span>הצצה</span><span>וטו</span><span>פנטומימה</span>
-            <span>כפול</span><span>החלפה</span><span>כיסוי עיניים</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ============ how long, and how loud ============ -->
-  <section>
-    <p class="eyebrow"><svg aria-hidden="true"><use href="#coin"/></svg>לפי הזמן שיש לכם</p>
-    <h2 style="font-size:clamp(26px,4.2vw,38px);margin-bottom:26px">
-      ארבעה מקצבים, חמישה לוחות.</h2>
-
-    <div class="two" style="grid-template-columns:1fr 296px">
-      <div class="rounds" style="grid-template-columns:repeat(2,minmax(0,1fr))">
-        <div class="round"><b>מהיר</b><span>לוח קצר, שעון קצר — סבב שלם בפחות מדקה</span></div>
-        <div class="round"><b>רגיל</b><span>תשעים שניות, הלוח שאתם מכירים</span></div>
-        <div class="round"><b>רגוע</b><span>לוח ארוך, שעון ארוך, פחות לחץ</span></div>
-        <div class="round"><b>אתגר</b><span>רוב הסבבים קשים, והניצחון לפי ניקוד</span></div>
-      </div>
-      <div>
+      <div class="shot">
         <div class="phone"><img src="assets/shot-award.png" width="620" height="1307"
           alt="שלושה קלפים יורדים מהחפיסה, אחד מתהפך ומראה מה הוא עושה"></div>
-        <p class="phone-note">נחתם על משבצת קלף? שלושה יורדים, אחד נשאר.</p>
+        <p>קלף שנופל באמצע סבב ומשנה אותו.</p>
       </div>
     </div>
 
-    <p class="warn" style="margin-top:28px">
-      <b>ויש קול.</b> השעון מתקתק בעשר השניות האחרונות, הכפתור האדום נשמע
-      כמו באזר, והאסימון מצטלצל כשהוא נופל. כל פרצוף עושה משהו כשבוחרים אותו —
-      סבתא קורצת. אפשר לכבות הכול בכפתור אחד.
-    </p>
+    <div class="body rounds">
+      <div class="round"><b>עיוור</b><span>הכול מתהפך: הנותן הוא שמנחש</span></div>
+      <div class="round"><b>פנטומימה</b><span>בלי לדבר — וכאן דווקא כדאי שיקלטו מהר</span></div>
+      <div class="round"><b>דו־קרב</b><span>אדם אחד בקול, צעקה אחת, והסבב נגמר</span></div>
+      <div class="round"><b>שתי מילים</b><span>שתי מילים, משפט אחד לשתיהן</span></div>
+      <div class="round"><b>הקישור</b><span>שלוש מילים עקומות, ושם אחד שמחבר</span></div>
+      <div class="round"><b>ועוד</b><span>מהיר, מילה אחת, הימור, שותפים…</span></div>
+    </div>
+
+    <div class="body">
+      <div class="facegrid"><span class="fc"><svg class="face" viewBox="0 0 40 40" width="60" height="60" aria-hidden="true"><circle cx="20" cy="20" r="20" fill="#2C6BFF"/><g clip-path="url(#lsface)"><path d="M5.5 40c0-8 6.5-11.6 14.5-11.6S34.5 32 34.5 40Z" fill="#1B4FD1"/><circle cx="20" cy="18.5" r="11" fill="#F2C79E"/><ellipse cx="20" cy="11.4" rx="11" ry="6.2" fill="#3B2A1A"/><circle cx="16" cy="18" r="1.6" fill="#2A2118"/><circle cx="24" cy="18" r="1.6" fill="#2A2118"/><path d="M16.4 23.4q3.6 3 7.2 0" stroke="#2A2118" stroke-width="1.5" fill="none" stroke-linecap="round"/></g></svg></span><span class="fc"><svg class="face" viewBox="0 0 40 40" width="60" height="60" aria-hidden="true"><circle cx="20" cy="20" r="20" fill="#DB2777"/><g clip-path="url(#lsface)"><path d="M5.5 40c0-8 6.5-11.6 14.5-11.6S34.5 32 34.5 40Z" fill="#A81A5B"/><circle cx="20" cy="18.5" r="11" fill="#F2C79E"/><rect x="8.2" y="13" width="4" height="16" rx="2" fill="#4A2C17"/><rect x="27.8" y="13" width="4" height="16" rx="2" fill="#4A2C17"/><ellipse cx="20" cy="12" rx="11.8" ry="7" fill="#4A2C17"/><circle cx="16" cy="18" r="1.6" fill="#2A2118"/><circle cx="24" cy="18" r="1.6" fill="#2A2118"/><path d="M16.4 23.4q3.6 3 7.2 0" stroke="#2A2118" stroke-width="1.5" fill="none" stroke-linecap="round"/></g></svg></span><span class="fc"><svg class="face" viewBox="0 0 40 40" width="60" height="60" aria-hidden="true"><circle cx="20" cy="20" r="20" fill="#78716C"/><g clip-path="url(#lsface)"><path d="M5.5 40c0-8 6.5-11.6 14.5-11.6S34.5 32 34.5 40Z" fill="#57534E"/><circle cx="20" cy="18.5" r="11" fill="#EFCBAA"/><ellipse cx="10.4" cy="16.5" rx="2.7" ry="4.6" fill="#D6D3D1"/><ellipse cx="29.6" cy="16.5" rx="2.7" ry="4.6" fill="#D6D3D1"/><ellipse cx="20" cy="9.6" rx="7.6" ry="2.4" fill="#D6D3D1"/><circle cx="16" cy="17.8" r="1.6" fill="#2A2118"/><circle cx="24" cy="17.8" r="1.6" fill="#2A2118"/><path d="M17.4 28.4h5.2" stroke="#2A2118" stroke-width="1.3" stroke-linecap="round"/><ellipse cx="20" cy="25.4" rx="5.4" ry="2.1" fill="#D6D3D1"/><circle cx="15.4" cy="17.8" r="3.6" fill="none" stroke="#3F3A36" stroke-width="1.1"/><circle cx="24.6" cy="17.8" r="3.6" fill="none" stroke="#3F3A36" stroke-width="1.1"/><path d="M19 17.8h2M11.8 17.2l-2.4-.6M28.2 17.2l2.4-.6" stroke="#3F3A36" stroke-width="1.1" stroke-linecap="round"/></g></svg></span><span class="fc"><svg class="face" viewBox="0 0 40 40" width="60" height="60" aria-hidden="true"><circle cx="20" cy="20" r="20" fill="#7A5AF8"/><g clip-path="url(#lsface)"><path d="M5.5 40c0-8 6.5-11.6 14.5-11.6S34.5 32 34.5 40Z" fill="#5E3FDB"/><circle cx="20" cy="18.5" r="11" fill="#EFCBAA"/><circle cx="20" cy="5.4" r="4.4" fill="#E7E5E4"/><ellipse cx="20" cy="11.6" rx="11.2" ry="6.6" fill="#E7E5E4"/><circle cx="16" cy="17.8" r="1.6" fill="#2A2118"/><circle cx="24" cy="17.8" r="1.6" fill="#2A2118"/><path d="M16.4 23.4q3.6 3 7.2 0" stroke="#2A2118" stroke-width="1.5" fill="none" stroke-linecap="round"/><circle cx="15.4" cy="17.8" r="3.6" fill="none" stroke="#3B2E6B" stroke-width="1.1"/><circle cx="24.6" cy="17.8" r="3.6" fill="none" stroke="#3B2E6B" stroke-width="1.1"/><path d="M19 17.8h2M11.8 17.2l-2.4-.6M28.2 17.2l2.4-.6" stroke="#3B2E6B" stroke-width="1.1" stroke-linecap="round"/></g></svg></span><span class="fc"><svg class="face" viewBox="0 0 40 40" width="60" height="60" aria-hidden="true"><circle cx="20" cy="20" r="20" fill="#12B886"/><g clip-path="url(#lsface)"><path d="M5.5 40c0-8 6.5-11.6 14.5-11.6S34.5 32 34.5 40Z" fill="#0D8F69"/><circle cx="20" cy="18.5" r="11" fill="#F2C79E"/><rect x="7.4" y="12" width="4.4" height="18" rx="2.2" fill="#7C4A21"/><rect x="28.2" y="12" width="4.4" height="18" rx="2.2" fill="#7C4A21"/><ellipse cx="20" cy="12" rx="12.2" ry="7.4" fill="#7C4A21"/><rect x="8" y="12.4" width="24" height="3.4" rx="1.7" fill="#FF5A3D"/><circle cx="15.2" cy="19.4" r="3.7" fill="#3A2405" opacity=".82"/><circle cx="24.8" cy="19.4" r="3.7" fill="#3A2405" opacity=".82"/><path d="M18.9 19.4h2.2" stroke="#3A2405" stroke-width="1.1"/><path d="M16.4 25q3.6 3 7.2 0" stroke="#2A2118" stroke-width="1.5" fill="none" stroke-linecap="round"/></g></svg></span><span class="fc"><svg class="face" viewBox="0 0 40 40" width="60" height="60" aria-hidden="true"><circle cx="20" cy="20" r="20" fill="#B45309"/><g clip-path="url(#lsface)"><path d="M5.5 40c0-8 6.5-11.6 14.5-11.6S34.5 32 34.5 40Z" fill="#92400E"/><circle cx="20" cy="18.5" r="11" fill="#D99A6C"/><ellipse cx="20" cy="10.4" rx="11" ry="5.6" fill="#2F241A"/><ellipse cx="20" cy="27.4" rx="9.4" ry="6.4" fill="#2F241A"/><ellipse cx="20" cy="22.6" rx="4.8" ry="1.8" fill="#2F241A"/><circle cx="16" cy="17.4" r="1.6" fill="#2A2118"/><circle cx="24" cy="17.4" r="1.6" fill="#2A2118"/><path d="M16.4 23.4q3.6 3 7.2 0" stroke="#2A2118" stroke-width="1.5" fill="none" stroke-linecap="round"/></g></svg></span><span class="fc"><svg class="face" viewBox="0 0 40 40" width="60" height="60" aria-hidden="true"><circle cx="20" cy="20" r="20" fill="#FF5A3D"/><g clip-path="url(#lsface)"><path d="M5.5 40c0-8 6.5-11.6 14.5-11.6S34.5 32 34.5 40Z" fill="#C2410C"/><circle cx="20" cy="18.5" r="11" fill="#8D5524"/><circle cx="11.8" cy="13.6" r="4.6" fill="#1E1712"/><circle cx="28.2" cy="13.6" r="4.6" fill="#1E1712"/><circle cx="15.6" cy="9.8" r="4.4" fill="#1E1712"/><circle cx="24.4" cy="9.8" r="4.4" fill="#1E1712"/><circle cx="20" cy="8.6" r="4.8" fill="#1E1712"/><circle cx="16" cy="18.4" r="1.6" fill="#1E1712"/><circle cx="24" cy="18.4" r="1.6" fill="#1E1712"/><path d="M16.4 23.8q3.6 3 7.2 0" stroke="#2A2118" stroke-width="1.5" fill="none" stroke-linecap="round"/></g></svg></span><span class="fc"><svg class="face" viewBox="0 0 40 40" width="60" height="60" aria-hidden="true"><circle cx="20" cy="20" r="20" fill="#0891B2"/><g clip-path="url(#lsface)"><path d="M5.5 40c0-8 6.5-11.6 14.5-11.6S34.5 32 34.5 40Z" fill="#0E7490"/><circle cx="20" cy="18.5" r="11" fill="#F2C79E"/><ellipse cx="20" cy="12.4" rx="11.2" ry="6.6" fill="#F97316"/><rect x="7.8" y="13.2" width="24.4" height="3.8" rx="1.9" fill="#EA580C"/><circle cx="20" cy="5" r="2.6" fill="#EA580C"/><circle cx="16" cy="20.4" r="1.6" fill="#2A2118"/><circle cx="24" cy="20.4" r="1.6" fill="#2A2118"/><path d="M16.4 25.4q3.6 3 7.2 0" stroke="#2A2118" stroke-width="1.5" fill="none" stroke-linecap="round"/></g></svg></span><span class="fc"><svg class="face" viewBox="0 0 40 40" width="60" height="60" aria-hidden="true"><circle cx="20" cy="20" r="20" fill="#17161C"/><g clip-path="url(#lsface)"><path d="M5.5 40c0-8 6.5-11.6 14.5-11.6S34.5 32 34.5 40Z" fill="#E2E8F0"/><rect x="4.6" y="16.4" width="3.4" height="6" rx="1.7" fill="#CBD5E1"/><rect x="32" y="16.4" width="3.4" height="6" rx="1.7" fill="#CBD5E1"/><circle cx="20" cy="19" r="12.4" fill="#F8FAFC"/><circle cx="20" cy="18.4" r="8.8" fill="#1E293B"/><path d="M14.6 15a6.4 6.4 0 0 1 5.2-3" stroke="#93C5FD" stroke-width="1.7" fill="none" stroke-linecap="round"/></g></svg></span><span class="fc"><svg class="face" viewBox="0 0 40 40" width="60" height="60" aria-hidden="true"><circle cx="20" cy="20" r="20" fill="#64748B"/><g clip-path="url(#lsface)"><path d="M5.5 40c0-8 6.5-11.6 14.5-11.6S34.5 32 34.5 40Z" fill="#334155"/><rect x="19.2" y="3.6" width="1.6" height="5.4" rx=".8" fill="#CBD5E1"/><circle cx="20" cy="3" r="2.2" fill="#FFB020"/><rect x="8.6" y="8.6" width="22.8" height="20.4" rx="6.4" fill="#E2E8F0"/><rect x="12.8" y="15" width="5.4" height="5.4" rx="1.7" fill="#0F172A"/><rect x="21.8" y="15" width="5.4" height="5.4" rx="1.7" fill="#0F172A"/><rect x="15.4" y="23.4" width="9.2" height="1.8" rx=".9" fill="#0F172A"/></g></svg></span><span class="fc"><svg class="face" viewBox="0 0 40 40" width="60" height="60" aria-hidden="true"><circle cx="20" cy="20" r="20" fill="#F97316"/><g clip-path="url(#lsface)"><path d="M7 12 11 3 16.5 9.5Z" fill="#C2410C"/><path d="M33 12 29 3 23.5 9.5Z" fill="#C2410C"/><ellipse cx="20" cy="26.5" rx="10" ry="7.5" fill="#FFF1E8"/><circle cx="16" cy="19" r="1.6" fill="#2A2118"/><circle cx="24" cy="19" r="1.6" fill="#2A2118"/><circle cx="20" cy="25" r="2.3" fill="#3A2318"/></g></svg></span><span class="fc"><svg class="face" viewBox="0 0 40 40" width="60" height="60" aria-hidden="true"><circle cx="20" cy="20" r="20" fill="#FACC15"/><g clip-path="url(#lsface)"><path d="M8 13 10.5 4 17 10Z" fill="#CA8A04"/><path d="M32 13 29.5 4 23 10Z" fill="#CA8A04"/><circle cx="16" cy="20" r="1.6" fill="#2A2118"/><circle cx="24" cy="20" r="1.6" fill="#2A2118"/><path d="M20 25 18.4 27h3.2Z" fill="#3A2318"/><path d="M6.5 22h5M6.5 25.5h5M33.5 22h-5M33.5 25.5h-5" stroke="#7C5E06" stroke-width="1.4" stroke-linecap="round"/></g></svg></span><span class="fc"><svg class="face" viewBox="0 0 40 40" width="60" height="60" aria-hidden="true"><circle cx="20" cy="20" r="20" fill="#6366F1"/><g clip-path="url(#lsface)"><path d="M8.5 11 13 4 17.5 10.5Z" fill="#4338CA"/><path d="M31.5 11 27 4 22.5 10.5Z" fill="#4338CA"/><circle cx="14.4" cy="20" r="6.4" fill="#EEF2FF"/><circle cx="25.6" cy="20" r="6.4" fill="#EEF2FF"/><circle cx="14.4" cy="20" r="2.6" fill="#1E1B4B"/><circle cx="25.6" cy="20" r="2.6" fill="#1E1B4B"/><path d="M20 25.5 17.4 29.5h5.2Z" fill="#FFB020"/></g></svg></span><span class="fc"><svg class="face" viewBox="0 0 40 40" width="60" height="60" aria-hidden="true"><circle cx="20" cy="20" r="20" fill="#4D7C0F"/><g clip-path="url(#lsface)"><circle cx="12.5" cy="11" r="6.2" fill="#3F6212"/><circle cx="27.5" cy="11" r="6.2" fill="#3F6212"/><circle cx="12.5" cy="11" r="3.6" fill="#FFFFFF"/><circle cx="27.5" cy="11" r="3.6" fill="#FFFFFF"/><circle cx="12.5" cy="11.4" r="1.8" fill="#14200A"/><circle cx="27.5" cy="11.4" r="1.8" fill="#14200A"/><path d="M11 25q9 7 18 0" stroke="#14200A" stroke-width="2.1" fill="none" stroke-linecap="round"/></g></svg></span><span class="fc"><svg class="face" viewBox="0 0 40 40" width="60" height="60" aria-hidden="true"><circle cx="20" cy="20" r="20" fill="#E7E5E4"/><g clip-path="url(#lsface)"><circle cx="9" cy="9.5" r="5.8" fill="#20202A"/><circle cx="31" cy="9.5" r="5.8" fill="#20202A"/><ellipse cx="13.8" cy="20" rx="5.2" ry="6" fill="#20202A" transform="rotate(-14 13.8 20)"/><ellipse cx="26.2" cy="20" rx="5.2" ry="6" fill="#20202A" transform="rotate(14 26.2 20)"/><circle cx="14.4" cy="20" r="1.9" fill="#FFFFFF"/><circle cx="25.6" cy="20" r="1.9" fill="#FFFFFF"/><ellipse cx="20" cy="27" rx="3" ry="2.2" fill="#20202A"/></g></svg></span></div>
+      <p class="note">חמישה־עשר פרצופים, מסבתא ועד הקטנים. אף אחד לא נשאר עם אות
+        ראשונה בעיגול.</p>
+    </div>
   </section>
+
 
   <!-- ============ how to start ============ -->
   <section>
     <p class="eyebrow"><svg aria-hidden="true"><use href="#coin"/></svg>איך מתחילים</p>
-    <div class="start">
+    <h2>שלושים שניות עד הסבב הראשון.</h2>
+
+    <div class="body split">
       <div>
         <div class="howto">
-          <div><span class="n">1</span><p>מארח אחד מריץ את המשחק.</p></div>
-          <div><span class="n">2</span><p>כולם פותחים את הכתובת בטלפון — אין מה להתקין.</p></div>
-          <div><span class="n">3</span><p>מקישים את קוד החדר, בוחרים פרצוף, ומתחילים.</p></div>
-          <div><span class="n">4</span><p>יש טלוויזיה או טאבלט? פתחו שם את אותה הכתובת —
-            תקבלו מסך שמראה את הלוח ואת הניקוד, <b>בלי לתפוס מקום במשחק</b>.</p></div>
+          <div><span class="n">1</span><p>מארח אחד פותח את הכתובת.</p></div>
+          <div><span class="n">2</span><p>כולם מקישים את קוד החדר בטלפון שלהם — אין מה
+            להתקין, ואין חשבונות.</p></div>
+          <div><span class="n">3</span><p>בוחרים פרצוף, ומתחילים.</p></div>
         </div>
-        <p class="privacy">
-          בלי חשבונות ובלי מידע אישי: חדר הוא קוד בן ארבע אותיות, שם פרטי ופרצוף שבחרתם —
-          והכול נמחק כשהחדר נסגר.
-        </p>
+        <p class="note">יש טלוויזיה או טאבלט? פתחו שם את אותה הכתובת ותקבלו מסך שמראה
+          את הלוח ואת הניקוד — בלי לתפוס מקום במשחק. חדר הוא קוד בן ארבע אותיות, שם
+          פרטי ופרצוף, והכול נמחק כשהחדר נסגר.</p>
       </div>
 
       <div class="ticket">
@@ -448,7 +366,7 @@
         <p class="code">ABCD</p>
         <div class="slot">
           <span class="lab">הכתובת</span>
-          <a class="val addr" href="https://asimon.onrender.com">asimon.onrender.com</a>
+          <a class="addr" href="https://asimon.onrender.com">asimon.onrender.com</a>
         </div>
         <a class="cta cta-sm" href="https://asimon.onrender.com">לפתוח חדר</a>
       </div>
@@ -456,19 +374,18 @@
   </section>
 
 
+  <!-- ============ kit ============ -->
   <section id="kit">
     <p class="eyebrow"><svg aria-hidden="true"><use href="#coin"/></svg>להורדה</p>
-    <h2 style="font-size:clamp(26px,4.2vw,38px);margin-bottom:8px">כל החומרים, חופשי לשיתוף.</h2>
-    <p class="warn" style="margin-top:0;margin-bottom:26px">
-      הטריילר, הפוסטר ודף הכללים — קחו ותתלו איפה שבא לכם.
-    </p>
-    <div class="kit">
-      <a class="dl" href="assets/asimon-trailer-1080p.mp4" download>
-        <b>הטריילר</b><span>MP4 · 1080p · 38 שניות</span></a>
+    <h2>קחו ותתלו איפה שבא לכם.</h2>
+
+    <div class="body kit">
       <a class="dl" href="assets/asimon-poster-A4.pdf" download>
         <b>הפוסטר</b><span>PDF · A4 · להדפסה</span></a>
       <a class="dl" href="assets/asimon-how-to-play-A4.pdf" download>
         <b>איך משחקים</b><span>PDF · A4 · דף הכללים</span></a>
+      <a class="dl" href="assets/asimon-trailer-1080p.mp4" download>
+        <b>הטריילר</b><span>MP4 · 1080p · 38 שניות</span></a>
       <a class="dl" href="https://github.com/frenkelsergei-blip/asimon">
         <b>הקוד</b><span>GitHub · להריץ בעצמכם</span></a>
     </div>
