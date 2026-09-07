@@ -63,8 +63,16 @@ const MODEL = {
   playCard: 0.42,
   /* the giver's taste in words: greedy takes the dearest, safe the cheapest */
   givers: ["greedy", "greedy", "balanced", "balanced", "safe"],
-  /* what a mover does with their steps */
+  /* What a mover does with their steps. None of these four steers by what a
+     square pays — they chase distance, cards, or quiet — which is how a table
+     plays on the first evening and not how it plays on the tenth. `hunter` is
+     the tenth: somebody who has worked out which square is the rich one and
+     will give up a step to stand on it. It is off by default, because the
+     baseline is meant to be an ordinary table; --hunters 2 swaps two of the
+     five for it, and the gap between the two runs is what a square's payout
+     is really worth once the room knows. */
   movers: ["racer", "racer", "seeker", "seeker", "cautious"],
+  huntFor: "G",                  /* the square a hunter gives a step to reach */
   /* the challenge a giver asks for */
   challenge: { topic:0.34, open:0.46, cold:0.20 }
 };
@@ -110,7 +118,9 @@ function playOne(cfg){
 
   /* a personality per seat, drawn once and kept for the game */
   const trait = {};
-  room.players.forEach(p => { trait[p.id] = { give: pick(MODEL.givers), move: pick(MODEL.movers) }; });
+  const movers = MODEL.movers.slice();
+  for(let i = 0; i < HUNTERS && i < movers.length; i++) movers[i] = "hunter";
+  room.players.forEach(p => { trait[p.id] = { give: pick(MODEL.givers), move: pick(movers) }; });
   /* the rules name people; the actions come from the phone holding them */
   const phoneOf = personId => play.phoneOf(room, personId);
 
@@ -120,13 +130,15 @@ function playOne(cfg){
     unsolved: 0, lockouts: 0, swapDeadlock: 0, insightOnCold: 0,
     stopwatchPlays: 0, stopwatchLateBand: 0, wildHits: 0, giverPts: 0, giverRounds: 0,
     stepHist: {}, bigRound: 0, leaderRows: [], bands: {}, solved: 0, buzzes: 0,
+    hunted: 0,          /* moves that gave up a step to reach the rich square */
     byMod: {},          /* per round type: dealt, landed, the giver's pay, seconds */
     seats: 0, seatRounds2: 0, unitCount: 0,
     words: [], repeats: 0,
     perUnit: {}, halfLeader: null, boardWinner: null, scoreWinner: null,
     scores: [], rowsNeeded: e.ROWS() + 1, minRounds: null
   };
-  e.S.units.forEach(u => { g.perUnit[u.id] = { gave:0, solved:0, wrong:0, cards:0, played:0, dry:0, dryRun:0, maxDry:0, pts:0 }; });
+  e.S.units.forEach(u => { g.perUnit[u.id] = { gave:0, solved:0, wrong:0, cards:0, played:0, dry:0, dryRun:0, maxDry:0, pts:0,
+                                               how: trait[phoneOf(u.members[0])].move }; });
   g.opening = (e.S.opening || {}).key || null;
   g.units = e.S.units.length;
   g.people = e.S.players.length;
@@ -445,6 +457,11 @@ function playOne(cfg){
       if(how === "seeker"){
         const cards = spots.filter(s => typeOf(s) === "CARD");
         want = cards.length ? pick(cards) : pick(best);
+      } else if(how === "hunter"){
+        /* a step is cheap next to a square that pays half again as much */
+        const worth = spots.filter(s => s.d >= far - 1 && typeOf(s) === MODEL.huntFor);
+        want = worth.length ? worth.sort((a, b) => b.d - a.d)[0] : pick(best);
+        if(worth.length) g.hunted++;
       } else if(how === "cautious"){
         const calm = best.filter(s => ["B","M","O"].indexOf(typeOf(s)) < 0);
         want = calm.length ? pick(calm) : pick(best);
@@ -490,6 +507,14 @@ function playOne(cfg){
 
   const S = e.S;
   g.boardWinner = (e.winnerUnit() || {}).id || null;
+  /* Who won, by the habit they moved with. Only meaningful when the table is
+     mixed — two movers who chase the rich square against three who do not —
+     and then it is the only honest answer to "is that square worth standing
+     on": the seats are otherwise identical, so a win rate above their share
+     of the table is what the chase is worth, in games rather than in points. */
+  if(g.boardWinner && g.perUnit[g.boardWinner])
+    g.winnerHow = g.perUnit[g.boardWinner].how;
+  g.seatsHow = Object.values(g.perUnit).map(u => u.how);
   g.crossed = S.units.filter(u => e.atFinish(u)).length;
   const byScore = S.units.slice().sort((a, b) => b.score - a.score);
   g.scoreWinner = byScore[0] ? byScore[0].id : null;
@@ -507,6 +532,8 @@ const arg = (k, d) => { const i = argv.indexOf("--" + k); return i >= 0 ? argv[i
 const has = k => argv.indexOf("--" + k) >= 0;
 
 const SEED = Number(arg("seed", 20260907));
+const HUNTERS = Number(arg("hunters", 0));   /* movers who steer by what a square pays */
+if(argv.indexOf("--huntFor") >= 0) MODEL.huntFor = arg("huntFor", "G");
 rnd = mulberry32(SEED);
 /* The engine reaches for Math.random directly — for the words a round deals,
    the shuffles, the wildcard roll, the board's own re-rolling. Seeding only
@@ -607,7 +634,8 @@ const MOD_NAME = { S:"Standard", F:"Fast", O:"One word", M:"Mime", B:"Blind",
 if(has("json")){
   console.log(JSON.stringify({ seed:SEED, totals:TOT, runs: runs.map(g => ({
     cfg:g.cfg, rounds:g.rounds, minutes:g.minutes, scores:g.scores, margin:g.margin,
-    boardWinner:g.boardWinner, scoreWinner:g.scoreWinner, mods:g.mods, unsolved:g.unsolved
+    boardWinner:g.boardWinner, scoreWinner:g.scoreWinner, mods:g.mods, unsolved:g.unsolved,
+    winnerHow:g.winnerHow, seatsHow:g.seatsHow
   })) }, null, 1));
   process.exit(hard.length ? 1 : 0);
 }
