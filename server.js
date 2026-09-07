@@ -71,7 +71,9 @@ function makeRoom(){
     createdAt: Date.now(),
     touchedAt: Date.now(),
     hostId: null,
-    players: [],                        // {id, name, joinedAt, online}
+    players: [],                        // the phones: {id, name, face, joinedAt, online}
+    people: [],                         // the roster the rules run on: {id, name, face, phoneId}
+    seating: "solo",                    // solo | pairs | groups — chosen in the lobby
     clients: new Map(),                 // pid -> Set(res)
     phase: "lobby",
     lang: "he",
@@ -153,14 +155,14 @@ function cleanFace(x){
   const f = String(x == null ? "" : x);
   return /^[a-z]{2,12}$/.test(f) ? f : "";
 }
-function faceTaken(room, face, exceptPid){
-  return room.players.some(p => p.face === face && p.id !== exceptPid);
+const FACE_POOL = ["boy","girl","grandpa","grandma","hippy","beard","curly","beanie",
+                   "astro","robot","fox","cat","owl","frog","panda"];
+/* A face marks a person, not a phone — in groups three of them share one. */
+function faceTaken(room, face, exceptId){
+  return play.roster(room).some(p => p.face === face && p.id !== exceptId);
 }
-function freeFace(room){
-  const pool = ["boy","girl","grandpa","grandma","hippy","beard","curly","beanie",
-                "astro","robot","fox","cat","owl","frog","panda"];
-  return pool.find(f => !faceTaken(room, f)) || "boy";
-}
+function freeFace(room){ return FACE_POOL.find(f => !faceTaken(room, f)) || "boy"; }
+function freeFaceFrom(taken){ return FACE_POOL.find(f => taken.indexOf(f) < 0) || "boy"; }
 
 /* strip control characters, collapse whitespace, cap the length */
 function cleanName(s){
@@ -190,6 +192,7 @@ const server = http.createServer(async (req, res) => {
       const pid = "p" + Math.random().toString(36).slice(2, 10);
       const face = cleanFace(body.face) || freeFace(room);
       room.players.push({ id:pid, name, face, joinedAt:Date.now(), online:false });
+      play.addPerson(room, pid, name, face);
       room.hostId = pid;
       if(body.lang === "en" || body.lang === "he") room.lang = body.lang;
       touch(room);
@@ -213,6 +216,7 @@ const server = http.createServer(async (req, res) => {
       if(!face) face = freeFace(room);
       const pid = "p" + Math.random().toString(36).slice(2, 10);
       room.players.push({ id:pid, name, face, joinedAt:Date.now(), online:false });
+      play.addPerson(room, pid, name, face);
       touch(room); broadcast(room);
       return sendJSON(res, 200, { code: room.code, pid });
     }
@@ -303,17 +307,62 @@ const server = http.createServer(async (req, res) => {
       if(body.type === "leave"){
         if(me.dropTimer){ clearTimeout(me.dropTimer); me.dropTimer = null; }
         room.players = room.players.filter(x => x.id !== me.id);
+        room.people  = (room.people || []).filter(x => x.phoneId !== me.id);
         room.clients.delete(me.id);
         if(room.hostId === me.id) room.hostId = room.players[0] ? room.players[0].id : null;
         broadcast(room);
         return sendJSON(res, 200, { ok:true });
       }
+      /* Who is on this phone. Sent whole rather than one name at a time, so
+         the phone's list and the room's roster cannot drift apart. */
+      if(body.type === "people"){
+        if(room.phase !== "lobby") return sendJSON(res, 409, { error:"already_started" });
+        const raw = Array.isArray(body.list) ? body.list.slice(0, play.MAX_GROUP) : [];
+        const wanted = raw.map(x => ({ name: cleanName(x && x.name), face: cleanFace(x && x.face) }))
+                          .filter(x => x.name);
+        if(!wanted.length) return sendJSON(res, 400, { error:"name_required" });
+        const elsewhere = (room.people || []).filter(p => p.phoneId !== me.id);
+        if(elsewhere.length + wanted.length > play.MAX_PEOPLE)
+          return sendJSON(res, 409, { error:"room_full" });
+        /* a name may repeat inside one group; across the table it may not */
+        const seen = [];
+        for(const w of wanted){
+          const low = w.name.toLowerCase();
+          if(seen.indexOf(low) >= 0) return sendJSON(res, 409, { error:"name_taken" });
+          seen.push(low);
+          if(elsewhere.some(p => p.name.toLowerCase() === low))
+            return sendJSON(res, 409, { error:"name_taken" });
+        }
+        /* Rebuild this phone's slice of the roster. The first person keeps the
+           phone's own id, so the one-person-per-phone case stays an identity. */
+        const taken = elsewhere.map(p => p.face).filter(Boolean);
+        room.people = elsewhere;
+        wanted.forEach((w, i) => {
+          let face = w.face;
+          if(!face || taken.indexOf(face) >= 0) face = freeFaceFrom(taken);
+          taken.push(face);
+          room.people.push({
+            id: i === 0 ? me.id : ("n" + Math.random().toString(36).slice(2, 10)),
+            name: w.name, face, phoneId: me.id
+          });
+        });
+        /* the phone's own name and face follow whoever is first on it */
+        me.name = wanted[0].name;
+        me.face = room.people.find(p => p.id === me.id).face;
+        if(body.groupName !== undefined) me.groupName = cleanName(body.groupName);
+        broadcast(room);
+        return sendJSON(res, 200, { ok:true });
+      }
+
       if(body.type === "face"){
         if(room.phase !== "lobby") return sendJSON(res, 409, { error:"already_started" });
         const face = cleanFace(body.face);
         if(!face) return sendJSON(res, 400, { error:"bad_choice" });
         if(faceTaken(room, face, me.id)) return sendJSON(res, 409, { error:"face_taken" });
         me.face = face;
+        /* the avatar the table sees comes off the person, not the phone */
+        const mine = (room.people || []).filter(x => x.phoneId === me.id);
+        if(mine.length === 1) mine[0].face = face;
         broadcast(room);
         return sendJSON(res, 200, { ok:true });
       }

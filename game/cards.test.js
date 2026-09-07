@@ -239,6 +239,86 @@ function give(r, pid, key){
   }
 }
 
+/* ---- 6. a Cold round deals one word, and two cards assume there are four ---- */
+/* drive a room to the table on Cold, where the giver has no choice at all */
+function toCold(names){
+  const r = room(names || ["A","B","C","D"]);
+  const R = r.engine.S.r;
+  if(R.mod === "B") return null;
+  const g = r.players.find(p => p.id === giverOf(r));
+  play.applyAction(r, g, { type:"challenge", k:"cold" }, CTX);
+  if(!R.shotPublic) play.applyAction(r, g, { type:"aim", target: other(r).id }, CTX);
+  play.applyAction(r, g, { type:"ready" }, CTX);
+  return r;
+}
+{
+  const r = toCold();
+  const R = r.engine.S.r;
+  ok(R.words.length === 1, "Cold dealt " + R.words.length + " words, not one");
+  const answer = R.words[R.pick].text;
+
+  /* Insight promises four and says it is one of them. On one word it would be
+     holding up the answer on its own. */
+  const o = other(r);
+  give(r, o.id, "insight");
+  play.applyAction(r, o, { type:"playcard", key:"insight" }, CTX);
+  const seen = play.viewFor(r, o.id).insight || [];
+  ok(seen.length === 4, "Insight on a Cold round showed " + seen.length + " words, not four");
+  ok(seen.indexOf(answer) >= 0, "Insight dropped the word that was actually in play");
+  ok(new Set(seen).size === 4, "Insight repeated a word to make up the four");
+  /* and it holds still — a fresh set on every poll would flicker on the phone */
+  ok(JSON.stringify(play.viewFor(r, o.id).insight) === JSON.stringify(seen),
+     "Insight dealt itself new decoys on the next look");
+}
+{
+  /* Switch promises a different word. On Cold there was none, and the giver
+     used to land on a screen with nothing on it that could be tapped. */
+  const r = toCold();
+  const g = r.players.find(p => p.id === giverOf(r));
+  const R = r.engine.S.r;
+  const first = R.words[0].text;
+  give(r, g.id, "swap");
+  play.applyAction(r, g, { type:"playcard", key:"swap" }, CTX);
+  ok(r.phase === "swap", "Switch did not open the word list on a Cold round");
+  ok(R.words.length >= 2, "Switch left the giver with " + R.words.length + " word to choose from");
+  ok(R.words.some(w => w.text !== first), "Switch offered the same word twice");
+  const alt = R.words.findIndex((w, i) => i !== R.pick);
+  ok(alt >= 0, "no alternative index to switch to");
+  const res = play.applyAction(r, g, { type:"swappick", i:alt }, CTX);
+  ok(res.ok === true, "switching on a Cold round was refused: " + JSON.stringify(res));
+  ok(r.phase === "table", "the room stayed stranded on the swap screen: " + r.phase);
+  ok(R.words[R.pick].text !== first, "the word did not actually change");
+  /* the card is only spent once it can do something */
+  ok(!play.blockedBy(r), "the room came back from Switch already stuck");
+}
+
+/* ---- 7. Stopwatch squeezes the table, not the giver's payout ---- */
+/* The clock used to be pushed forward instead of shortened, which parked every
+   remaining second inside the giver's late-landing band — the top rate. */
+{
+  const r = toTable(["A","B","C","D"]);
+  const e = r.engine, R = e.S.r;
+  /* buzz with somebody the giver did not aim at, so the +2 for calling the
+     shot does not sit on top of the band this is measuring */
+  const o = r.players.find(p => p.id !== giverOf(r) && p.id !== R.shot);
+  ok(!!o, "no unaimed guesser at a table of four");
+  give(r, o.id, "stopwatch");
+  play.applyAction(r, o, { type:"playcard", key:"stopwatch" }, CTX);
+  ok(e.remainMs() > 29500 && e.remainMs() <= 30100,
+     "stopwatch left " + (e.remainMs()/1000).toFixed(1) + "s, not 30");
+  const fracNow = e.elapsedMs() / (R.total * 1000);
+  ok(fracNow <= 0.25,
+     "after Stopwatch the round already reads " + fracNow.toFixed(2) +
+     " through — every second left would pay the giver its late band");
+  /* all three bands still lie ahead: getting it at once is still too obvious */
+  R.acc = Math.round(R.total * 1000 * 0.10); R.startedAt = Date.now();
+  play.applyAction(r, o, { type:"buzz" }, CTX);
+  play.applyAction(r, r.players.find(p => p.id === giverOf(r)), { type:"judge", yes:true }, CTX);
+  const giverRow = e.S.result.rows.find(x => x.giver);
+  ok(giverRow.pts === 1,
+     "a solve in the first tenth of a shortened round paid the giver " + giverRow.pts + ", not 1");
+}
+
 console.log(bad.length ? "FAIL (" + bad.length + "):\n" + [...new Set(bad)].join("\n")
                        : "cards ok — seven cards, hands stay private, Switch is the giver's alone");
 process.exit(bad.length ? 1 : 0);

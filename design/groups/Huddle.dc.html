@@ -4,18 +4,20 @@
 <body>
 <x-dc>
 <helmet>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700;800&family=Suez+One&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700;800&family=Rubik:wght@800&family=Suez+One&display=swap">
   <style>
     body{margin:0;background:#FFFCF6}
     a{color:#2C6BFF}a:hover{color:#1B4FD1}
+    .wm{font-family:'Rubik',system-ui,sans-serif;font-weight:800;letter-spacing:0;white-space:nowrap}
+    .face{display:block}
   </style>
 </helmet>
-
-<div dir="rtl" style="width:390px;height:844px;background:#FFFCF6;font-family:'Assistant',system-ui,sans-serif;color:#17161C;display:flex;flex-direction:column;gap:15px;padding:22px 16px 26px;box-sizing:border-box;overflow:hidden;background-image:linear-gradient(180deg,rgba(255,176,32,.12),rgba(255,252,246,0));background-repeat:no-repeat;background-size:100% 300px;">
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><clipPath id="lsface"><circle cx="20" cy="20" r="20"/></clipPath></defs></svg>
+<div dir="rtl" style="width:390px;height:844px;background:#FFFCF6;font-family:'Assistant',system-ui,sans-serif;color:#17161C;display:flex;flex-direction:column;gap:16px;padding:22px 16px 26px;box-sizing:border-box;overflow:hidden;background-image:linear-gradient(180deg,rgba(255,176,32,.12),rgba(255,252,246,0));background-repeat:no-repeat;background-size:100% 300px;">
 
   <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
     <span style="font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#6B6A78;">סבב 4 &middot; אתם נותנים</span>
-    <span style="font-size:11px;font-weight:700;padding:5px 11px;border-radius:999px;background:#FFF3DB;color:#B77800;">סוד</span>
+    <span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;background:#FFF3DB;color:#B77800;display:inline-block;">סוד</span>
   </div>
 
   <div style="background:#FFFFFF;border:1px solid #E7E4F0;border-radius:16px;padding:18px 18px 15px;display:flex;flex-direction:column;gap:11px;">
@@ -23,12 +25,11 @@
       <span style="font-size:10.5px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:#6B6A78;">התייעצות</span>
       <span style="font-size:12.5px;font-weight:700;color:#6B6A78;">מתוך 45 שניות</span>
     </div>
-    <div style="font-size:64px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.03em;line-height:.95;text-align:center;color:#2C6BFF;direction:ltr;">0:38</div>
-    <div style="height:8px;border-radius:99px;background:#F4F2FA;overflow:hidden;">
-      <div style="height:100%;width:84%;border-radius:99px;background:linear-gradient(90deg,#2C6BFF,#7A5AF8);"></div>
-    </div>
+    <div style="font-size:54px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.03em;line-height:.95;text-align:center;color:#2C6BFF;direction:ltr;">0:38</div>
+    <div style="height:8px;border-radius:99px;background:#F4F2FA;overflow:hidden;"><div style="height:100%;width:84%;border-radius:99px;background:linear-gradient(90deg,#2C6BFF,#7A5AF8);"></div></div>
   </div>
 
+  
   <div style="background:#FFEDE9;border:1px solid #F7CDC3;border-radius:14px;padding:11px 14px 12px;display:flex;align-items:center;gap:12px;">
     <span style="min-width:0;flex:1;display:flex;flex-direction:column;gap:3px;">
       <span style="font-size:10.5px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:#D8351C;">הסבב הזה</span>
@@ -39,48 +40,30 @@
 
   <div style="display:flex;flex-direction:column;gap:8px;">
     <p style="font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#6B6A78;margin:0;display:flex;align-items:center;gap:10px;">שלוש החלטות, בסדר הזה<span style="flex:1;height:1px;background:#E7E4F0;"></span></p>
-
     <div style="background:#FFFFFF;border:1px solid #2C6BFF;border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:11px;box-shadow:0 1px 2px rgba(23,22,28,.05),0 8px 24px -14px rgba(23,22,28,.35);">
       <div style="display:flex;align-items:center;gap:12px;">
         <span style="flex:0 0 30px;width:30px;height:30px;border-radius:10px;background:#2C6BFF;color:#fff;display:grid;place-items:center;font-size:13px;font-weight:800;">1</span>
-        <span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:1px;">
-          <b style="font-size:16px;font-weight:800;">מי מדבר?</b>
-          <span style="font-size:12.5px;font-weight:600;color:#6B6A78;">נשארו שניים בסבב הנוכחי. השולחן יראה את הבחירה מיד.</span>
-        </span>
+        <span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:1px;"><b style="font-size:16px;font-weight:800;">מי מדבר?</b>
+          <span style="font-size:12.5px;font-weight:600;color:#6B6A78;">נשארו שניים בסיבוב. השולחן יידע מיד.</span></span>
       </div>
-
       <div style="display:flex;flex-direction:column;gap:7px;">
-        <div style="display:flex;align-items:center;gap:12px;padding:11px 13px;border-radius:13px;background:#2C6BFF;border:1px solid #1B4FD1;color:#fff;">
-          <span style="flex:0 0 34px;width:34px;height:34px;border-radius:50%;background:#fff;color:#2C6BFF;display:grid;place-items:center;font-size:11px;font-weight:800;direction:ltr;">DN</span>
-          <span style="flex:1;min-width:0;font-size:17px;font-weight:800;">דנה</span>
-          <span style="width:11px;height:11px;flex:0 0 11px;border-radius:50%;background:#fff;"></span>
-        </div>
-        <div style="display:flex;align-items:center;gap:12px;padding:11px 13px;border-radius:13px;background:#FFFFFF;border:1px solid #E7E4F0;">
-          <span style="flex:0 0 34px;width:34px;height:34px;border-radius:50%;background:#12B886;color:#fff;display:grid;place-items:center;font-size:11px;font-weight:800;direction:ltr;">YV</span>
-          <span style="flex:1;min-width:0;font-size:17px;font-weight:800;">יואב</span>
-          <span style="width:11px;height:11px;flex:0 0 11px;border-radius:50%;background:#E7E4F0;"></span>
-        </div>
-        <div style="display:flex;align-items:center;gap:12px;padding:11px 13px;border-radius:13px;background:#F4F2FA;border:1px solid #E7E4F0;opacity:.62;">
-          <span style="flex:0 0 34px;width:34px;height:34px;border-radius:50%;background:#7A5AF8;color:#fff;display:grid;place-items:center;font-size:11px;font-weight:800;direction:ltr;">MC</span>
-          <span style="flex:1;min-width:0;font-size:17px;font-weight:700;color:#6B6A78;">מיכל</span>
-          <span style="font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px;background:#FFFFFF;color:#6B6A78;">כבר דיברה</span>
-        </div>
+        <div style="display:flex;align-items:center;gap:12px;padding:10px 13px;border-radius:13px;background:#2C6BFF;border:1px solid #1B4FD1;color:#fff;"><span style="width:34px;height:34px;flex:0 0 34px;"><svg class="face" viewBox="0 0 40 40" width="34" height="34" aria-hidden="true"><circle cx="20" cy="20" r="20" fill="#DB2777"/><g clip-path="url(#lsface)"><path d="M5.5 40c0-8 6.5-11.6 14.5-11.6S34.5 32 34.5 40Z" fill="#A81A5B"/><circle cx="20" cy="18.5" r="11" fill="#F2C79E"/><rect x="8.2" y="13" width="4" height="16" rx="2" fill="#4A2C17"/><rect x="27.8" y="13" width="4" height="16" rx="2" fill="#4A2C17"/><ellipse cx="20" cy="12" rx="11.8" ry="7" fill="#4A2C17"/><circle class="ey el" cx="16" cy="18" r="1.6" fill="#2A2118"/><circle class="ey er" cx="24" cy="18" r="1.6" fill="#2A2118"/><path d="M16.4 23.4q3.6 3 7.2 0" stroke="#2A2118" stroke-width="1.5" fill="none" stroke-linecap="round"/></g></svg></span><span style="flex:1;min-width:0;font-size:17px;font-weight:800;">דנה</span><span style="width:11px;height:11px;flex:0 0 11px;border-radius:50%;background:#fff;"></span></div><div style="display:flex;align-items:center;gap:12px;padding:10px 13px;border-radius:13px;background:#FFFFFF;border:1px solid #E7E4F0;"><span style="width:34px;height:34px;flex:0 0 34px;"><svg class="face" viewBox="0 0 40 40" width="34" height="34" aria-hidden="true"><circle cx="20" cy="20" r="20" fill="#2C6BFF"/><g clip-path="url(#lsface)"><path d="M5.5 40c0-8 6.5-11.6 14.5-11.6S34.5 32 34.5 40Z" fill="#1B4FD1"/><circle cx="20" cy="18.5" r="11" fill="#F2C79E"/><ellipse cx="20" cy="11.4" rx="11" ry="6.2" fill="#3B2A1A"/><circle class="ey el" cx="16" cy="18" r="1.6" fill="#2A2118"/><circle class="ey er" cx="24" cy="18" r="1.6" fill="#2A2118"/><path d="M16.4 23.4q3.6 3 7.2 0" stroke="#2A2118" stroke-width="1.5" fill="none" stroke-linecap="round"/></g></svg></span><span style="flex:1;min-width:0;font-size:17px;font-weight:800;">יואב</span><span style="width:11px;height:11px;flex:0 0 11px;border-radius:50%;background:#E7E4F0;"></span></div><div style="display:flex;align-items:center;gap:12px;padding:10px 13px;border-radius:13px;background:#F4F2FA;border:1px solid #E7E4F0;opacity:.62;"><span style="width:34px;height:34px;flex:0 0 34px;"><svg class="face" viewBox="0 0 40 40" width="34" height="34" aria-hidden="true"><circle cx="20" cy="20" r="20" fill="#FF5A3D"/><g clip-path="url(#lsface)"><path d="M5.5 40c0-8 6.5-11.6 14.5-11.6S34.5 32 34.5 40Z" fill="#C2410C"/><circle cx="20" cy="18.5" r="11" fill="#8D5524"/><circle cx="11.8" cy="13.6" r="4.6" fill="#1E1712"/><circle cx="28.2" cy="13.6" r="4.6" fill="#1E1712"/><circle cx="15.6" cy="9.8" r="4.4" fill="#1E1712"/><circle cx="24.4" cy="9.8" r="4.4" fill="#1E1712"/><circle cx="20" cy="8.6" r="4.8" fill="#1E1712"/><circle class="ey el" cx="16" cy="18.4" r="1.6" fill="#1E1712"/><circle class="ey er" cx="24" cy="18.4" r="1.6" fill="#1E1712"/><path d="M16.4 23.8q3.6 3 7.2 0" stroke="#2A2118" stroke-width="1.5" fill="none" stroke-linecap="round"/></g></svg></span><span style="flex:1;min-width:0;font-size:17px;font-weight:700;color:#6B6A78;">מיכל</span><span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;background:#F4F2FA;color:#6B6A78;display:inline-block;">כבר דיברה</span></div>
       </div>
     </div>
-
-    <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;background:#FFFFFF;border:1px solid #E7E4F0;opacity:.5;">
-      <span style="flex:0 0 30px;width:30px;height:30px;border-radius:10px;background:#F4F2FA;color:#6B6A78;display:grid;place-items:center;font-size:13px;font-weight:800;">2</span>
-      <span style="flex:1;min-width:0;font-size:15.5px;font-weight:800;">המילה, והכמה קשה</span>
-    </div>
-    <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;background:#FFFFFF;border:1px solid #E7E4F0;opacity:.5;">
-      <span style="flex:0 0 30px;width:30px;height:30px;border-radius:10px;background:#F4F2FA;color:#6B6A78;display:grid;place-items:center;font-size:13px;font-weight:800;">3</span>
-      <span style="flex:1;min-width:0;font-size:15.5px;font-weight:800;">למי מכוונים</span>
-    </div>
+    
+  <div style="display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:14px;background:#FFFFFF;border:1px solid #E7E4F0;opacity:.5;">
+    <span style="flex:0 0 30px;width:30px;height:30px;border-radius:10px;background:#F4F2FA;color:#6B6A78;display:grid;place-items:center;font-size:13px;font-weight:800;">2</span>
+    <span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:1px;"><b style="font-size:15.5px;font-weight:800;">המילה והקושי</b></span>
+  </div>
+    
+  <div style="display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:14px;background:#FFFFFF;border:1px solid #E7E4F0;opacity:.5;">
+    <span style="flex:0 0 30px;width:30px;height:30px;border-radius:10px;background:#F4F2FA;color:#6B6A78;display:grid;place-items:center;font-size:13px;font-weight:800;">3</span>
+    <span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:1px;"><b style="font-size:15.5px;font-weight:800;">למי מכוונים</b></span>
+  </div>
   </div>
 
   <div style="flex:1;"></div>
-
-  <div style="font-size:13px;color:#6B6A78;line-height:1.5;background:#F4F2FA;border-radius:10px;padding:11px 14px;">אם השעון נגמר לפני שהחלטתם &mdash; אתם מקבלים את המילה היקרה ביותר, בלי נושא ובלי כיוון.</div>
+  <div style="font-size:13px;color:#6B6A78;line-height:1.5;background:#F4F2FA;border-radius:10px;padding:11px 14px;">נגמר השעון? מקבלים את המילה היקרה, בלי נושא ובלי כיוון.</div>
 
 </div>
 </x-dc>

@@ -41,10 +41,41 @@ npm run build:engine -- /path/to/buzz.html
 npm test
 ```
 
-Six suites: the rules over 540 simulated games, the seven cards, a stalled
-room, the copy (every key the phone asks for answers in both languages), a
-full round over real HTTP (asserting the giver's words never reach another
-phone), and phones dropping and reconnecting.
+Eight suites: the rules over 540 simulated games, the seven cards, a stalled
+room, the copy (every key the phone asks for answers in both languages), the
+shape of a round (a blind verdict belongs to the table; the podium names the
+winner), a full round over real HTTP (asserting the giver's words never reach
+another phone), phones dropping and reconnecting, and a phone carrying a group.
+
+## The playtest
+
+`npm test` asks whether the game is correct. This asks whether it is any good:
+
+```bash
+npm run playtest
+```
+
+A table of bots plays 8,800 whole games — every mode, every board, three to
+eight players, solo and in pairs — through `game/play.js`, sending the same
+actions a phone sends. It prints an audit: how long a sitting runs, which
+squares and cards a table actually meets, whether the finishes are close, how
+often somebody sits a round out with nothing to do, and a verdict on each of
+twenty-seven checks with what to change when one fails.
+
+Every threshold is a claim about what a good sitting looks like, and they are
+gathered in `CHECKS` near the foot of `game/playtest.js` — arguing with the
+report means arguing with that list. So is the model of how a table behaves:
+`MODEL` at the top holds the solve rates, the timing, and the taste in words.
+
+```bash
+npm run playtest -- --players 3 --games 300   # one table size, deeply
+npm run playtest -- --gameMode quick --map chaos
+npm run playtest -- --seed 7 --json           # the numbers, for something else
+npm run playtest -- --addRows 4 --cap 6       # try a change before making it
+```
+
+It exits non-zero on a hard failure — a stuck room, a negative score, a game
+that never ends.
 
 ## Hosting it
 

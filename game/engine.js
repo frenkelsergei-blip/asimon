@@ -100,11 +100,11 @@ function createEngine(){
      played with modeId "regular" must come out identical to the game this
      engine played before modes existed at all. That is the safety net. */
   const MODES = {
-   quick:    { id:"quick",     timer:{ normal:60,  fast:30 }, rowsDelta:-4,
+   quick:    { id:"quick",     timer:{ normal:60,  fast:30 }, rowsDelta:-3,
                reweighChance:0.35, modWeights:{ S:6, F:3, O:1, D:1, T:1, M:0, B:0 }, win:"first" },
    regular:  { id:"regular",   timer:{ normal:90,  fast:45 }, rowsDelta:0,
                reweighChance:0,    modWeights:null, win:"first" },
-   slow:     { id:"slow",      timer:{ normal:120, fast:60 }, rowsDelta:4,
+   slow:     { id:"slow",      timer:{ normal:120, fast:60 }, rowsDelta:2,
                reweighChance:0.35, modWeights:{ S:6, F:1, O:1, D:1, T:1, M:0, B:0 }, win:"first" },
    challenge:{ id:"challenge", timer:{ normal:75,  fast:35 }, rowsDelta:0,
                reweighChance:0.5,  modWeights:{ S:1, F:1, O:3, M:3, B:3, D:2, T:1 }, win:"score", scoreTarget:20 }
@@ -117,7 +117,7 @@ function createEngine(){
    mode_k:"How are you playing?", mode_solo:"Every player for themselves", mode_teams:"In pairs",
    mode_solo_d:"You secretly aim at one person each round.", mode_teams_d:"You aim at your partner &mdash; and the other side can steal it.",
    start:"Start the game", need3:"Need at least 3 players", need4:"Pairs need at least 4 players",
-   target_note:"First to the end of the board wins &mdash; {0} rows, about eight rounds, 25 minutes.",
+   target_note:"First to the end of the board wins &mdash; {0} rows, about ten rounds, 25 minutes.",
    setup_note:"The phone goes to the giver, then into the middle of the table.",
    howto:"How to play", start_over:"Start over", back:"Back", close:"Close",
    pass_to:"Pass the phone to", giver_k:"Round {0} &middot; the giver", look_away:"Everybody else: look away.",
@@ -130,12 +130,12 @@ function createEngine(){
    po_meh:"Lands instantly", po_meh_d:"you take just 1",
    po_m_best:"Read instantly", po_m_meh:"Read slowly", po_m_meh_d:"you take less",
    po_none:"Nobody gets it", po_none_d:"you take nothing",
-   cw_topic:"every word worth 1 less", cw_open:"words worth what they say", cw_cold:"every word worth 2 more",
+   cw_topic:"every word worth 1 less", cw_open:"words worth what they say", cw_cold:"every word worth 1 more",
    ch_topic:"Give them a topic", ch_topic_d:"Four words from one topic &mdash; and the whole table is told what the topic is. Much easier to land, so a point comes off the word.",
    ch_open:"Take what comes", ch_open_d:"Four mixed words, no topic, nobody helped. The word is worth exactly what it says.",
-   ch_cold:"Cold", ch_cold_d:"One word, dealt to you. No choice, no topic, no way out. Two points on top.",
+   ch_cold:"Cold", ch_cold_d:"One word, dealt to you. No choice, no topic, no way out. A point on top.",
    cold_k:"Your word &mdash; no choice", cold_d:"You are stuck with it. Make it land.",
-   shot_k:"Aim at one person", shot_d:"Secretly. If they are the one who gets it, you take 2 more.",
+   shot_k:"Aim at one person", shot_d:"Secretly. If they are the one who gets it, you take one more.",
    partner_k:"Your partner this round", partner_d:"If they get it, you both score. The other side can still steal it.",
    ready:"Ready &mdash; put the phone in the middle",
    table_k:"Round {0}", say_it:"Say your sentence. Once.",
@@ -159,7 +159,7 @@ function createEngine(){
    blind_table_h:"One word each, going round.", blind_table_d:"Each of you says a single word. {0} can shout a guess at any time, as often as they like.",
    blind_got:"{0} got it",
    w_word:"the word +{0}", w_wrong:"wrong shout &minus;{0}", w_early:"solved too fast +1",
-   w_mid:"landed well +{0}", w_late:"landed late +{0}", w_helped:"helped +1", w_shot:"called the shot +2", w_partner:"partner got it +{0}", w_double:"doubled to {0}",
+   w_mid:"landed well +{0}", w_late:"landed late +{0}", w_helped:"helped +1", w_shot:"called the shot +{0}", w_partner:"partner got it +{0}", w_double:"doubled to {0}",
    w_fast:"read instantly +{0}", w_ok:"got through +{0}", w_slow:"only just +{0}", w_none:"nobody got it",
    board_k:"The board &mdash; {0} rows to the end",
    col_0:"Plain", col_1:"Cards", col_2:"Mixed", col_3:"Wild",
@@ -168,6 +168,7 @@ function createEngine(){
    move_h:"{0} &mdash; you have {1} steps", move_h_p:"{0} &mdash; you have {1} steps",
    move_h1:"{0} &mdash; you have one step", move_h1_p:"{0} &mdash; you have one step",
    move_d:"Up to {0} steps &mdash; stopping early is fine. Each step goes straight up, or one column across. Where you stop decides your next round.",
+   move_d1:"One step &mdash; straight up, or one column across. Where you stop decides your next round.",
    move_tap:"Tap any lit square &mdash; {0} are in range.",
    move_sel_k:"You would land on", move_cost:"{0} &middot; {1} steps",
    move_queue_k:"{0} scorers move, one at a time",
@@ -183,7 +184,7 @@ function createEngine(){
    ht_html:'<p class="kicker">How to play</p><h2>Land it at the last second</h2>'+
     '<p class="sub">One player is the <strong>giver</strong>. Everybody else is trying to shout the word first.</p>'+
     '<div class="hstep"><span class="sn">01</span><div><h3>The giver picks a word</h3>'+
-      '<p>First they choose how hard they want it: <strong>give the table a topic</strong> (easier, a point off each word), <strong>take what comes</strong>, or go <strong>Cold</strong> &mdash; one word, no choice, no topic, two points on top. Then the words appear on their phone, privately, each worth different points.</p></div></div>'+
+      '<p>First they choose how hard they want it: <strong>give the table a topic</strong> (easier, a point off each word), <strong>take what comes</strong>, or go <strong>Cold</strong> &mdash; one word, no choice, no topic, a point on top. Then the words appear on their phone, privately, each worth different points.</p></div></div>'+
     '<div class="hstep"><span class="sn">02</span><div><h3>They secretly aim at one person</h3>'+
       '<p>If that person is the one who gets it, the giver takes 2 extra. Nobody else knows who was picked.</p></div></div>'+
     '<div class="hstep"><span class="sn">03</span><div><h3>One sentence. Said once. Then silence.</h3>'+
@@ -194,12 +195,12 @@ function createEngine(){
       '<p>Guessed in the first few seconds and the giver only takes 1 &mdash; too obvious. Nobody gets it and the giver takes nothing. The sweet spot is somebody getting it right near the end.</p></div></div>'+
     '<hr class="hr"><p class="kicker">One round, from the outside</p>'+
     '<div class="dlg">'+
-      '<div class="row"><span class="w">Dana</span><span class="s">She takes <strong>homesick</strong>, worth 5, and secretly aims at Savta.</span></div>'+
+      '<div class="row"><span class="w">Dana</span><span class="s">She takes <strong>homesick</strong>, worth 4, and secretly aims at Savta.</span></div>'+
       '<div class="row"><span class="w">Dana</span><span class="s">&ldquo;It is what I felt every Friday in the army.&rdquo;</span></div>'+
       '<div class="row lie"><span class="w">Ilan 0:12</span><span class="s">Shouts &mdash; says &ldquo;lonely&rdquo;. Wrong. He is out, and loses 1.</span></div>'+
       '<div class="row"><span class="w">Savta 0:51</span><span class="s">Shouts &mdash; says &ldquo;homesick&rdquo;. Right.</span></div>'+
     '</div>'+
-    '<p class="note">Savta takes 5. Dana takes 5 for landing in the good window, plus 2 because Savta was exactly who she aimed at. Ilan went too early on a hunch and paid for it &mdash; that is the whole game.</p>'+
+    '<p class="note">Savta takes 4. Dana takes 4 for landing in the good window, plus 1 because Savta was exactly who she aimed at. Ilan went too early on a hunch and paid for it &mdash; that is the whole game.</p>'+
     '<hr class="hr"><p class="kicker">Two more things</p>'+
     '<div class="opening"><span class="ol">Cards</span><span class="orl">Score well and you take one. Slam the clock to 30 seconds, reveal all four words, force a mime, or &mdash; if you are the giver &mdash; switch words when you feel them getting close.</span></div>'+
     '<div class="opening"><span class="ol">The board</span><span class="orl">Points are <strong>steps you spend</strong>. Each step goes straight up or one column across, and you land wherever you choose &mdash; so the route is yours, every single round. The square you stop on sets your next round: Fast, One word, Double, Partners, Mime, a card, or <strong>Blind</strong>, where it all turns around and you become the guesser. The left column is plain and safe; the right one is where the awkward rounds live.</span></div>'
@@ -210,7 +211,7 @@ function createEngine(){
    mode_k:"איך אתם משחקים?", mode_solo:"כל אחד לעצמו", mode_teams:"בזוגות",
    mode_solo_d:"בכל סבב אתם מכוונים בסתר לאדם אחד.", mode_teams_d:"אתם מכוונים לשותף &mdash; והצד השני יכול לגנוב.",
    start:"מתחילים", need3:"צריך לפחות 3 שחקנים", need4:"לזוגות צריך לפחות 4 שחקנים",
-   target_note:"הראשון שמגיע לסוף הלוח מנצח &mdash; {0} שורות, בערך שמונה סבבים, 25 דקות.",
+   target_note:"הראשון שמגיע לסוף הלוח מנצח &mdash; {0} שורות, בערך עשרה סבבים, 25 דקות.",
    setup_note:"הטלפון עובר לנותן הרמז, ואז לאמצע השולחן.",
    howto:"איך משחקים", start_over:"להתחיל מחדש", back:"חזרה", close:"סגירה",
    pass_to:"העבירו את הטלפון ל", giver_k:"סבב {0} &middot; נותן הרמז", look_away:"כל השאר: תסתובבו.",
@@ -223,12 +224,12 @@ function createEngine(){
    po_meh:"נוחת מיד", po_meh_d:"לוקחים 1 בלבד",
    po_m_best:"נקלט מיד", po_m_meh:"נקלט לאט", po_m_meh_d:"לוקחים פחות",
    po_none:"אף אחד לא קולט", po_none_d:"לא לוקחים כלום",
-   cw_topic:"כל מילה שווה 1 פחות", cw_open:"המילים שוות כמו שכתוב", cw_cold:"כל מילה שווה 2 יותר",
+   cw_topic:"כל מילה שווה 1 פחות", cw_open:"המילים שוות כמו שכתוב", cw_cold:"כל מילה שווה 1 יותר",
    ch_topic:"לתת להם נושא", ch_topic_d:"ארבע מילים מנושא אחד &mdash; וכל השולחן יידע מה הנושא. הרבה יותר קל לקלוט, ולכן יורדת נקודה מהמילה.",
    ch_open:"מה שיוצא", ch_open_d:"ארבע מילים מעורבות, בלי נושא, בלי עזרה. המילה שווה בדיוק מה שכתוב.",
-   ch_cold:"קר", ch_cold_d:"מילה אחת, מחולקת לכם. בלי בחירה, בלי נושא, בלי מוצא. שתי נקודות נוספות.",
+   ch_cold:"קר", ch_cold_d:"מילה אחת, מחולקת לכם. בלי בחירה, בלי נושא, בלי מוצא. נקודה נוספת.",
    cold_k:"המילה שלכם &mdash; בלי בחירה", cold_d:"אתם תקועים איתה. תגרמו לזה לנחות.",
-   shot_k:"כוונו לאדם אחד", shot_d:"בסתר. אם דווקא הם יקלטו, אתם לוקחים 2 נוספות.",
+   shot_k:"כוונו לאדם אחד", shot_d:"בסתר. אם דווקא הם יקלטו, אתם לוקחים נקודה נוספת.",
    partner_k:"השותף/ה שלכם בסבב הזה", partner_d:"אם הם יקלטו, שניכם מקבלים. הצד השני עדיין יכול לגנוב.",
    ready:"מוכן &mdash; שימו את הטלפון באמצע",
    table_k:"סבב {0}", say_it:"תגידו את המשפט. פעם אחת.",
@@ -252,7 +253,7 @@ function createEngine(){
    blind_table_h:"מילה אחת מכל אחד, סביב השולחן.", blind_table_d:"כל אחד אומר מילה אחת. {0} יכול/ה לצעוק ניחוש מתי שרוצים, כמה פעמים שרוצים.",
    blind_got:"{0} קלט/ה",
    w_word:"המילה {0}+", w_wrong:"צעקה שגויה {0}&minus;", w_early:"נפתר מהר מדי 1+",
-   w_mid:"נחת יפה {0}+", w_late:"נחת מאוחר {0}+", w_helped:"עזרו 1+", w_shot:"כיוון נכון 2+", w_partner:"השותף/ה קלט/ה {0}+", w_double:"הוכפל ל&#8209;{0}",
+   w_mid:"נחת יפה {0}+", w_late:"נחת מאוחר {0}+", w_helped:"עזרו 1+", w_shot:"כיוון נכון {0}+", w_partner:"השותף/ה קלט/ה {0}+", w_double:"הוכפל ל&#8209;{0}",
    w_fast:"נקרא מיד {0}+", w_ok:"עבר {0}+", w_slow:"בקושי {0}+", w_none:"אף אחד לא קלט",
    board_k:"הלוח &mdash; {0} שורות לסוף",
    col_0:"רגיל", col_1:"קלפים", col_2:"מעורב", col_3:"פרוע",
@@ -261,6 +262,7 @@ function createEngine(){
    move_h:"{0} &mdash; יש לך {1} צעדים", move_h_p:"{0} &mdash; יש לכם {1} צעדים",
    move_h1:"{0} &mdash; יש לך צעד אחד", move_h1_p:"{0} &mdash; יש לכם צעד אחד",
    move_d:"עד {0} צעדים &mdash; מותר גם לעצור מוקדם. כל צעד הוא ישר למעלה או עמודה אחת הצידה. איפה שתעצרו קובע את הסבב הבא שלכם.",
+   move_d1:"צעד אחד &mdash; ישר למעלה או עמודה אחת הצידה. איפה שתעצרו קובע את הסבב הבא שלכם.",
    move_tap:"הקישו על כל משבצת מוארת &mdash; {0} בטווח.",
    move_sel_k:"תנחתו על", move_cost:"{0} &middot; {1} צעדים",
    move_queue_k:"{0} שחקנים שצברו זזים, אחד אחרי השני",
@@ -276,9 +278,9 @@ function createEngine(){
    ht_html:'<p class="kicker">איך משחקים</p><h2>לגרום לזה לנחות בשנייה האחרונה</h2>'+
     '<p class="sub">שחקן אחד הוא <strong>נותן הרמז</strong>. כל השאר מנסים לצעוק את המילה ראשונים.</p>'+
     '<div class="hstep"><span class="sn">01</span><div><h3>הנותן בוחר מילה</h3>'+
-      '<p>קודם הוא בוחר כמה קשה הוא רוצה: <strong>לתת לשולחן נושא</strong> (קל יותר, נקודה פחות לכל מילה), <strong>מה שיוצא</strong>, או <strong>קר</strong> &mdash; מילה אחת, בלי בחירה ובלי נושא, שתי נקודות נוספות. ואז המילים מופיעות אצלו בטלפון, בסתר, כל אחת שווה ניקוד אחר.</p></div></div>'+
+      '<p>קודם הוא בוחר כמה קשה הוא רוצה: <strong>לתת לשולחן נושא</strong> (קל יותר, נקודה פחות לכל מילה), <strong>מה שיוצא</strong>, או <strong>קר</strong> &mdash; מילה אחת, בלי בחירה ובלי נושא, נקודה נוספת. ואז המילים מופיעות אצלו בטלפון, בסתר, כל אחת שווה ניקוד אחר.</p></div></div>'+
     '<div class="hstep"><span class="sn">02</span><div><h3>הוא מכוון בסתר לאדם אחד</h3>'+
-      '<p>אם דווקא האדם הזה יקלוט, הנותן לוקח 2 נוספות. אף אחד לא יודע במי הוא בחר.</p></div></div>'+
+      '<p>אם דווקא האדם הזה יקלוט, הנותן לוקח נקודה נוספת. אף אחד לא יודע במי הוא בחר.</p></div></div>'+
     '<div class="hstep"><span class="sn">03</span><div><h3>משפט אחד. נאמר פעם אחת. ואז שקט.</h3>'+
       '<p>בלי הבהרות, בלי חם־קר, בלי תנועות ידיים. ואז הטלפון עובר לאמצע השולחן והשעון רץ.</p></div></div>'+
     '<div class="hstep"><span class="sn">04</span><div><h3>צועקים כשיש לכם</h3>'+
@@ -287,12 +289,12 @@ function createEngine(){
       '<p>קלטו בשניות הראשונות והנותן מקבל רק 1 &mdash; ברור מדי. אף אחד לא קלט והנותן לא מקבל כלום. הנקודה המתוקה היא שמישהו יקלוט ממש לקראת הסוף.</p></div></div>'+
     '<hr class="hr"><p class="kicker">סבב אחד, מבחוץ</p>'+
     '<div class="dlg">'+
-      '<div class="row"><span class="w">דנה</span><span class="s">לוקחת <strong>געגועים הביתה</strong>, שווה 5, ומכוונת בסתר לסבתא.</span></div>'+
+      '<div class="row"><span class="w">דנה</span><span class="s">לוקחת <strong>געגועים הביתה</strong>, שווה 4, ומכוונת בסתר לסבתא.</span></div>'+
       '<div class="row"><span class="w">דנה</span><span class="s">&ldquo;זה מה שהרגשתי כל יום שישי בצבא.&rdquo;</span></div>'+
       '<div class="row lie"><span class="w">אילן 0:12</span><span class="s">צועק &mdash; אומר &ldquo;בדידות&rdquo;. טעות. הוא פסול, ומאבד 1.</span></div>'+
       '<div class="row"><span class="w">סבתא 0:51</span><span class="s">צועקת &mdash; אומרת &ldquo;געגועים הביתה&rdquo;. נכון.</span></div>'+
     '</div>'+
-    '<p class="note">סבתא לוקחת 5. דנה לוקחת 5 על נחיתה בחלון הטוב, ועוד 2 כי סבתא הייתה בדיוק מי שהיא כיוונה אליה. אילן הלך מוקדם מדי על תחושה ושילם על זה &mdash; וזה כל המשחק.</p>'+
+    '<p class="note">סבתא לוקחת 4. דנה לוקחת 4 על נחיתה בחלון הטוב, ועוד 1 כי סבתא הייתה בדיוק מי שהיא כיוונה אליה. אילן הלך מוקדם מדי על תחושה ושילם על זה &mdash; וזה כל המשחק.</p>'+
     '<hr class="hr"><p class="kicker">עוד שני דברים</p>'+
     '<div class="opening"><span class="ol">קלפים</span><span class="orl">מי שצובר יפה לוקח קלף. להוריד את השעון ל־30 שניות, לחשוף את כל ארבע המילים, לכפות פנטומימה, או &mdash; אם אתם הנותן &mdash; להחליף מילה כשאתם מרגישים שהם מתקרבים.</span></div>'+
     '<div class="opening"><span class="ol">הלוח</span><span class="orl">נקודות הן <strong>צעדים שאתם מוציאים</strong>. כל צעד הוא ישר למעלה או עמודה אחת הצידה, ואתם נוחתים איפה שתבחרו &mdash; אז המסלול שלכם, בכל סבב מחדש. המשבצת שתעצרו עליה קובעת את הסבב הבא שלכם: מהיר, מילה אחת, כפול, שותפים, פנטומימה, קלף, או <strong>עיוור</strong> שבו הכול מתהפך ואתם הופכים למנחשים. העמודה השמאלית רגילה ובטוחה, הימנית היא המקום שבו יושבים הסבבים המסובכים.</span></div>'
@@ -394,7 +396,17 @@ function createEngine(){
      Points are steps you SPEND: you may move up to that many and land wherever
      you like. The square you end on is the one that decides your next round. */
   const COLS = 4;
-  const CHALLENGES = { topic:-1, open:0, cold:2 };
+  /* What a word pays. The banks are keyed by tier — 2 up to 5, hardest last —
+     and the tier is not the price. A solved round pays twice, the word to
+     whoever got it and the timing to whoever gave it, and both of those are
+     steps on a board of sixteen or so rows. Priced at the tier, one ordinary
+     round moved a quarter of the board and a good one crossed half of it, so
+     the scale sits a notch below the tiers and the flat bonuses sit with it. */
+  const POINTS = { 2:1, 3:2, 4:3, 5:4 };
+  function wordPoints(tier){ return POINTS[tier] || 1; }
+  const CHALLENGES = { topic:-1, open:0, cold:1 };
+  /* the giver's reward for calling who would get it, on the same scale */
+  const SHOT_BONUS = 1;
   function valueDelta(R){ return CHALLENGES[R.challenge] !== undefined ? CHALLENGES[R.challenge] : 0; }
   function wordValue(R, w){ return Math.max(1, w.value + (R.mod === "D" ? 2 : 0) + valueDelta(R)); }
   function dealTopic(key){
@@ -404,10 +416,10 @@ function createEngine(){
     if(T0.own) [2,3,4,5].forEach(v => (T0.own[v] || []).forEach(x => byTier[v].push(x)));
     const pool = [].concat(byTier[2], byTier[3], byTier[4], byTier[5]);
     const out = [];
-    [2,3,4,5].forEach(v => { const b = shuffle(byTier[v]); if(b.length) out.push({ text:b[0], value:v }); });
+    [2,3,4,5].forEach(v => { const b = shuffle(byTier[v]); if(b.length) out.push({ text:b[0], value:wordPoints(v) }); });
     const tierLookup = {}; [2,3,4,5].forEach(v => byTier[v].forEach(x => { tierLookup[x] = v; }));
     const spare = shuffle(pool.filter(x => !out.some(o => o.text === x)));
-    while(out.length < 4 && spare.length){ const x = spare.pop(); out.push({ text:x, value:tierLookup[x] }); }
+    while(out.length < 4 && spare.length){ const x = spare.pop(); out.push({ text:x, value:wordPoints(tierLookup[x]) }); }
     if(out.length){ R.words = out.sort((a,b)=>a.value-b.value); }
     R.topic = key;
   }
@@ -437,7 +449,7 @@ function createEngine(){
   const VAL_TINT = { blue:["var(--accent-soft)","var(--accent)"], green:["var(--good-soft)","var(--good-ink)"],
                      violet:["var(--violet-soft)","var(--violet)"], amber:["var(--blind-soft)","var(--blind-ink)"] };
   function wvChip(v){
-    const k = v <= 2 ? "blue" : (v === 3 ? "green" : (v === 4 ? "violet" : "amber"));
+    const k = v <= 1 ? "blue" : (v === 2 ? "green" : (v === 3 ? "violet" : "amber"));
     const c = VAL_TINT[k];
     return '<span class="wv" style="background:'+c[0]+';color:'+c[1]+'">'+v+'</span>';
   }
@@ -471,10 +483,18 @@ function createEngine(){
      cardRule:{ col:3, every:3 }, wildRule:{ col:1, every:5 } }
   };
   function baseRowsForN(n){ return n <= 5 ? 16 : (n === 6 ? 14 : 12); }
+  /* Two dials shorten the board — the mode and the map — and they used to
+     subtract at once: Quick on Sprint came to nine rows, which is three good
+     rounds, over before the table had met the board it was playing on. A
+     lengthening is still taken whole. A shortening is allowed to take about
+     a third, however much the two of them add up to. */
   function boardRows(n, modeId, mapId){
     const mode = MODES[modeId] || MODES.regular;
     const map = MAPS[mapId] || MAPS.classic;
-    return Math.max(8, baseRowsForN(n) + (mode.rowsDelta||0) + (map.rowsDelta||0));
+    const base = baseRowsForN(n);
+    const delta = (mode.rowsDelta||0) + (map.rowsDelta||0);
+    if(delta >= 0) return base + delta;
+    return Math.max(10, Math.round(base * 0.7), base + delta);
   }
   function ROWS(){ return (S && S.rows) || 16; }
   /* the map's raw pattern, nudged by the mode's weight table. "regular" has
@@ -654,7 +674,7 @@ function createEngine(){
       const pool = fresh.length ? fresh : bank;
       const text = pool[Math.floor(Math.random()*pool.length)];
       S.used.push(v+"|"+text);
-      return { text, value:v };
+      return { text, value:wordPoints(v) };
     });
     let shot = null, shotPublic = false;
     if(S.mode === "teams"){ shot = teammate(giver); shotPublic = true; }
@@ -721,7 +741,7 @@ function createEngine(){
       } else {
         bump(su.id, val, t("w_word", val));
         bump(gu.id, band.n, band.w);
-        if(R.shot && R.shot === R.solvedBy) bump(gu.id, 2, t("w_shot"));
+        if(R.shot && R.shot === R.solvedBy) bump(gu.id, SHOT_BONUS, t("w_shot", SHOT_BONUS));
       }
     } else {
       bump(gu.id, 0, t("w_none"));
@@ -759,6 +779,7 @@ function createEngine(){
     resumeClock,
     dealTopic,
     wordValue,
+    wordPoints,
     valueDelta,
     initials,
     ROWS,

@@ -4,8 +4,10 @@
 "use strict";
 const app = document.getElementById("app");
 const AV = ["#2C6BFF","#12B886","#FF5A3D","#D97706","#7A5AF8","#0891B2","#DB2777","#4D7C0F"];
-const VAL_TINT = { 1:["var(--accent-soft)","var(--accent)"], 2:["var(--accent-soft)","var(--accent)"],
-                   3:["var(--good-soft)","var(--good-ink)"], 4:["#F1EDFE","var(--violet)"],
+/* a word card is tinted by what it pays. Four prices, 1 up to 4, and the
+   ones above that a Double square or a Cold deal can push a word to. */
+const VAL_TINT = { 1:["var(--accent-soft)","var(--accent)"], 2:["var(--good-soft)","var(--good-ink)"],
+                   3:["#F1EDFE","var(--violet)"],            4:["var(--blind-soft)","var(--blind-ink)"],
                    5:["var(--blind-soft)","var(--blind-ink)"] };
 
 /* copy that only exists once you are playing across phones */
@@ -17,6 +19,9 @@ const L = {
     face_k:"בחרו פרצוף", face_d:"זה מה שכולם יראו לידכם כל המשחק.",
     face_change:"להחליף פרצוף", face_done:"זהו", e_face_taken:"מישהו כבר לקח את הפרצוף הזה.",
     waiting:"מחכים לעוד שחקנים — צריך לפחות 3.", startgame:"מתחילים", leave:"לצאת מהחדר",
+    seat_groups:"בקבוצות", group_k:"הקבוצה שלכם", group_ph:"שם הקבוצה", person_ph:"שם",
+    groups_note:"עד {0} אנשים על הטלפון הזה. הניקוד קבוצתי — אבל המשחק זוכר מי עשה מה.",
+    group_of:"{0} בקבוצה",
     share:"שאר הטלפונים נכנסים לכתובת הזאת, על אותו ה־Wi‑Fi:", hostwait:"המארח/ת מתחיל/ה את המשחק.",
     offline:"מנותק — מנסים להתחבר מחדש…",
     picking:"{0} בוחר/ת מילה", picking_d:"רגע אחד. אל תסתכלו לו/ה בטלפון.",
@@ -24,6 +29,7 @@ const L = {
     yourword:"המילה שלכם", buzznow:"יש לי!", buzzsub:"לוחצים ואומרים בקול",
     youout:"אתם בחוץ בסבב הזה", giverwait:"אתם נותנים את הרמז — אין באזר.",
     someone:"{0} לחץ/ה", judging:"{0} בודק/ת את התשובה…", waitjudge:"מחכים לנותן/ת הרמז.",
+    waitjudge_b:"מחכים לכל השאר.",
     aim_at:"כוונו לאדם אחד", pass_note:"הטלפון נשאר אצלכם — אף אחד אחר לא רואה את המילים.",
     mode_k:"איך משחקים?", mode_solo:"כל אחד לעצמו", mode_teams:"בזוגות",
     gm_k:"באיזו מהירות?", gm_teaser:"מהיר, רגיל, רגוע או אתגר — לכל אחד קצב אחר.",
@@ -110,6 +116,9 @@ const L = {
     face_k:"Pick your face", face_d:"This is what everyone sees next to you all game.",
     face_change:"Change face", face_done:"Done", e_face_taken:"Somebody already took that face.",
     waiting:"Waiting for more players — you need at least 3.", startgame:"Start the game", leave:"Leave the room",
+    seat_groups:"In groups", group_k:"Your group", group_ph:"Group name", person_ph:"Name",
+    groups_note:"Up to {0} people on this phone. The score is the group's — but the game remembers who did what.",
+    group_of:"{0} in the group",
     share:"The other phones open this address, on the same Wi‑Fi:", hostwait:"The host starts the game.",
     offline:"Disconnected — reconnecting…",
     picking:"{0} is choosing a word", picking_d:"Give them a moment. No peeking at their phone.",
@@ -117,6 +126,7 @@ const L = {
     yourword:"Your word", buzznow:"I have it!", buzzsub:"tap, then say it out loud",
     youout:"You are out for this round", giverwait:"You are giving the clue — no buzzer for you.",
     someone:"{0} buzzed", judging:"{0} is checking the answer…", waitjudge:"Waiting for the giver.",
+    waitjudge_b:"Waiting for everybody else.",
     aim_at:"Aim at one person", pass_note:"The phone stays with you — nobody else can see these.",
     mode_k:"How are you playing?", mode_solo:"Every player for themselves", mode_teams:"In pairs",
     gm_k:"How fast do you want it?", gm_teaser:"Quick, Regular, Slow, or Challenge — each its own pace.",
@@ -567,8 +577,50 @@ function mapChipHTML(s, withReroll){
     (withReroll ? '<button class="reroll" id="reroll">'+t("reroll")+'</button>' : '')+
     '</div>';
 }
+/* In groups a phone carries a whole group, so it has a roster to keep: the
+   group's name, and who is holding it. Every phone edits its own slice and
+   nobody else's — the server is what stops the two drifting apart. */
+function groupBox(s){
+  const mine = (s.people || []).filter(p => (s.mine || []).indexOf(p.id) >= 0);
+  const rows = mine.map((p, i) =>
+    '<div class="prow"><span class="av pic">'+faceSvg(p.face || "boy", 34)+'</span>'+
+    '<span class="pname">'+esc(p.name)+'</span>'+
+    (i === 0
+      ? '<span class="tag you">'+t("you")+'</span>'
+      : '<button class="quiet" data-drop="'+esc(p.id)+'" '+
+        'style="width:auto;padding:6px 12px;font-size:19px;line-height:1">&times;</button>')+
+    '</div>').join("");
+  return '<p class="kicker">'+t("group_k")+'</p>'+
+    '<input id="gname" placeholder="'+esc(t("group_ph"))+'" value="'+esc(s.groupName || "")+'">'+
+    '<div class="plist">'+rows+'</div>'+
+    (mine.length < (s.maxGroup || 5)
+      ? '<div class="btnrow"><input id="pname" placeholder="'+esc(t("person_ph"))+'">'+
+        '<button id="padd" style="flex:0 0 auto;width:auto;padding:15px 20px">+</button></div>'
+      : '')+
+    '<p class="note">'+t("groups_note", s.maxGroup || 5)+'</p>';
+}
+function wireGroupBox(s){
+  const mine = () => (s.people || []).filter(p => (s.mine || []).indexOf(p.id) >= 0);
+  const gval = () => { const g = document.getElementById("gname"); return g ? g.value : (s.groupName || ""); };
+  const send = list => act({ type:"people", list, groupName: gval() });
+  on("padd", () => {
+    const el = document.getElementById("pname");
+    const nm = ((el && el.value) || "").trim();
+    if(!nm) return;
+    send(mine().map(p => ({ name:p.name, face:p.face })).concat([{ name:nm }]));
+  });
+  each("[data-drop]", b => b.onclick = () =>
+    send(mine().filter(p => p.id !== b.dataset.drop).map(p => ({ name:p.name, face:p.face }))));
+  const g = document.getElementById("gname");
+  if(g) g.onchange = () => send(mine().map(p => ({ name:p.name, face:p.face })));
+}
+
 function vLobby(){
   const s = state, list = s.players;
+  /* Seating is the room's, not this phone's: the roster editor has to appear
+     on every phone the moment the host picks groups, so it goes to the server
+     when it is tapped rather than waiting for the start button. */
+  const seat = s.seating || "solo";
   const rows = list.map(p =>
     '<div class="prow">'+av(p.name, colorOf(p.id), "", p.face)+
     '<span class="pname">'+esc(p.name)+
@@ -580,12 +632,13 @@ function vLobby(){
       '<div class="prow empty"><span class="seat"></span>'+
       '<span class="pname">'+t("free_seat")+'</span><span class="dot off"></span></div>').join("");
   h('<div class="stack grow">'+offBox()+
-    '<div><div class="hero" style="display:flex;align-items:center;justify-content:space-between;gap:14px">'+
+    '<div><div class="hero roomhead" style="display:flex;align-items:center;justify-content:space-between;gap:14px">'+
       '<div><p class="kicker">'+t("room_k")+'</p><div class="roomcode">'+esc(s.code)+'</div></div>'+
       '<span class="av" style="background:rgba(255,255,255,.16);width:44px;height:44px;flex:0 0 44px;font-size:15px">'+
       list.length+'</span></div><div class="perf"></div></div>'+
     '<p class="note">'+t("share")+'</p><div class="link">'+esc(s.lanUrl||location.origin)+'</div>'+
     '<p class="kicker">'+t("players_k")+'</p><div class="plist">'+rows+'</div>'+
+    (s.seating === "groups" ? groupBox(s) : '')+
     (pickingFace
       ? '<p class="kicker">'+t("face_k")+'</p>'+faceGrid(myFace, s.taken || [], "data-reface")+
         '<button class="quiet" id="facedone">'+t("face_done")+'</button>'
@@ -602,8 +655,10 @@ function vLobby(){
           return '<button data-gm="'+id+'" class="'+(gameMode===id?"on":"")+'">'+esc(info.n)+'</button>';
         }).join("")+'</div>'+
         '<p class="kicker">'+t("mode_k")+'</p>'+
-        '<div class="langsw"><button id="msolo" class="'+(mode==="solo"?"on":"")+'">'+t("mode_solo")+'</button>'+
-        '<button id="mteam" class="'+(mode==="teams"?"on":"")+'"'+(list.length<4?" disabled":"")+'>'+t("mode_teams")+'</button></div>'+
+        '<div class="modesw" style="grid-template-columns:repeat(3,1fr)">'+
+        '<button data-seat="solo" class="'+(seat==="solo"?"on":"")+'">'+t("mode_solo")+'</button>'+
+        '<button data-seat="pairs" class="'+(seat==="pairs"?"on":"")+'"'+(list.length<4?" disabled":"")+'>'+t("mode_teams")+'</button>'+
+        '<button data-seat="groups" class="'+(seat==="groups"?"on":"")+'">'+t("seat_groups")+'</button></div>'+
         '<div class="langsw"><button id="lhe" class="'+(s.lang==="he"?"on":"")+'">עברית</button>'+
         '<button id="len" class="'+(s.lang==="en"?"on":"")+'">English</button></div>'+
         '<button id="start"'+(list.length<3?" disabled":"")+'>'+t("startgame")+'</button>'
@@ -612,12 +667,12 @@ function vLobby(){
   if(s.isHost){
     on("lhe", () => act({ type:"lang", lang:"he" }));
     on("len", () => act({ type:"lang", lang:"en" }));
-    on("msolo", () => { mode="solo"; render(); });
-    on("mteam", () => { mode="teams"; render(); });
+    each("[data-seat]", b => b.onclick = () => act({ type:"seating", seating:b.dataset.seat }));
     each("[data-gm]", b => b.onclick = () => { gameMode = b.dataset.gm; render(); });
     on("reroll", () => act({ type:"reroll_map" }));
-    on("start", () => act({ type:"start", mode, gameMode }));
+    on("start", () => act({ type:"start", seating:seat, gameMode }));
   }
+  if(s.seating === "groups") wireGroupBox(s);
   on("facebtn", () => { pickingFace = true; render(); });
   on("facedone", () => { pickingFace = false; render(); });
   each("[data-reface]", b => b.onclick = () => {
@@ -927,9 +982,14 @@ function stopTicker(){ if(ticker){ clearInterval(ticker); ticker = null; } }
 /* ---------------- judging ---------------- */
 function vJudge(s){
   const who = s.judging ? s.judging.name : "?";
-  if(!s.isGiver){
+  /* Blind hands the verdict to everybody except the giver — on that round the
+     giver is the one guessing, and the only person who never saw the word. */
+  const mine = s.mod.key === "B" ? !s.isGiver : s.isGiver;
+  if(!mine){
     h('<div class="stack grow">'+offBox()+topbar(s)+stuckBar(s)+errBox()+
-      waitCard(t("someone", esc(who)), t("waitjudge"), s.judging && s.judging.id)+'</div>');
+      waitCard(t("someone", esc(who)),
+               s.mod.key === "B" ? t("waitjudge_b") : t("waitjudge"),
+               s.judging && s.judging.id)+'</div>');
     wireSkip();
     return;
   }
@@ -1053,14 +1113,14 @@ function boardSVG(s, spots, picked){
         '<circle cx="'+xy.x+'" cy="'+xy.y+'" r="10" fill="'+(isLit?col:"var(--surface)")+'" stroke="'+col+
         '" stroke-width="'+(isLit?1.9:1.5)+'" stroke-dasharray="3 2.4"/>'+
         '<text x="'+xy.x+'" y="'+(xy.y+3.6)+'" text-anchor="middle" font-family="Suez One,Georgia,serif" '+
-        'font-size="11" fill="'+(isLit?"#FFFFFF":col)+'">?</text>';
+        'font-size="13" fill="'+(isLit?"#FFFFFF":col)+'">?</text>';
     } else if(short){
       const ink = n.c === 2 && n.t !== "CARD" ? "#2A1B00" : "#FFFFFF";
       node = (isLit ? '<circle cx="'+xy.x+'" cy="'+xy.y+'" r="13.5" fill="'+col+'" opacity="0.18"/>' : '')+
-        '<rect x="'+(xy.x-17)+'" y="'+(xy.y-8.5)+'" width="34" height="17" rx="8.5" fill="'+
+        '<rect x="'+(xy.x-22)+'" y="'+(xy.y-9)+'" width="44" height="18" rx="9" fill="'+
         (isLit?col:"var(--surface)")+'" stroke="'+col+'" stroke-width="'+(isLit?1.8:1.3)+'"/>'+
-        '<text x="'+xy.x+'" y="'+(xy.y+2.8)+'" text-anchor="middle" font-family="Assistant,sans-serif" '+
-        'font-size="7.5" font-weight="800" fill="'+(isLit?ink:col)+'">'+esc(short)+'</text>';
+        '<text x="'+xy.x+'" y="'+(xy.y+3.4)+'" text-anchor="middle" font-family="Assistant,sans-serif" '+
+        'font-size="10" font-weight="800" fill="'+(isLit?ink:col)+'">'+esc(short)+'</text>';
     } else {
       node = (isLit ? '<circle cx="'+xy.x+'" cy="'+xy.y+'" r="12.5" fill="'+col+'" opacity="0.18"/>' : '')+
         '<circle cx="'+xy.x+'" cy="'+xy.y+'" r="'+(isLit?8:4.5)+'" fill="'+(isLit?col:"var(--rule)")+'"'+
@@ -1068,7 +1128,7 @@ function boardSVG(s, spots, picked){
     }
     out += isLit
       ? '<g data-go="'+key+'" style="cursor:pointer">'+node+
-        '<rect x="'+(xy.x-24)+'" y="'+(xy.y-13)+'" width="48" height="26" fill="transparent"/></g>'
+        '<rect x="'+(xy.x-28)+'" y="'+(xy.y-13)+'" width="56" height="26" fill="transparent"/></g>'
       : node;
   });
   const s0 = nodeXY(0,1,rows);
@@ -1077,7 +1137,7 @@ function boardSVG(s, spots, picked){
   const endNode = (endLit ? '<circle cx="'+e0.x+'" cy="'+e0.y+'" r="21" fill="var(--good)" opacity="0.2"/>' : '')+
     '<circle cx="'+e0.x+'" cy="'+e0.y+'" r="14" fill="'+(endLit?"var(--good)":"var(--ink)")+'"/>'+
     '<text x="'+e0.x+'" y="'+(e0.y+3.4)+'" text-anchor="middle" font-family="Assistant,sans-serif" '+
-    'font-size="9" font-weight="800" fill="#FFFFFF">'+(lang==="he"?"סוף":"END")+'</text>';
+    'font-size="10.5" font-weight="800" fill="#FFFFFF">'+(lang==="he"?"סוף":"END")+'</text>';
   out += endLit ? '<g data-go="'+(rows+1)+',1" style="cursor:pointer">'+endNode+
     '<rect x="'+(e0.x-26)+'" y="'+(e0.y-26)+'" width="52" height="52" fill="transparent"/></g>' : endNode;
 
@@ -1144,7 +1204,7 @@ function vMove(s){
     '<div class="topbar"><p class="kicker">'+t("move_k", mv.seat+"/"+mv.of)+'</p></div>'+
     (mv.mine
       ? '<h2 style="color:'+unitColor(s.units.find(u=>u.id===mv.unitId)||{})+'">'+
-        moveHead(s.units.find(u=>u.id===mv.unitId), mv.unitName, mv.steps)+'</h2><p class="note">'+t("move_d", mv.steps)+'</p>'
+        moveHead(s.units.find(u=>u.id===mv.unitId), mv.unitName, mv.steps)+'</h2><p class="note">'+(mv.steps === 1 ? t("move_d1") : t("move_d", mv.steps))+'</p>' 
       : '<div class="waitrow">'+uav(s.units.find(u=>u.id===mv.unitId)||{name:mv.unitName})+
         '<span><span class="wt">'+tUnit("waitmove", s.units.find(u=>u.id===mv.unitId), mv.unitName)+'</span>'+
         '<span class="ws">'+t("yourturn", esc(mv.unitName))+'</span></span></div>')+

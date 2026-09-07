@@ -62,7 +62,13 @@ p{margin:0}
 .stack{display:flex;flex-direction:column;gap:12px}
 .grow{flex:1}
 .center{display:flex;flex-direction:column;align-items:center;text-align:center;gap:12px;justify-content:center}
-.topbar{display:flex;align-items:center;justify-content:space-between;gap:12px}
+/* The sound switch floats in the top corner on every screen. Whatever a
+   screen puts at that end of its first row steps in far enough to clear it,
+   so the two are never on top of each other. */
+:root{ --sfxgutter:40px }
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding-inline-end:var(--sfxgutter)}
+.hero.roomhead{padding-inline-end:calc(var(--sfxgutter) + 4px)}
 
 button{font-family:var(--body);font-size:16px;font-weight:800;border:0;border-radius:13px;cursor:pointer;
   background:var(--accent);color:#fff;padding:16px;width:100%;box-shadow:var(--shadow);

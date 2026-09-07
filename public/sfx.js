@@ -301,7 +301,11 @@ function mount(){
     /* it floats over whatever the screen is showing, so it is translucent ink
        rather than paper — that reads as a control on the black room card and
        on the light screens alike */
-    '#sfxbtn{position:fixed;top:calc(8px + env(safe-area-inset-top));left:8px;z-index:70;' +
+    /* the corner opposite the one every screen puts its title in, and a
+       logical inset so it changes sides with the language rather than
+       sitting on the Hebrew heading */
+    '#sfxbtn{position:fixed;top:calc(8px + env(safe-area-inset-top));'+
+      'inset-inline-end:8px;z-index:70;' +
       'width:32px;height:32px;padding:0;border-radius:50%;display:grid;place-items:center;' +
       'background:rgba(23,22,28,.5);color:#fff;border:1px solid rgba(255,255,255,.28);' +
       '-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);' +
