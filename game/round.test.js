@@ -437,7 +437,7 @@ function linkRound(n){
     play.applyAction(r, P(r, g), { type:"pick", i:3 }, CTX);
     if(!R.shotFixed) play.applyAction(r, P(r, g), { type:"aim", target:other.id }, CTX);
     /* the word really is worth two more */
-    ok(e.wordValue(R, R.words[3]) === R.words[3].value + 2,
+    ok(e.wordValue(R, R.words[3]) === R.words[3].value + 1,
        "a Double round's word was worth " + e.wordValue(R, R.words[3]) +
        " against a plain " + R.words[3].value);
     play.applyAction(r, P(r, g), { type:"ready" }, CTX);

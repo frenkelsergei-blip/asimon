@@ -86,7 +86,7 @@ function createEngine(){
    O:{n:"One word", s:"ONE", d:"The giver&rsquo;s clue must be a single word. Not two."},
    M:{n:"Mime",     s:"MIME", d:"No speaking at all &mdash; the giver acts it out. And the clock flips: here the giver wants it read <em>fast</em>, not late."},
    B:{n:"Blind",    s:"BLIND", d:"Everything turns around. The giver becomes the guesser, everybody else sees the word, and you each give one word until they crack it."},
-   D:{n:"Double",   s:"\u00d72", d:"Every word is worth double this round. A wrong buzz costs 2 &mdash; and if nobody gets it at all, the giver loses one. Everybody has something on this table."},
+   D:{n:"Double",   s:"\u00d72", d:"Every word is worth a point more and a wrong buzz costs two &mdash; and if nobody gets it at all, the giver loses one. Everybody has something on this table."},
    T:{n:"Partners", s:"PAIR", d:"The game draws the giver a partner. If that partner gets it, they both score."},
    U:{n:"Duel",     s:"DUEL", d:"The giver names one person out loud, and only that person may answer. Everybody else watches. One shout, right or wrong, and the round is over."},
    W:{n:"Two words", s:"TWO", d:"The giver holds two words and gets one sentence for both. Each is worth a point less, and the round runs until both are found or the clock stops. Whoever says one takes it."},
@@ -98,7 +98,7 @@ function createEngine(){
    O:{n:"מילה אחת", s:"מילה", d:"הרמז של הנותן חייב להיות מילה אחת. לא שתיים."},
    M:{n:"פנטומימה", s:"מחזה", d:"בלי לדבר בכלל &mdash; הנותן ממחיז. והשעון מתהפך: כאן הנותן רוצה שיקלטו <em>מהר</em>, לא מאוחר."},
    B:{n:"עיוור",    s:"עיוור", d:"הכול מתהפך. הנותן הופך למנחש, כל השאר רואים את המילה, וכל אחד אומר מילה אחת עד שהוא קולט."},
-   D:{n:"כפול",     s:"\u00d72", d:"כל מילה שווה כפול בסבב הזה. באזה שגוי עולה 2 &mdash; ואם אף אחד לא קולט בכלל, הנותן מאבד נקודה. לכולם יש מה להפסיד כאן."},
+   D:{n:"כפול",     s:"\u00d72", d:"כל מילה שווה נקודה יותר, ובאזה שגוי עולה 2 &mdash; ואם אף אחד לא קולט בכלל, הנותן מאבד נקודה. לכולם יש מה להפסיד כאן."},
    T:{n:"שותפים",   s:"זוג", d:"המשחק מגריל לנותן שותף. אם השותף קולט — שניהם מקבלים."},
    U:{n:"דו־קרב",   s:"קרב", d:"הנותן בוחר אדם אחד בקול, ורק הוא יכול לענות. כל השאר מסתכלים. צעקה אחת, נכונה או לא, והסבב נגמר."},
    W:{n:"שתי מילים", s:"שתיים", d:"הנותן מחזיק שתי מילים ומקבל משפט אחד לשתיהן. כל אחת שווה נקודה פחות, והסבב רץ עד ששתיהן נמצאו או שהשעון נגמר. מי שאומר מילה לוקח אותה."},
@@ -556,7 +556,10 @@ function createEngine(){
   function shotBonus(R){ return SHOT_BONUS + (R.mod === "U" ? 1 : 0); }
   function valueDelta(R){ return CHALLENGES[R.challenge] !== undefined ? CHALLENGES[R.challenge] : 0; }
   function wordValue(R, w){
-    return Math.max(1, w.value + (R.mod === "D" ? 2 : 0) + (R.mod === "W" ? -1 : 0) + valueDelta(R));
+    /* Double adds one, not two. At two it was the best square on the board by
+       a distance — the only round that paid near the top while landing near
+       the top, because the word was dearer without the round being harder. */
+    return Math.max(1, w.value + (R.mod === "D" ? 1 : 0) + (R.mod === "W" ? -1 : 0) + valueDelta(R));
   }
   function dealTopic(key){
     const R = S.r, T0 = TOPICS[key] || {};
@@ -664,7 +667,7 @@ function createEngine(){
      in pairs are two racers, and two racers on the sixteen-row board meant for
      five crossed it in nine rounds. */
   function baseRowsForN(n){
-    return n <= 2 ? 20 : n === 3 ? 17 : n <= 5 ? 16 : n === 6 ? 14 : 12;
+    return n <= 2 ? 19 : n === 3 ? 16 : n <= 5 ? 15 : n === 6 ? 13 : 11;
   }
   /* Two dials shorten the board — the mode and the map — and they used to
      subtract at once: Quick on Sprint came to nine rows, which is three good
