@@ -169,6 +169,10 @@ function connect(){
     if(state.paused){ pauseMs = state.paused.ms; pauseAt = Date.now(); }
     live = true; problem = "";
     render();
+    /* a figure that moved is heard leaving and landing, in its own voice —
+       but only once the screen has been asked for sound, like the place */
+    if(sound && window.asimonWorld && state.phase !== "lobby")
+      (state.units || []).forEach(u => { if(lastPos[u.id] && lastPos[u.id] !== u.pos.r+","+u.pos.c) asimonWorld.hop(u.face); });
     notePositions(state);      /* after the draw: the next one compares against these */
   };
 }
@@ -559,7 +563,9 @@ function showLegend(){
   });
   rows += row(disc("var(--good)", '<rect x="12" y="8" width="16" height="24" rx="3" fill="#FFFFFF"/><rect x="15" y="12" width="10" height="3" rx="1.5" fill="var(--good)"/>'), t("sc_lg_card"), esc(t("sc_lg_card_d")));
   rows += row(disc("var(--violet)", '<text x="20" y="27" text-anchor="middle" font-family="Suez One,Georgia,serif" font-size="22" fill="#FFFFFF">?</text>'), t("sc_lg_wild"), esc(t("sc_lg_wild_d")));
-  rows += row(disc("var(--ink)", '<text x="20" y="25" text-anchor="middle" font-family="Assistant,sans-serif" font-size="12" font-weight="800" fill="#FFFFFF">'+(lang === "he" ? "סוף" : "END")+'</text>'), t("sc_lg_end"), esc(t("sc_lg_end_d")));
+  /* the finish's print is the place's own, so the sheet cannot show a
+     different one from the square */
+  rows += row(disc("var(--ink)", asimonWorld.parts.FINISH), t("sc_lg_end"), esc(t("sc_lg_end_d")));
   const el = document.createElement("div");
   el.id = "legend"; el.className = "legend";
   el.innerHTML = '<div class="lgpanel"><div class="lghead"><p class="kicker">'+t("sc_legend_k")+'</p>'+

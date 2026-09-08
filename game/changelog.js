@@ -36,6 +36,21 @@ const RANK = { patch:0, minor:1, major:2 };
 
 const RELEASES = [
 
+  { v:"0.9.0", date:"2026-09-08", lines:[
+    { kind:"change",
+      en:"On the screen the fox, the cat, the owl, the frog and the panda stand up like everybody else — a head with ears on a pair of shoulders, not a badge on a stick.",
+      he:"על המסך השועל, החתול, הינשוף, הצפרדע והפנדה עומדים כמו כולם — ראש עם אוזניים על זוג כתפיים, לא תג על מקל." },
+    { kind:"new",
+      en:"Every figure on the screen moves in its own way — the frog springs, the owl turns its head, the robot jitters — while it waits and when it hops.",
+      he:"כל דמות על המסך זזה בדרך שלה — הצפרדע מזנקת, הינשוף מסובב את הראש, הרובוט רוטט — גם כשהיא מחכה וגם כשהיא קופצת." },
+    { kind:"new",
+      en:"With the screen's sound on, a hop is heard: each figure jumps in its own voice and lands with a thump.",
+      he:"כשהצליל של המסך דלוק, קפיצה נשמעת: כל דמות קופצת בקול שלה ונוחתת בחבטה." },
+    { kind:"change",
+      en:"The finish square on the screen wears a chequered print instead of the word, like every other square, and the Legend reads it.",
+      he:"משבצת הסוף על המסך עונדת סימן משבצות במקום המילה, כמו כל משבצת אחרת, והמקרא קורא אותו." }
+  ]},
+
   { v:"0.8.2", date:"2026-09-08", lines:[
     { kind:"fix",
       en:"The screen kept drawing the place while a mover was choosing a square — a ring it meant to draw round the chosen square had gone missing and stopped the whole map.",

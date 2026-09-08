@@ -297,7 +297,20 @@ body{ margin:0 }
 .world .flash{ animation:w-flash 7s linear infinite }
 .world .pulse{ transform-box:fill-box; transform-origin:center; animation:w-pulse 4s ease-in-out infinite }
 .world .fly{ animation:w-fly 26s linear infinite alternate }
-.world .idle{ animation:w-idle 3.2s ease-in-out infinite }
+.world .idle{ animation:w-idle 3.2s ease-in-out infinite; transform-box:fill-box; transform-origin:50% 100% }
+/* Each kind of figure waits in its own way — the class is the face's id,
+   written by worldart.js's figure(). A person breathes; the fox twitches
+   now and then, the cat stretches, the owl turns its head, the frog sits
+   still and then hops on the spot, the panda leans, the robot jitters in
+   steps, the astronaut floats. All slow, all small, all pivoting on the
+   feet, so a figure never leaves its square while it waits. */
+.world .idle.k-fox{ animation-name:w-idle-fox; animation-duration:3.4s }
+.world .idle.k-cat{ animation-name:w-idle-cat; animation-duration:4.2s }
+.world .idle.k-owl{ animation-name:w-idle-owl; animation-duration:5s }
+.world .idle.k-frog{ animation-name:w-idle-frog; animation-duration:4.6s }
+.world .idle.k-panda{ animation-name:w-idle-panda; animation-duration:5.2s }
+.world .idle.k-robot{ animation-name:w-idle-robot; animation-duration:2.4s; animation-timing-function:steps(1,end) }
+.world .idle.k-astro{ animation-name:w-idle-astro; animation-duration:3.6s }
 /* the wildcard's sign: it hovers, and its sparks come and go */
 .world .float{ animation:w-float 2.8s ease-in-out infinite }
 .world .twinkle{ transform-box:fill-box; transform-origin:center; animation:w-twinkle 2.2s ease-in-out infinite }
@@ -305,6 +318,20 @@ body{ margin:0 }
 .world .pulse,.world .fly,.world .idle,.world .float,.world .twinkle{ animation-delay:calc(var(--t, 0s) + var(--d, 0s)) }
 .world .hop{ animation:w-hop .75s cubic-bezier(.25,.6,.35,1) both; transform-box:fill-box; transform-origin:50% 100% }
 .world .hopshadow{ animation:w-hopshadow .75s ease both; transform-box:fill-box; transform-origin:center }
+/* And each kind jumps in its own way. The arc is the outer group's; the
+   figure inside it does the flourish for the length of the arc — a lean
+   for a person, a pounce, a stretch, a flap, a coiled spring, a tumble, a
+   rattle, a somersault — and then goes back to waiting. Two animations,
+   written longhand so the second does not reset the first. */
+.world .hop > .idle{ animation-name:w-fl, w-idle; animation-duration:.75s, 3.2s; animation-timing-function:cubic-bezier(.3,.7,.3,1), ease-in-out;
+  animation-iteration-count:1, infinite; animation-fill-mode:both, none; animation-delay:0s, .75s }
+.world .hop > .idle.k-fox{ animation-name:w-fl-fox, w-idle-fox; animation-duration:.75s, 3.4s }
+.world .hop > .idle.k-cat{ animation-name:w-fl-cat, w-idle-cat; animation-duration:.75s, 4.2s }
+.world .hop > .idle.k-owl{ animation-name:w-fl-owl, w-idle-owl; animation-duration:.75s, 5s }
+.world .hop > .idle.k-frog{ animation-name:w-fl-frog, w-idle-frog; animation-duration:.75s, 4.6s }
+.world .hop > .idle.k-panda{ animation-name:w-fl-panda, w-idle-panda; animation-duration:.75s, 5.2s }
+.world .hop > .idle.k-robot{ animation-name:w-fl-robot, w-idle-robot; animation-duration:.75s, 2.4s; animation-timing-function:steps(1,end), steps(1,end) }
+.world .hop > .idle.k-astro{ animation-name:w-fl-astro, w-idle-astro; animation-duration:.75s, 3.6s; animation-timing-function:ease-in-out, ease-in-out }
 @keyframes w-spin{ to{ transform:rotate(360deg) } }
 @keyframes w-drift{ from{ transform:translateX(-16px) } to{ transform:translateX(16px) } }
 @keyframes w-rise{ 0%{ transform:translateY(0); opacity:.75 } 100%{ transform:translateY(-46px); opacity:0 } }
@@ -315,6 +342,21 @@ body{ margin:0 }
 @keyframes w-pulse{ 0%,100%{ transform:scale(1) } 50%{ transform:scale(1.12) } }
 @keyframes w-fly{ from{ transform:translateX(-40px) } to{ transform:translateX(300px) } }
 @keyframes w-idle{ 0%,100%{ transform:translateY(0) } 50%{ transform:translateY(-2px) } }
+@keyframes w-idle-fox{ 0%,55%,100%{ transform:none } 65%{ transform:translateY(-3px) rotate(-4deg) } 80%{ transform:translateY(-1px) rotate(3deg) } }
+@keyframes w-idle-cat{ 0%,100%{ transform:scale(1,1) } 50%{ transform:scale(1.06,.95) translateY(1px) } }
+@keyframes w-idle-owl{ 0%,100%{ transform:rotate(0) } 30%{ transform:rotate(-5deg) } 65%{ transform:rotate(4deg) } }
+@keyframes w-idle-frog{ 0%,70%,100%{ transform:none } 76%{ transform:scale(1.12,.88) } 84%{ transform:translateY(-7px) scale(.94,1.06) } 92%{ transform:scale(1.08,.92) } }
+@keyframes w-idle-panda{ 0%,100%{ transform:none } 50%{ transform:rotate(3.5deg) translateY(1px) } }
+@keyframes w-idle-robot{ 0%,100%{ transform:none } 20%{ transform:translateX(-1.5px) } 40%{ transform:translateX(1.5px) rotate(1deg) } 60%{ transform:translateX(-1px) } 80%{ transform:translateX(.5px) } }
+@keyframes w-idle-astro{ 0%,100%{ transform:translateY(0) rotate(0) } 50%{ transform:translateY(-5px) rotate(-3deg) } }
+@keyframes w-fl{ 0%{ transform:rotate(-6deg) } 45%{ transform:rotate(7deg) } 85%{ transform:rotate(-2deg) } 100%{ transform:none } }
+@keyframes w-fl-fox{ 0%{ transform:scale(.92,1.08) rotate(-12deg) } 45%{ transform:scale(1.06) rotate(12deg) } 85%{ transform:rotate(-3deg) } 100%{ transform:none } }
+@keyframes w-fl-cat{ 0%{ transform:scale(1.12,.88) } 40%{ transform:scale(.88,1.16) rotate(6deg) } 80%{ transform:scale(1.06,.94) } 100%{ transform:none } }
+@keyframes w-fl-owl{ 0%{ transform:scaleX(.78) rotate(-8deg) } 45%{ transform:scaleX(1.1) rotate(8deg) } 70%{ transform:scaleX(.85) } 100%{ transform:none } }
+@keyframes w-fl-frog{ 0%{ transform:scale(1.3,.7) } 30%{ transform:scale(.82,1.22) rotate(-7deg) } 60%{ transform:scale(.95,1.08) rotate(4deg) } 85%{ transform:scale(1.18,.86) } 100%{ transform:none } }
+@keyframes w-fl-panda{ 0%{ transform:rotate(-8deg) } 50%{ transform:rotate(10deg) scale(1.06) } 88%{ transform:rotate(-3deg) scale(1.08,.92) } 100%{ transform:none } }
+@keyframes w-fl-robot{ 0%{ transform:rotate(-5deg) } 25%{ transform:rotate(5deg) } 50%{ transform:rotate(-5deg) } 75%{ transform:rotate(5deg) } 100%{ transform:none } }
+@keyframes w-fl-astro{ 0%{ transform:rotate(0) } 100%{ transform:rotate(360deg) } }
 @keyframes w-float{ 0%,100%{ transform:translateY(0) } 50%{ transform:translateY(-3px) } }
 @keyframes w-twinkle{ 0%,100%{ opacity:0; transform:scale(.3) rotate(0deg) } 50%{ opacity:1; transform:scale(1) rotate(45deg) } }
 @keyframes w-hop{

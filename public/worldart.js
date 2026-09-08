@@ -13,9 +13,10 @@
    boardart.js draws, and is laid out here in the wall's across orientation,
    or running away from the viewer on a tablet stood on its end. The lane
    colours are style.css's own. The figures are the cast out of art.js, stood
-   up: a person is the bust the drawing already is, a creature keeps its disc,
-   and one sheen over either — light top left, shade bottom right — is what
-   makes a flat drawing read as a little model.
+   up: a person is the bust the drawing already is, a creature's disc becomes
+   its head — ears and all — on a pair of shoulders, and one sheen over either
+   — light top left, shade bottom right — is what makes a flat drawing read
+   as a little model.
 
    "3D" here is a tilted camera, a thickness under every square, and things
    that stand up in front of things behind them. That is the whole trick, and
@@ -746,9 +747,19 @@ window.asimonWorld = (function(){
   /* the twist's own emblem, held up beside whoever is standing on its square,
      so the rule they are on is still on the map — the same badge the phone
      shows on the round-twist notice */
+  /* The finish wears a chequered print: no square on the place carries a
+     word, and the one thing the whole world reads as "the end of a race" is
+     the flag already flying beside it. Four by four, so the pattern is still
+     a pattern once the print is squashed onto a square. Handed out on its
+     own too, because the Legend on the wall reads it. */
+  let finish = "";
+  for(let i = 0; i < 4; i++) for(let j = 0; j < 4; j++)
+    if((i + j) % 2 === 0) finish += '<rect x="' + (6 + i * 7) + '" y="' + (6 + j * 7) + '" width="7" height="7" fill="#FFFFFF"/>';
+  const FINISH = finish;
   function badge(key, x, y, r){
     const e = key === "CARD" ? { bg:GOOD, art:'<rect x="12" y="8" width="16" height="24" rx="3" fill="#FFFFFF"/><rect x="15" y="12" width="10" height="3" rx="1.5" fill="' + GOOD + '"/>' }
             : key === "WILD" ? { bg:VIOLET, art:'<text x="20" y="27" text-anchor="middle" font-family="Suez One,Georgia,serif" font-size="22" fill="#FFFFFF">?</text>' }
+            : key === "END" ? { bg:INK, art:FINISH }
             : art.MOD_ART[key];
     if(!e) return "";
     const k = r / 20;
@@ -799,29 +810,60 @@ window.asimonWorld = (function(){
   /* ---------------- one of the cast, standing on the map ----------------
      The phone shows a face on a disc; here the same drawing stands up. A
      person is drawn as the bust the art already is — head and shoulders, the
-     disc left out — and a creature keeps its disc, because for a fox or a
-     panda the disc is the face. A player without a face is a ball with their
-     initials on it, as they are a coin with initials on the phone. Over any
-     of them goes one sheen. The shadow stays on the ground so the figure can
-     hop off it: a figure that has just moved carries where it came from as
-     two custom properties, and the stylesheet does the rest. */
+     disc left out. A creature's disc *is* its face, so the disc stays but
+     becomes a head: a size down, sat on the same shoulders a person has, and
+     with the parts of an animal that stick out of a head put back — a fox's
+     ears, an owl's tufts, a frog's eyes — because a fox whose ears stop at
+     the edge of a circle is a badge, and a fox whose ears stick out of its
+     head is a fox. A player without a face is a ball with their initials on
+     it, as they are a coin with initials on the phone. Over any of them goes
+     one sheen. The shadow stays on the ground so the figure can hop off it:
+     a figure that has just moved carries where it came from as two custom
+     properties, and the stylesheet does the rest.
+
+     The idle group carries the face's kind as a class, so the stylesheet can
+     give each one its own way of waiting and its own way of jumping. */
   const isBust = f => /^<path d="M5\.5 40/.test(f.art);
+  const SHOULDERS = "M5.5 40c0-8 6.5-11.6 14.5-11.6S34.5 32 34.5 40Z";
+  /* `behind` is drawn under the head disc in the head's own colour, so only
+     what reaches past the disc shows; `over` is drawn on the disc, under the
+     face, for the bits that have to cross its edge in one piece. Every
+     shape is in the face's 40-unit box, so it lines up with the art's own
+     inner ear or eye. The body is a shade below the head, as a shirt is
+     below a skin, so the silhouette reads as two things. */
+  const CREATURES = {
+    fox:   { body:"#9A3412", behind:bg => '<path d="M4 15 10 -3 19 7Z" fill="' + bg + '"/><path d="M36 15 30 -3 21 7Z" fill="' + bg + '"/>' },
+    cat:   { body:"#A16207", behind:bg => '<path d="M5 14 9.5 -2 18 8Z" fill="' + bg + '"/><path d="M35 14 30.5 -2 22 8Z" fill="' + bg + '"/>' },
+    owl:   { body:"#3730A3", behind:bg => '<path d="M6 13 11 -1 17.5 8Z" fill="' + bg + '"/><path d="M34 13 29 -1 22.5 8Z" fill="' + bg + '"/>' },
+    frog:  { body:"#365314", over:'<circle cx="12.5" cy="7" r="8" fill="#3F6212"/><circle cx="27.5" cy="7" r="8" fill="#3F6212"/>' },
+    panda: { body:"#20202A", behind:() => '<circle cx="7.5" cy="7.5" r="6.5" fill="#20202A"/><circle cx="32.5" cy="7.5" r="6.5" fill="#20202A"/>' }
+  };
   function figure(u, x, y, k, o){
     o = o || {};
     const s = 40 * k, f = u.face ? art.faceOf(u.face) : null, bust = f && isBust(f);
-    const body = f
-      ? (bust ? "" : '<circle cx="20" cy="20" r="20" fill="' + f.bg + '"/>') +
-        '<g clip-path="url(#lsface)">' + f.art + '</g>' +
-        (bust ? '<circle cx="20" cy="18.5" r="11" fill="url(#sheen)"/>' +
-                '<path d="M5.5 40c0-8 6.5-11.6 14.5-11.6S34.5 32 34.5 40Z" fill="url(#bodysheen)"/>'
-              : '<circle cx="20" cy="20" r="20" fill="url(#sheen)"/>')
-      : '<circle cx="20" cy="20" r="20" fill="' + (u.color || "#2C6BFF") + '"/>' +
+    const C = f && !bust && CREATURES[f.id];
+    const body = !f
+      ? '<circle cx="20" cy="20" r="20" fill="' + (u.color || "#2C6BFF") + '"/>' +
         '<text x="20" y="25" text-anchor="middle" font-family="Assistant,sans-serif" font-size="14" font-weight="800" fill="#FFFFFF">' + esc(initials(u.name)) + '</text>' +
+        '<circle cx="20" cy="20" r="20" fill="url(#sheen)"/>'
+      : bust
+      ? '<g clip-path="url(#lsface)">' + f.art + '</g>' +
+        '<circle cx="20" cy="18.5" r="11" fill="url(#sheen)"/>' +
+        '<path d="' + SHOULDERS + '" fill="url(#bodysheen)"/>'
+      : C
+      ? '<path d="' + SHOULDERS + '" fill="' + C.body + '"/>' +
+        '<g transform="translate(20 17.4) scale(0.74) translate(-20 -20)">' + (C.behind ? C.behind(f.bg) : "") +
+        '<circle cx="20" cy="20" r="20" fill="' + f.bg + '"/>' + (C.over || "") + f.art +
+        '<circle cx="20" cy="20" r="20" fill="url(#sheen)"/></g>' +
+        '<path d="' + SHOULDERS + '" fill="url(#bodysheen)"/>'
+      : '<circle cx="20" cy="20" r="20" fill="' + f.bg + '"/>' +
+        '<g clip-path="url(#lsface)">' + f.art + '</g>' +
         '<circle cx="20" cy="20" r="20" fill="url(#sheen)"/>';
     const hop = o.from ? ' style="--dx:' + n1(o.from.x - x) + 'px;--dy:' + n1(o.from.y - y) + 'px"' : "";
+    const kind = f ? " k-" + f.id : "";
     return (o.noShadow ? "" : '<g class="' + (o.from ? "hopshadow" : "") + '"' + hop + '>' +
         el("ellipse", { cx:x, cy:y, rx:s*0.4, ry:s*0.17, fill:INK, opacity:0.3, filter:"url(#soft)" }) + '</g>') +
-      '<g class="' + (o.from ? "hop" : "") + '"' + hop + '><g class="idle" style="--d:' + n1(-(o.seed || 0) * 0.7) + 's">' +
+      '<g class="' + (o.from ? "hop" : "") + '"' + hop + '><g class="idle' + kind + '" style="--d:' + n1(-(o.seed || 0) * 0.7) + 's">' +
       '<g transform="translate(' + n1(x) + ' ' + n1(y) + ') translate(' + n1(-s/2) + ' ' + n1(-s + 3) + ') scale(' + k.toFixed(4) + ')">' +
       body + '</g></g></g>';
   }
@@ -878,7 +920,6 @@ window.asimonWorld = (function(){
      o.board   {rows, nodes, themeId} — the layout, as boardart.js takes it
      o.units   the racers; each {id, pos, face, name, color}
      o.label   (node) -> the short word on a square, "" for a bare one
-     o.endText what the finish says
      o.spots   the squares to light up, o.picked the one already chosen
      o.from    (unit) -> "r,c" of where it stood at the last draw, so a unit
                that moved hops from there rather than appearing
@@ -979,7 +1020,8 @@ window.asimonWorld = (function(){
       if(nd.t === "WILD") put(L.depth(nd.r, nd.c) + 0.02,
         '<g opacity="' + (dim && !isLit ? 0.4 : 1) + '">' + wildSign(p.x, p.y - th * NS, { lit:isLit, held }) + "</g>");
     });
-    /* the start: a stone; the finish: the place's own square, in ink, with a flag beside it */
+    /* the start: a stone; the finish: the place's own square, in ink, wearing
+       the chequered print, with a flag beside it */
     const s0 = L.at(0, 1), e0 = L.at(rows + 1, 1);
     put(L.depth(0, 1) - 0.01, '<g opacity="' + (dim ? 0.4 : 1) + '">' + el("ellipse", { cx:s0.x, cy:s0.y + 3, rx:22, ry:13, fill:INK, opacity:0.16 }) +
       el("ellipse", { cx:s0.x, cy:s0.y + 4, rx:20, ry:11, fill:dark(sc.ground, 0.35) }) +
@@ -987,7 +1029,7 @@ window.asimonWorld = (function(){
     const endKey = (rows + 1) + ",1", endLit = !!lit[endKey], endHeld = !!byKey[endKey];
     const endPick = o.picked && o.picked.r > rows;
     put(L.depth(rows + 1, 1), node(sc, e0.x, e0.y, INK, { lit:endLit, raise:endLit, held:true, dimmed:dim && !endLit, inner:
-      (endHeld ? "" : el("text", { x:e0.x, y:e0.y - thOf(endLit) + 4, "text-anchor":"middle", "font-family":"Assistant,sans-serif", "font-size":11, "font-weight":800, fill:"#FFFFFF" }, esc(o.endText || "END"))) +
+      (endHeld ? "" : print("END", e0.x, e0.y - thOf(endLit), 14)) +
       (endPick ? chosen(e0.x, e0.y - thOf(endLit), GOOD) : "") }) +
       flag(L.flag.u, L.flag.v, 1.0));
 
@@ -1143,12 +1185,49 @@ window.asimonWorld = (function(){
     playing = mapId;
   }
 
+  /* ---------------- what a hop sounds like ----------------
+     A figure that moves is heard leaving and heard landing, and each kind
+     leaves in its own voice: the frog springs off a coil, the fox yips, the
+     cat mews the length of the arc, the owl hoots at the top, the panda
+     comes down heavier than anybody, the robot beeps its way up and clanks
+     down, the astronaut whooshes and lands in a shimmer. A person has a
+     slide whistle, pitched off their face so two people do not sound the
+     same. The times are the stylesheet's: the arc is .75s and the figure
+     touches down at about .62 of it, so the landing is heard as it is
+     seen. Nothing here plays unless the screen has been asked for sound,
+     which is board.js's call, not this file's. */
+  const thud = (at, g, f) => { burst({ type:"lowpass", f:f || 220, g:g || 0.09, a:0.01, d:0.16, at }); blip({ f:(f || 220) * 0.8, to:(f || 220) * 0.35, d:0.11, g:(g || 0.09) * 0.7, at }); };
+  const VOICES = {
+    frog:  () => { blip({ f:150, to:640, d:0.3, g:0.06, a:0.02, type:"triangle" });
+                   for(let i = 0; i < 4; i++) blip({ f:200 - i * 14, d:0.035, g:0.07, a:0.003, type:"sawtooth", at:0.62 + i * 0.04 }); },
+    fox:   () => { blip({ f:700, to:1250, d:0.1, g:0.06, a:0.004, type:"triangle" }); blip({ f:1100, to:820, d:0.09, g:0.05, type:"triangle", at:0.12 }); thud(0.62, 0.06); },
+    cat:   () => { blip({ f:620, to:980, d:0.26, g:0.055, a:0.03, type:"triangle" }); blip({ f:900, to:660, d:0.2, g:0.045, type:"triangle", at:0.3 }); thud(0.62, 0.045, 260); },
+    owl:   () => { [0.12, 0.34].forEach(at => blip({ f:392, to:370, d:0.14, g:0.07, a:0.05, at })); thud(0.62, 0.06); },
+    panda: () => { blip({ f:160, to:320, d:0.3, g:0.06, a:0.02 }); thud(0.6, 0.13, 140); thud(0.72, 0.06, 110); },
+    robot: () => { [400, 620, 800].forEach((f, i) => blip({ f, d:0.06, g:0.05, type:"square", at:i * 0.11 }));
+                   burst({ type:"bandpass", f:1800, q:3, g:0.07, a:0.005, d:0.1, at:0.62 }); blip({ f:2400, to:1900, d:0.08, g:0.03, at:0.62 }); },
+    astro: () => { burst({ type:"lowpass", f:900, g:0.05, a:0.05, d:0.4 }); blip({ f:880, to:240, d:0.3, g:0.05 });
+                   [1568, 2093].forEach((f, i) => blip({ f, d:0.24, g:0.035, at:0.62 + i * 0.06 })); }
+  };
+  function hop(face){
+    if(!actxReady()) return;
+    const v = VOICES[face];
+    if(v){ v(); return; }
+    /* a slide whistle up, and a wooden landing — one of five pitches, by face */
+    let h = 0; String(face || "").split("").forEach(ch => { h = (h * 31 + ch.charCodeAt(0)) % 997; });
+    const f0 = 280 + (h % 5) * 45;
+    blip({ f:f0, to:f0 * 2.6, d:0.32, g:0.05, a:0.02, type:"triangle" });
+    blip({ f:587, d:0.14, g:0.06, at:0.62 }); blip({ f:2348, d:0.06, g:0.02, at:0.62 });
+    thud(0.62, 0.05, 240);
+  }
+
   /* a browser will not sound until the page has been touched; the switch
      that asks for the place is a touch, but a screen set up with ?sound and
      left alone is not — so the first tap anywhere wakes it */
   try{ document.addEventListener("pointerdown", () => { if(actx && actx.state === "suspended") actx.resume().catch(() => {}); }, { passive:true, capture:true }); }catch(e){}
 
-  return { draw, ambience, SCENES, THEMES, COASTS,
-           /* the canvas at design/world/ draws its sheets with these */
-           parts:{ figure, node, badge, coin, defs, orient, layout, lanesOf, el, pt } };
+  return { draw, ambience, hop, SCENES, THEMES, COASTS,
+           /* the canvas at design/world/ draws its sheets with these; the
+              Legend on the wall reads the finish's print off FINISH */
+           parts:{ figure, node, badge, coin, defs, orient, layout, lanesOf, el, pt, FINISH } };
 })();

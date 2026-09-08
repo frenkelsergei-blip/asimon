@@ -5,6 +5,18 @@ game itself shows under the version at the foot of the first screen.
 
 Generated from `game/changelog.js` by `npm run release` — edit that file, not this one.
 
+## 0.9.0 — 2026-09-08
+
+### Added
+
+- Every figure on the screen moves in its own way — the frog springs, the owl turns its head, the robot jitters — while it waits and when it hops.
+- With the screen's sound on, a hop is heard: each figure jumps in its own voice and lands with a thump.
+
+### Changed
+
+- On the screen the fox, the cat, the owl, the frog and the panda stand up like everybody else — a head with ears on a pair of shoulders, not a badge on a stick.
+- The finish square on the screen wears a chequered print instead of the word, like every other square, and the Legend reads it.
+
 ## 0.8.2 — 2026-09-08
 
 ### Fixed

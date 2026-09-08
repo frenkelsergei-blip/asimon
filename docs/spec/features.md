@@ -67,9 +67,12 @@ belongs here in the same commit.
 | Five places: farm, jungle, storm coast, desert, volcano — each with its own squares, roads and coast | `worldart.js` `SCENES`, `NODES`, `road()`, `coast()` | — |
 | A map laid as roads drawn in its own place, one piece of road per way it sends | `worldart.js` `scene()` on `board.ways` | — |
 | A move is a hop from square to square; the scenery moves on its own | `worldart.js` `figure()`, `board.css` `w-hop` | — |
+| Every figure stands as a bust — a person as drawn, a creature's disc made a head with its ears on shoulders | `worldart.js` `figure()`, `CREATURES` | — |
+| Each kind of figure waits and hops in its own way, on a class the figure carries | `board.css` `w-idle-*`, `w-fl-*` | — |
 | The place stood up for a tablet, laid long for a wall | `worldart.js` `orient()` | — |
 | The place heard as well as seen, once asked (`?sound`, the corner switch) | `worldart.js` `ambience()` | — |
-| Every square wears its twist's print; a Legend sheet on the wall reads them | `worldart.js` `badge()`, `board.js` `showLegend()` | — |
+| A hop heard in the figure's own voice — leaving and landing — once the screen's sound is on | `worldart.js` `hop()`, `board.js` on a state message | — |
+| Every square wears its twist's print, the finish a chequered one; a Legend sheet on the wall reads them | `worldart.js` `badge()`, `FINISH`, `board.js` `showLegend()` | — |
 | The flat board, drawn once for the phone and as the screen's fallback | `public/boardart.js` | — |
 | A lit square's word written in the ink its own lane colour asks for, per map | `style.css` `--map-*-ink`, `boardart.js` `inks()` | — |
 | Up to 8 screens per room | `server.js` `MAX_SCREENS` | `server.test.js` |
