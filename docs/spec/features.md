@@ -31,8 +31,9 @@ belongs here in the same commit.
 | Four columns, three ways on from any square | `engine.js` `nextFrom()`, `reachable()` | `engine.test.js` |
 | Points as steps you spend, stopping early allowed | `play.js` `movepick`, `moveconfirm` | `round.test.js` |
 | Board length by unit count and crowd | `engine.js` `boardRows()` | playtest sweep |
-| Six maps, each with its own pattern | `engine.js` `MAPS` | `engine.test.js` |
-| Crossroads: a board of roads and junctions rather than four open lanes, with half the squares and a repertoire of five round kinds drawn each game | `engine.js` `buildRoads()`, `drawRepertoire()` | `engine.test.js`, `playtest.js` |
+| Five maps, each with its own pattern | `engine.js` `MAPS` | `engine.test.js` |
+| Three of the five play a repertoire of five round kinds rather than all ten, so a board has a taste of its own; classic and chaos play all ten | `engine.js` `MAPS`, `kindsOf()` | `playtest.js` |
+| Crossroads: any map laid as roads and junctions rather than four open lanes, with half the squares and a repertoire of five round kinds drawn each game — a lobby dial beside the map | `engine.js` `buildRoads()`, `drawRepertoire()`, `play.js` action `roads` | `engine.test.js`, `playtest.js` |
 | Rerolling the map from the lobby | `play.js` `reroll_map` | `server.test.js` |
 | Card squares — three offered, one kept | `engine.js` `isCardNode()`, `play.js` `take` | `cards.test.js` |
 | The wildcard square — six outcomes | `engine.js` `isWildNode()`, `WILD_ODDS` | `engine.test.js` |
@@ -63,11 +64,14 @@ belongs here in the same commit.
 | Never shows the four words, ever | `play.js` `boardView()` | `screen.test.js` |
 | Four layouts: wide, tall, phone, map-only | `public/board.css`, `board.js` | — |
 | The board drawn as a place — one scene per map, with the players standing on it | `public/worldart.js` `draw()` | — |
-| Five places: farm, jungle, storm coast, desert, volcano — each with its own squares and roads | `worldart.js` `SCENES`, `NODES`, `road()` | — |
+| Five places: farm, jungle, storm coast, desert, volcano — each with its own squares, roads and coast | `worldart.js` `SCENES`, `NODES`, `road()`, `coast()` | — |
+| A map laid as roads drawn in its own place, one piece of road per way it sends | `worldart.js` `scene()` on `board.ways` | — |
 | A move is a hop from square to square; the scenery moves on its own | `worldart.js` `figure()`, `board.css` `w-hop` | — |
 | The place stood up for a tablet, laid long for a wall | `worldart.js` `orient()` | — |
 | The place heard as well as seen, once asked (`?sound`, the corner switch) | `worldart.js` `ambience()` | — |
+| Every square wears its twist's print; a Legend sheet on the wall reads them | `worldart.js` `badge()`, `board.js` `showLegend()` | — |
 | The flat board, drawn once for the phone and as the screen's fallback | `public/boardart.js` | — |
+| A lit square's word written in the ink its own lane colour asks for, per map | `style.css` `--map-*-ink`, `boardart.js` `inks()` | — |
 | Up to 8 screens per room | `server.js` `MAX_SCREENS` | `server.test.js` |
 
 ## The phone
@@ -82,6 +86,7 @@ belongs here in the same commit.
 | Installable to a home screen | `public/manifest.webmanifest`, `icon.svg` | — |
 | The update bar, never mid-round | `public/app.js`, `/api/version` | `version.test.js` |
 | **What's new** at the foot of the first screen | `/api/changelog` | `changelog.test.js` |
+| **Reading the board** — the legend named off the board actually in play: its lanes, its colours, the round kinds it deals, and a road board's own way of stepping | `app.js` `legendBody()`, `boardLanes()`, `stepDiagram()` | `copy.test.js` |
 | Bilingual, Hebrew and English, everywhere | `engine.js` `EN_*`/`HE_*`, `uiPack()` | `copy.test.js` |
 
 ## Around the game
@@ -98,7 +103,7 @@ belongs here in the same commit.
 | The poster and the how-to-play sheet | `design/poster/build.js` | — |
 | The painted poster that actually ships | `design/kit/export/poster_asimon.jpg` | — |
 | The logo, the screen and the card canvases | `design/logo/`, `design/screen/`, `design/cards/` | — |
-| The map-as-a-place canvas the screen was built from | `design/world/build.js` | — |
+| The map-as-a-place canvas, drawn by the shipped `worldart.js` so canvas and wall cannot drift | `design/world/build.js` | — |
 | The public site, trailer and PDFs | `docs/index.html`, `docs/assets/` | — |
 
 ---

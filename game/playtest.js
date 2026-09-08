@@ -92,7 +92,7 @@ const CTX = { armClock(){}, clearClock(){} };
 function playOne(cfg){
   const room = {
     code: "SIM", lang: cfg.lang || "en", hostId: "p0", phase: "lobby", lanUrl: "sim",
-    mapId: cfg.map, seating: cfg.seating || "solo",
+    mapId: cfg.map, roads: !!cfg.roads, seating: cfg.seating || "solo",
     players: [], people: []
   };
   /* Solo and pairs put one person behind each phone, so the two rosters are
@@ -554,7 +554,9 @@ const RUN_STARTED = Date.now();
 const runs = [];
 for(const n of wantPlayers){
   for(const gameMode of (arg("gameMode") ? [arg("gameMode")] : MODES)){
-    for(const map of (arg("map") ? [arg("map")] : MAPS)){
+    for(const map of (arg("map") ? [arg("map")] : MAPS))
+    /* every map both ways: as four open lanes, and laid as roads */
+    for(const roads of (arg("roads") ? [arg("roads") !== "0"] : [false, true])){
       /* Three ways to sit. Solo and pairs are one person a phone, so the
          table size is the head count. Groups is phones — three sofas of three
          is nine people racing as three, so it is swept by phone count. */
@@ -566,7 +568,7 @@ for(const n of wantPlayers){
         for(let i = 0; i < perCell; i++)
           runs.push(playOne({ players:n, phones:n, seating,
                               mode: seating === "pairs" ? "teams" : "solo",
-                              gameMode, map, forceChallenge: arg("challenge"),
+                              gameMode, map, roads, forceChallenge: arg("challenge"),
                               rows: arg("rows"), addRows: arg("addRows"), cap: arg("cap"), minus: arg("minus"),
                               lang: i % 3 === 0 ? "he" : "en" }));
       }

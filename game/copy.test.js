@@ -26,7 +26,7 @@ const PAGES = [
       const b = [];
       [1,2,3,4].forEach(i => b.push("hw_s"+i, "hw_s"+i+"d"));
       [1,2,3].forEach(i => b.push("hw_b"+i, "hw_b"+i+"d", "hw_p"+i, "hw_p"+i+"d"));
-      [0,1,2,3].forEach(i => b.push("lg_lane_"+i));
+      /* the lanes are named off the board now, not out of the copy pack */
       /* the changelog labels each line by kind: t("cl_" + l.kind) */
       ["new","rules","change","fix"].forEach(k => b.push("cl_"+k));
       [1,2,3].forEach(i => b.push("quit_"+i));

@@ -23,6 +23,12 @@ window.asimonBoard = (function(){
     const id = THEMES.indexOf(themeId) >= 0 ? themeId : "classic";
     return [0,1,2,3].map(i => "var(--map-"+id+"-"+i+")");
   }
+  /* and the ink each of those is written on in, declared beside the colour in
+     style.css rather than guessed at from the lane number here */
+  function inks(themeId){
+    const id = THEMES.indexOf(themeId) >= 0 ? themeId : "classic";
+    return [0,1,2,3].map(i => "var(--map-"+id+"-"+i+"-ink)");
+  }
 
   /* The board is drawn into a fixed box whatever its length: a short Sprint
      board spaces its rows out, a long Storm board packs them in. Both then
@@ -182,7 +188,8 @@ window.asimonBoard = (function(){
   }
 
   function drawTilted(o){
-    const b = o.board, rows = b.rows, rtl = !!o.rtl, COLC = lanes(b.themeId);
+    const b = o.board, rows = b.rows, rtl = !!o.rtl;
+    const COLC = lanes(b.themeId), INKC = inks(b.themeId);
     const label = o.label || (() => "");
     const at = (r, c) => isoAt(r, c, rows, rtl);
     const n1 = v => Math.round(v * 10) / 10;
@@ -255,7 +262,7 @@ window.asimonBoard = (function(){
           '<text x="'+n1(p.x)+'" y="'+n1(p.y + 4*s)+'" text-anchor="middle" font-family="Suez One,Georgia,serif" '+
           'font-size="'+n1(12.5*s)+'" fill="'+(isLit?"#FFFFFF":col)+'">?</text>';
       } else if(short){
-        const ink = nd.c === 2 && nd.t !== "CARD" ? "#2A1B00" : "#FFFFFF";
+        const ink = nd.t === "CARD" ? "#FFFFFF" : INKC[nd.c];
         const sil = f => '<rect x="'+n1(p.x-22*s)+'" y="'+n1(p.y-6.5*s)+'" width="'+n1(44*s)+
           '" height="'+n1(13*s)+'" rx="'+n1(6.5*s)+'" fill="'+f+'"/>';
         node = halo + stand(sil, col, 8*s)+
@@ -327,11 +334,15 @@ window.asimonBoard = (function(){
 
     if(o.picked){
       const p = at(o.picked.r, o.picked.c), s = p.s;
-      out += o.picked.r > rows
-        ? '<ellipse cx="'+n1(p.x)+'" cy="'+n1(p.y)+'" rx="'+n1(23*s)+'" ry="'+n1(15*s)+
-          '" fill="none" stroke="var(--ink)" stroke-width="'+n1(2.2*s)+'"/>'
-        : '<rect x="'+n1(p.x-25*s)+'" y="'+n1(p.y-9.5*s)+'" width="'+n1(50*s)+'" height="'+n1(19*s)+
-          '" rx="'+n1(9.5*s)+'" fill="none" stroke="var(--ink)" stroke-width="'+n1(2.2*s)+'"/>';
+      const pn = b.nodes.find(n => n.r === o.picked.r && n.c === o.picked.c);
+      const pc = o.picked.r > rows ? "var(--good)" : !pn ? "var(--ink)"
+               : pn.t === "CARD" ? "var(--good)" : pn.t === "WILD" ? "var(--violet)" : COLC[pn.c];
+      const ring = (w, op) => o.picked.r > rows
+        ? '<ellipse cx="'+n1(p.x)+'" cy="'+n1(p.y)+'" rx="'+n1((23+w/2)*s)+'" ry="'+n1((15+w/2)*s)+
+          '" fill="none" stroke="'+pc+'" stroke-width="'+n1(w*s)+'" opacity="'+op+'"/>'
+        : '<rect x="'+n1(p.x-(25+w/2)*s)+'" y="'+n1(p.y-(9.5+w/2)*s)+'" width="'+n1((50+w)*s)+'" height="'+n1((19+w)*s)+
+          '" rx="'+n1((9.5+w/2)*s)+'" fill="none" stroke="'+pc+'" stroke-width="'+n1(w*s)+'" opacity="'+op+'"/>';
+      out += '<g class="picked">'+ring(8, 0.22)+ring(2.6, 1)+'</g>';
     }
     return '<svg class="board tipped" viewBox="0 0 '+ISO.w+' '+ISO.h+'" role="img">'+out+'</svg>';
   }
@@ -348,7 +359,7 @@ window.asimonBoard = (function(){
   function draw(o){
     if(o.tipped) return drawTilted(o);
     const b = o.board, rows = b.rows, lit = {};
-    const COLC = lanes(b.themeId);
+    const COLC = lanes(b.themeId), INKC = inks(b.themeId);
     const label = o.label || (() => "");
     const how = { across: !!o.across, rtl: !!o.rtl };
     const at = (r, c) => nodeXY(r, c, rows, how);
@@ -393,7 +404,7 @@ window.asimonBoard = (function(){
           '<text x="'+xy.x+'" y="'+(xy.y+3.6)+'" text-anchor="middle" font-family="Suez One,Georgia,serif" '+
           'font-size="13" fill="'+(isLit?"#FFFFFF":col)+'">?</text>';
       } else if(short){
-        const ink = n.c === 2 && n.t !== "CARD" ? "#2A1B00" : "#FFFFFF";
+        const ink = n.t === "CARD" ? "#FFFFFF" : INKC[n.c];
         node = (isLit ? '<circle cx="'+xy.x+'" cy="'+xy.y+'" r="13.5" fill="'+col+'" opacity="0.18"/>' : '')+
           '<rect x="'+(xy.x-22)+'" y="'+(xy.y-9)+'" width="44" height="18" rx="9" fill="'+
           (isLit?col:"var(--surface)")+'" stroke="'+col+'" stroke-width="'+(isLit?1.8:1.3)+'"/>'+
@@ -434,11 +445,19 @@ window.asimonBoard = (function(){
             'font-size="9" font-weight="800" fill="#FFFFFF">'+esc(initials(u.name))+'</text>') + '</g>';
       });
     });
+    /* The square chosen and not yet confirmed. Not a line drawn round it —
+       a ring in the square's own colour with a soft halo, breathing, so it
+       reads as "this one, lit" and not as a mark on the map. */
     if(o.picked){
       const xy = nodeXY(o.picked.r, o.picked.c, rows);
-      out += o.picked.r > rows
-        ? '<circle cx="'+xy.x+'" cy="'+xy.y+'" r="20" fill="none" stroke="var(--ink)" stroke-width="2.2"/>'
-        : '<rect x="'+(xy.x-22)+'" y="'+(xy.y-13.5)+'" width="44" height="27" rx="13.5" fill="none" stroke="var(--ink)" stroke-width="2.2"/>';
+      const pn = b.nodes.find(n => n.r === o.picked.r && n.c === o.picked.c);
+      const pc = o.picked.r > rows ? "var(--good)" : !pn ? "var(--ink)"
+               : pn.t === "CARD" ? "var(--good)" : pn.t === "WILD" ? "var(--violet)" : COLC[pn.c];
+      const ring = (w, op) => o.picked.r > rows
+        ? '<circle cx="'+xy.x+'" cy="'+xy.y+'" r="'+(20 + w/2)+'" fill="none" stroke="'+pc+'" stroke-width="'+w+'" opacity="'+op+'"/>'
+        : '<rect x="'+(xy.x-23-w/2)+'" y="'+(xy.y-14.5-w/2)+'" width="'+(46+w)+'" height="'+(29+w)+'" rx="'+(14.5+w/2)+
+          '" fill="none" stroke="'+pc+'" stroke-width="'+w+'" opacity="'+op+'"/>';
+      out += '<g class="picked">'+ring(8, 0.22)+ring(2.6, 1)+'</g>';
     }
     const win = o.window;
     const vb = win ? [win.x, win.y, win.w, win.h].map(n => Math.round(n*10)/10).join(" ")
@@ -446,5 +465,5 @@ window.asimonBoard = (function(){
     return '<svg class="board'+(win ? " cropped" : "")+'" viewBox="'+vb+'" role="img">'+out+'</svg>';
   }
 
-  return { draw, lanes, nodeXY, windowFor, BOX, ISO };
+  return { draw, lanes, inks, nodeXY, windowFor, BOX, ISO };
 })();

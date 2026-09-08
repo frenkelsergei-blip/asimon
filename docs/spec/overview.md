@@ -72,7 +72,7 @@ window, which is why the build hash and the update bar exist at all. See
    needs a package, it needs a different design.
 2. **`game/engine.js` is hand-maintained.** `game/build-engine.js` records how
    it was first lifted out of the old pass-and-play build and *refuses to run*.
-   Regenerating it would delete the game modes, the six maps, the wildcard
+   Regenerating it would delete the game modes, the five maps, the wildcard
    square and the board's whole balance, none of which were ever in that build.
 
 ## Glossary
@@ -88,6 +88,6 @@ window, which is why the build hash and the update bar exist at all. See
 | **band** | how much the timing was worth: too obvious, well pitched, almost lost them |
 | **the shot / aim** | the one person the giver secretly bets will get it |
 | **wildcard** | the square that rolls a random event instead of a mod |
-| **map** | one of the six boards. Five are the same four-lane shape with a different pattern of squares; **crossroads** is a network of roads and junctions |
+| **map** | one of the five boards. Same four-lane shape, different pattern of squares — and any of them can be laid as **Crossroads**, a network of roads and junctions |
 | **game mode** | quick / regular / slow / challenge — clock, length and how you win |
 | **build** | the hash of every file a page loads. Tells a phone it is stale |

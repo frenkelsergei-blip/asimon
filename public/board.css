@@ -256,6 +256,28 @@ body{ margin:0 }
 }
 @media (prefers-reduced-motion:reduce){ *{ transition:none!important; animation:none!important } }
 
+/* ---------------- the legend ----------------
+   The prints on the place's squares, read. A sheet over everything, in the
+   page's own em, gone on a tap anywhere outside it. */
+.legend{ position:fixed; inset:0; z-index:5; background:rgba(23,22,28,.55); display:flex;
+  align-items:center; justify-content:center; padding:2em; cursor:pointer }
+.lgpanel{ background:var(--paper); color:var(--ink); border-radius:1.125em; width:min(46em, 100%);
+  max-height:100%; display:flex; flex-direction:column; overflow:hidden; cursor:auto;
+  box-shadow:0 1.5em 3em -1em rgba(23,22,28,.5) }
+.lghead{ display:flex; align-items:center; justify-content:space-between; gap:1em; padding:1em 1.375em;
+  border-bottom:1px solid var(--rule) }
+.lghead .kicker{ margin:0; font-size:.75em; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--muted) }
+.lghead .kicker::after{ display:none }
+.lghead button{ width:auto; padding:.5em 1.1em; font-size:.875em; background:var(--sunk); color:var(--second);
+  box-shadow:none; border-radius:.6em }
+.lglist{ overflow:auto; padding:.5em 1.375em 1em; display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:0 2em }
+.lgrow{ display:flex; align-items:flex-start; gap:.875em; padding:.7em 0; border-bottom:1px solid var(--hair) }
+.lgicon{ width:2.5em; height:2.5em; flex:0 0 2.5em }
+.lgicon svg{ display:block; width:100%; height:100% }
+.lgrow b{ font-size:1.05em; font-weight:800 }
+.lgrow p{ margin:.15em 0 0; font-size:.875em; color:var(--second); line-height:1.4 }
+@media (max-aspect-ratio: 4/5){ .lglist{ grid-template-columns:minmax(0,1fr) } }
+
 /* ---------------- the map as a place ----------------
    worldart.js draws the board as somewhere you could stand, and it is the
    only drawing on this page that moves by itself. The scenery is alive the
@@ -276,8 +298,11 @@ body{ margin:0 }
 .world .pulse{ transform-box:fill-box; transform-origin:center; animation:w-pulse 4s ease-in-out infinite }
 .world .fly{ animation:w-fly 26s linear infinite alternate }
 .world .idle{ animation:w-idle 3.2s ease-in-out infinite }
+/* the wildcard's sign: it hovers, and its sparks come and go */
+.world .float{ animation:w-float 2.8s ease-in-out infinite }
+.world .twinkle{ transform-box:fill-box; transform-origin:center; animation:w-twinkle 2.2s ease-in-out infinite }
 .world .spin,.world .drift,.world .rise,.world .glow,.world .flow,.world .bob,.world .flash,
-.world .pulse,.world .fly,.world .idle{ animation-delay:calc(var(--t, 0s) + var(--d, 0s)) }
+.world .pulse,.world .fly,.world .idle,.world .float,.world .twinkle{ animation-delay:calc(var(--t, 0s) + var(--d, 0s)) }
 .world .hop{ animation:w-hop .75s cubic-bezier(.25,.6,.35,1) both; transform-box:fill-box; transform-origin:50% 100% }
 .world .hopshadow{ animation:w-hopshadow .75s ease both; transform-box:fill-box; transform-origin:center }
 @keyframes w-spin{ to{ transform:rotate(360deg) } }
@@ -290,6 +315,8 @@ body{ margin:0 }
 @keyframes w-pulse{ 0%,100%{ transform:scale(1) } 50%{ transform:scale(1.12) } }
 @keyframes w-fly{ from{ transform:translateX(-40px) } to{ transform:translateX(300px) } }
 @keyframes w-idle{ 0%,100%{ transform:translateY(0) } 50%{ transform:translateY(-2px) } }
+@keyframes w-float{ 0%,100%{ transform:translateY(0) } 50%{ transform:translateY(-3px) } }
+@keyframes w-twinkle{ 0%,100%{ opacity:0; transform:scale(.3) rotate(0deg) } 50%{ opacity:1; transform:scale(1) rotate(45deg) } }
 @keyframes w-hop{
   0%{ transform:translate(var(--dx), var(--dy)) }
   45%{ transform:translate(calc(var(--dx) * .5), calc(var(--dy) * .5 - 70px)) }

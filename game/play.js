@@ -76,8 +76,12 @@ function uiPack(lang){
    and draw it themselves; only the tokens and the lit squares change. */
 function boardLayout(room){
   const e = room.engine;
-  const mapId = e.S.mapId;
-  if(room.boardCache && room.boardCache.rows === e.ROWS() && room.boardCache.mapId === mapId) return room.boardCache;
+  const mapId = e.S.mapId, roads = !!e.S.roads;
+  /* the roads dial is part of which board this is: the same map at the same
+     length laid as roads is a different set of squares, and a cache keyed only
+     on the map would hand the next game the last one's shape */
+  if(room.boardCache && room.boardCache.rows === e.ROWS() &&
+     room.boardCache.mapId === mapId && room.boardCache.roads === roads) return room.boardCache;
   const rows = e.ROWS(), nodes = [], ways = [];
   for(let r = 1; r <= rows; r++)
     e.nodeCols(r).forEach(c => {
@@ -88,7 +92,7 @@ function boardLayout(room){
          playing. A lattice sends none of these and the phone assumes them. */
       if(e.S.shape && r < rows) e.nextFrom({ r, c }).forEach(q => ways.push([r, c, q.c]));
     });
-  room.boardCache = { rows, cols:4, mapId, themeId: (e.MAPS[mapId] || e.MAPS.classic).themeId,
+  room.boardCache = { rows, cols:4, mapId, roads, themeId: (e.MAPS[mapId] || e.MAPS.classic).themeId,
                       nodes, ways: ways.length ? ways : null };
   return room.boardCache;
 }
@@ -135,8 +139,11 @@ function startGame(room, opts){
   e.S.mode = e.S.seating === "pairs" ? "teams" : "solo";
   e.S.modeId = (opts && MODE_IDS.indexOf(opts.gameMode) >= 0) ? opts.gameMode : "regular";
   e.S.mapId = (room.mapId && MAP_IDS.indexOf(room.mapId) >= 0) ? room.mapId : "classic";
+  /* roads or lanes: asked for with the start, else whatever the lobby settled on */
+  e.S.roads = !!(opts && opts.roads !== undefined ? opts.roads : room.roads);
   room.mode = e.S.modeId;
   room.mapId = e.S.mapId;
+  room.roads = e.S.roads;
   e.applyLang();
 
   /* Giving the first clue is the hardest seat at the table, and seat order
@@ -183,7 +190,7 @@ function startGame(room, opts){
      the one who gets it. Measured by heads, a pairs game ran three rounds short
      of the same table playing solo. Measured by racers, the two agree. */
   e.setBoard(e.S.units.length, e.S.modeId, e.S.mapId,
-             e.S.players.length / Math.max(1, e.S.units.length));
+             e.S.players.length / Math.max(1, e.S.units.length), e.S.roads);
   e.S.giverIdx = 0; e.S.round = 0; e.S.used = [];
   dealOpeningCard(e);
 
@@ -490,6 +497,7 @@ function viewFor(room, pid){
     /* the map is rolled the moment the room exists, so the lobby can show a
        preview (and offer a reroll) before anybody has pressed start */
     base.mapId = room.mapId || "classic";
+    base.roads = !!room.roads;
     base.gameMode = room.mode || "regular";
     base.seating = SEATINGS.indexOf(room.seating) >= 0 ? room.seating : "solo";
     /* the whole roster, so a phone can draw the table as groups, and its own
@@ -514,6 +522,7 @@ function viewFor(room, pid){
   base.seating = S.seating || "solo";
   base.gameMode = S.modeId;
   base.mapId    = S.mapId;
+  base.roads    = !!S.roads;
   const faceOfPerson = id => (personById(room, id) || {}).face;
   base.units   = S.units.map(u => ({
     id:u.id, name:u.name, score:u.score, pos:u.pos, color:u.color,
@@ -742,6 +751,7 @@ function boardView(room){
   };
   if(!e || room.phase === "lobby"){
     out.mapId    = room.mapId || "classic";
+    out.roads    = !!room.roads;
     out.gameMode = room.mode || "regular";
     out.seating  = SEATINGS.indexOf(room.seating) >= 0 ? room.seating : "solo";
     out.people   = roster(room).map(p => ({ id:p.id, name:p.name, face:p.face, phone:p.phoneId }));
@@ -761,6 +771,7 @@ function boardView(room){
   out.seating  = S.seating || "solo";
   out.gameMode = S.modeId;
   out.mapId    = S.mapId;
+  out.roads    = !!S.roads;
   out.units    = S.units.map(u => ({
     id:u.id, name:u.name, score:u.score, pos:u.pos, color:u.color,
     face: faceOf(u.members[0]),
@@ -987,6 +998,13 @@ function applyAction(room, me, body, ctx){
     if(room.phase !== "lobby") return { error:"already_started" };
     if(room.hostId !== me.id) return { error:"host_only" };
     room.mapId = randomMapId(room.mapId);
+    return { ok:true };
+  }
+  /* lanes or roads, on whichever map is rolled: the same map, laid the other way */
+  if(type === "roads"){
+    if(room.phase !== "lobby") return { error:"already_started" };
+    if(room.hostId !== me.id) return { error:"host_only" };
+    room.roads = !!body.roads;
     return { ok:true };
   }
 

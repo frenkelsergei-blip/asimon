@@ -644,38 +644,46 @@ function createEngine(){
      pattern:{ 0:["S","U","W","F","T","U"], 1:["S","F","T","W","U","F"],
                2:["O","G","L","T","G","O"], 3:["B","M","G","L","M","B"] },
      cardRule:{ col:1, every:3 }, wildRule:{ col:3, every:5 } },
+   /* Twist is the board about words and how you are allowed to say them:
+      Partners, Two words, One word, The link, and Blind at the awkward end.
+      No Fast, no Duel, no Gamble and no Mime — nothing here is about the
+      clock or about nerve. */
    twist:{ id:"twist", themeId:"twist", rowsDelta:0,
-     pattern:{ 0:["S","F","U","T","W","U"], 1:["F","U","O","W","F","T"],
-               2:["S","G","L","G","O","O"], 3:["M","B","L","G","M","B"] },
+     pattern:{ 0:["S","T","W","T","S","W"], 1:["T","W","O","W","T","O"],
+               2:["O","L","W","L","O","T"], 3:["B","L","B","O","B","L"] },
      cardRule:{ col:2, every:4 }, wildRule:{ col:0, every:5 } },
    /* Storm is the wild board, not the long one — its character is in the
       pattern, and two extra rows on top of it ran one game in eight past
       forty minutes once the rounds themselves grew longer. */
    storm:{ id:"storm", themeId:"storm", rowsDelta:1,
-     pattern:{ 0:["S","T","U","W","U","S"], 1:["F","O","W","G","U","F"],
-               2:["G","B","L","B","G","B"], 3:["M","L","M","B","M","G"] },
+     /* the hard five and nothing else: Duel, The link, Gamble, Mime, Blind.
+        Its quiet lane is quiet because it is nearly empty, not because it is
+        gentle — there is no gentle kind on this board to put there. */
+     pattern:{ 0:["S","U","S","U","L","U"], 1:["U","L","G","U","L","G"],
+               2:["L","G","B","G","L","M"], 3:["M","B","G","B","M","B"] },
      cardRule:{ col:1, every:4 }, wildRule:{ col:2, every:4 } },
    sprint:{ id:"sprint", themeId:"sprint", rowsDelta:-3,
-     pattern:{ 0:["S","F","U","T","W","U"], 1:["S","W","T","F","U","T"],
-               2:["F","G","L","S","F","O"], 3:["O","T","G","L","O","F"] },
+     /* the gentle five, and Gamble alone on the right so a short board still
+        has something to lose. It keeps the promise it was built on — a short
+        evening never asks anyone to mime or to play blind — and drops Two
+        words and The link as well, which are the two that slow a round down. */
+     pattern:{ 0:["S","F","T","F","S","T"], 1:["F","T","O","S","U","T"],
+               2:["O","U","F","O","U","O"], 3:["G","O","U","G","T","G"] },
      cardRule:{ col:0, every:3 }, wildRule:{ col:3, every:4 } },
+   /* Chaos is named for playing everything, so it plays all ten — Fast came
+      back to it when the other boards were given a taste of their own. */
    chaos:{ id:"chaos", themeId:"chaos", rowsDelta:0,
-     pattern:{ 0:["S","U","G","W","T","U"], 1:["O","G","U","W","G","O"],
+     pattern:{ 0:["S","U","G","F","T","U"], 1:["O","G","U","W","G","O"],
                2:["G","L","B","T","G","M"], 3:["B","M","L","M","B","G"] },
-     cardRule:{ col:3, every:3 }, wildRule:{ col:1, every:4 } },
-   /* The one board that is a network rather than a lattice. `roads` is what
-      makes it one; everything else here is an ordinary map. Its lanes still
-      run quiet on the left and awkward on the right, because a route you have
-      to plan is only worth planning towards something. It borrows the
-      jungle's paint until the shape has earned a place of its own. */
-   crossroads:{ id:"crossroads", themeId:"twist", rowsDelta:0,
-     roads:{ junction:5, kinds:5 },
-     /* the pattern a road map plays is drawn each game — this one is the
-        fallback, and what the drawn ones are shaped like */
-     pattern:{ 0:["S","F","S","T","W","S"], 1:["F","T","S","W","U","T"],
-               2:["O","G","L","S","O","L"], 3:["M","B","G","L","B","M"] },
-     cardRule:{ col:1, every:3 }, wildRule:{ col:3, every:4 } }
+     cardRule:{ col:3, every:3 }, wildRule:{ col:1, every:4 } }
   };
+  /* Crossroads is not a sixth board: it is the other way to lay any of the
+     five. Chosen in the lobby beside the map, it turns that map's lattice
+     into a network — about half the squares, roads laid between them, a
+     junction every fifth row — and draws that map's repertoire each game.
+     The map keeps its paint, its card and wildcard rules and its row nudge,
+     so the farm with roads is still the farm. */
+  const ROADS = { junction:5, kinds:5 };
   /* How long the board is, by how many units are racing on it. A unit scores
      when it gives or when it gets the word, so the fewer of them there are the
      more often each one moves and the longer the board has to be. Four players
@@ -779,6 +787,11 @@ function createEngine(){
      is always one step off. Here it has to be built in. */
   const MOD_RANK = { F:0, T:1, W:2, O:3, U:4, L:5, G:6, M:7, B:8 };
   const ROAD_S = [3,2,2,1];              /* plain squares per lane, out of six */
+  function kindsOf(map){
+    const seen = [];
+    Object.keys(map.pattern).forEach(c => map.pattern[c].forEach(x => { if(seen.indexOf(x) < 0) seen.push(x); }));
+    return seen;
+  }
   function drawRepertoire(howMany){
     const pool = Object.keys(MOD_RANK);
     let picks = [];
@@ -819,7 +832,7 @@ function createEngine(){
      is what makes worth thinking about. */
   const ROAD_STARTS = { 2:[[0,2],[0,3],[1,3],[0,2],[1,3]], 3:[[0,1,3],[0,2,3],[0,1,2],[1,2,3]] };
   function buildRoads(map, rows){
-    const cfg = map.roads, pick = a => a[Math.floor(Math.random()*a.length)];
+    const cfg = ROADS, pick = a => a[Math.floor(Math.random()*a.length)];
     const k = (r,c) => r + "," + c;
     const cols = {}, out = {};
     const add = (r,a,c) => { const key = k(r,a); (out[key] = out[key] || []).push(c); };
@@ -891,16 +904,23 @@ function createEngine(){
       return marks;
     };
     const card = place(map.cardRule, {});
-    const rep = drawRepertoire(cfg.kinds || 5);
+    /* A map that already has a repertoire keeps it: storm laid as roads is
+       still the five hard rounds, and the farm with roads is still the farm.
+       Only the two boards that play all ten — classic and chaos — have no
+       taste of their own to keep, so those draw a five for the night. */
+    const own = kindsOf(map);
+    const rep = own.length <= (cfg.kinds || 5) + 1
+      ? { kinds:own, pattern:map.pattern }
+      : drawRepertoire(cfg.kinds || 5);
     return { junction:cfg.junction, cols, out, card, wild:place(map.wildRule, card),
              kinds:rep.kinds, pattern:rep.pattern };
   }
-  function setBoard(n, modeId, mapId, crowd){
+  function setBoard(n, modeId, mapId, crowd, roads){
     const mode = MODES[modeId] || MODES.regular;
     const map = MAPS[mapId] || MAPS.classic;
-    S.modeId = mode.id; S.mapId = map.id;
+    S.modeId = mode.id; S.mapId = map.id; S.roads = !!roads;
     S.rows = boardRows(n, mode.id, map.id, crowd);
-    const shape = map.roads ? buildRoads(map, S.rows) : null;
+    const shape = roads ? buildRoads(map, S.rows) : null;
     S.pattern = buildPattern(shape ? { pattern:shape.pattern } : map, mode.id, shape && shape.kinds);
     S.cardRule = map.cardRule;
     S.wildRule = map.wildRule;

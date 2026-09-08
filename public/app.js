@@ -46,6 +46,9 @@ const L = {
     gm_k:"באיזו מהירות?", gm_teaser:"מהיר, רגיל, רגוע או אתגר — לכל אחד קצב אחר.",
     gm_title:"סגנון משחק", gm_close:"סגירה",
     map_k:"הלוח הפעם", reroll:"להגריל לוח אחר", mm_fmt:"{0} · {1}",
+    shape_k:"איך הלוח מונח", shape_lanes:"מסלולים", shape_roads:"פרשת דרכים",
+    shape_lanes_d:"ארבעה מסלולים פתוחים — מכל משבצת אפשר ישר או לצדדים.",
+    shape_roads_d:"דרכים וצמתים — חצי מהמשבצות, ובוחרים דרך ונשארים עליה עד הצומת הבא.",
     winner:"{0} מנצח/ת", wins_p:"{0} מנצחים", playagain:"עוד משחק",
     waitmove:"{0} זז/ה על הלוח.", waitmove_p:"{0} זזים על הלוח.",
     hand_k:"הקלפים שלכם", playcard:"להפעיל קלף", closehand:"סגירה",
@@ -111,12 +114,12 @@ const L = {
     lg_k:"קוראים את הלוח", lg_close:"סגירה",
     lg_step_k:"איך זזים",
     lg_step_d:"כל נקודה שצברתם בסבב היא צעד אחד. צעד = שורה אחת קדימה, ואפשר לגלוש מסלול אחד ימינה או שמאלה. אפשר לעצור בכל משבצת שמסומנת — לא חייבים לנצל את כל הצעדים.",
+    lg_step_rd:"כל נקודה שצברתם בסבב היא צעד אחד. כאן אין מסלולים ישרים — יש דרכים. צעד = משבצת אחת קדימה בדרך שאתם עליה, ולרוב יש רק דרך אחת. בצומת — משבצת בודדת שכולם עוברים בה — כל הדרכים נפתחות. אפשר לעצור בכל משבצת שמסומנת.",
     lg_lane_k:"המסלולים",
+    lg_lane_rk:"הצבעים",
     lg_lane_d:"ארבעה מסלולים, כל אחד בצבע שלו, וכל אחד נושא סוג אחר של סבבים.",
-    lg_lane_0:"עדין — דו־קרב, שתי מילים, שותפים",
-    lg_lane_1:"מהיר, שתי מילים, דו־קרב, מילה אחת",
-    lg_lane_2:"הימור, הקישור, מילה אחת",
-    lg_lane_3:"פרוע — פנטומימה, עיוור, הקישור",
+    lg_lane_rd:"אין כאן מסלולים ישרים — הדרכים מתפתלות. אבל הצבע של משבצת עדיין אומר איזה סוג סבב היא נושאת.",
+    lg_lane_plain:"רק סבבים רגילים",
     lg_why_k:"למה זה משנה",
     lg_why_d:"המשבצת שהנותן עומד עליה קובעת איזה סוג סבב יהיה כשיגיע תורו. אז כשאתם בוחרים לאן לזוז — אתם בוחרים איזה סבב תיתנו.",
     lg_key_k:"מה יש על הלוח",
@@ -180,6 +183,9 @@ const L = {
     gm_k:"How fast do you want it?", gm_teaser:"Quick, Regular, Slow, or Challenge — each its own pace.",
     gm_title:"Play style", gm_close:"Close",
     map_k:"Tonight's board", reroll:"Roll a new board", mm_fmt:"{0} · {1}",
+    shape_k:"How the board is laid", shape_lanes:"Lanes", shape_roads:"Crossroads",
+    shape_lanes_d:"Four open lanes — from any square, straight on or to either side.",
+    shape_roads_d:"Roads and junctions — half the squares; take a road and you are on it until the next junction.",
     winner:"{0} wins", wins_p:"{0} win", playagain:"Play again",
     waitmove:"{0} is moving on the board.", waitmove_p:"{0} are moving on the board.",
     hand_k:"Your cards", playcard:"Play a card", closehand:"Close",
@@ -245,12 +251,12 @@ const L = {
     lg_k:"Reading the board", lg_close:"Close",
     lg_step_k:"How you move",
     lg_step_d:"Every point you scored this round is one step. A step is one row forward, and you may drift one lane left or right. Stop on any marked square — you do not have to spend them all.",
+    lg_step_rd:"Every point you scored this round is one step. There are no straight lanes here, only roads. A step is one square along the road you are on, and most squares have exactly one way on. At a junction — the single square the whole table passes through — every road opens up. Stop on any marked square.",
     lg_lane_k:"The lanes",
+    lg_lane_rk:"The colours",
     lg_lane_d:"Four lanes, each its own colour, each carrying a different kind of round.",
-    lg_lane_0:"Gentle — duels, two words, partners",
-    lg_lane_1:"Fast, two words, duels, one word",
-    lg_lane_2:"Gamble, the link, one word",
-    lg_lane_3:"Wild — mime, blind, the link",
+    lg_lane_rd:"No straight lanes here — the roads wander. But a square's colour still says what kind of round it carries.",
+    lg_lane_plain:"Ordinary rounds only",
     lg_why_k:"Why it matters",
     lg_why_d:"The square the giver is standing on decides what kind of round it will be when their turn comes. So choosing where to move is choosing what round you will give.",
     lg_key_k:"What is on the board",
@@ -302,24 +308,23 @@ const MODES_COPY = {
 };
 const MODE_IDS = ["quick","regular","slow","challenge"];
 
-/* the six maps: different board shapes, card placement, and colour theme.
-   Picked randomly per game; the host may reroll before starting. */
+/* the five maps: different patterns, card placement and colour theme. Picked
+   randomly per game; the host may reroll before starting, and may lay any of
+   them as roads instead of lanes. */
 const MAPS_COPY = {
   he:{
     classic:{n:"קלאסי",     d:"הלוח המוכר — תמהיל אחיד של הכול."},
-    twist:  {n:"תפנית",     d:"אותם סוגי סבבים, סידור אחר על הלוח."},
-    storm:  {n:"סופה",      d:"לוח ארוך יותר, עמוס בסבבים קשים."},
-    sprint: {n:"ספרינט",    d:"לוח קצר וזורם, כמעט בלי סיבוכים."},
-    chaos:  {n:"תוהו ובוהו", d:"בלי דפוס קבוע — כל מסלול מפתיע."},
-    crossroads:{n:"פרשת דרכים", d:"דרכים במקום מסלולים — בוחרים אחת ונשארים עליה עד הצומת הבא."}
+    twist:  {n:"תפנית",     d:"הכול על המילים ואיך מותר להגיד אותן — כלום כאן לא קשור לשעון."},
+    storm:  {n:"סופה",      d:"חמשת הסבבים הקשים, ושום דבר אחר."},
+    sprint: {n:"ספרינט",    d:"קצר וזורם — הסבבים הנוחים, והימור לבדו מימין."},
+    chaos:  {n:"תוהו ובוהו", d:"כל עשרת סוגי הסבבים, והמסלול השקט לא באמת שקט."}
   },
   en:{
     classic:{n:"Classic", d:"The board you already know — an even mix of everything."},
-    twist:  {n:"Twist",   d:"The same kinds of rounds, laid out differently."},
-    storm:  {n:"Storm",   d:"A longer board, thick with the hard rounds."},
-    sprint: {n:"Sprint",  d:"A short, flowing board with barely a snag."},
-    chaos:  {n:"Chaos",   d:"No fixed pattern — every lane keeps you guessing."},
-    crossroads:{n:"Crossroads", d:"Roads instead of lanes — take one and you are on it until the next junction."}
+    twist:  {n:"Twist",   d:"All about the words and how you may say them — nothing here is about the clock."},
+    storm:  {n:"Storm",   d:"The five hard rounds, and nothing else."},
+    sprint: {n:"Sprint",  d:"Short and flowing — the gentle rounds, with Gamble alone on the right."},
+    chaos:  {n:"Chaos",   d:"All ten kinds of round, and the quiet lane is not quiet."}
   }
 };
 /* four lane colours per map theme, read off the CSS custom properties so a
@@ -800,7 +805,7 @@ function mapChipHTML(s, withReroll){
   const swatch = '<span class="mapswatch" aria-hidden="true">'+
     themeColc(mapId).map(c => '<i style="background:'+c+'"></i>').join("")+'</span>';
   return '<div class="mapchip">'+swatch+
-    '<span class="mt"><span class="mn">'+esc(info.n)+'</span><span class="md">'+esc(info.d)+'</span></span>'+
+    '<span class="mt"><span class="mn">'+esc(info.n)+(s.roads ? ' · '+t("shape_roads") : '')+'</span><span class="md">'+esc(info.d)+'</span></span>'+
     (withReroll ? '<button class="reroll" id="reroll">'+t("reroll")+'</button>' : '')+
     '</div>';
 }
@@ -886,6 +891,11 @@ function vLobby(){
     '<p class="kicker">'+t("map_k")+'</p>'+mapChipHTML(s, s.isHost)+
     (s.isHost
       ? (list.length < 3 ? '<p class="note">'+t("waiting")+'</p>' : '')+
+        '<p class="kicker">'+t("shape_k")+'</p>'+
+        '<div class="modesw" style="grid-template-columns:repeat(2,1fr)">'+
+        '<button data-roads="0" class="'+(s.roads?"":"on")+'">'+t("shape_lanes")+'</button>'+
+        '<button data-roads="1" class="'+(s.roads?"on":"")+'">'+t("shape_roads")+'</button></div>'+
+        '<p class="note">'+t(s.roads ? "shape_roads_d" : "shape_lanes_d")+'</p>'+
         '<p class="kicker">'+t("gm_k")+'</p>'+
         '<div class="modesw">'+MODE_IDS.map(id => {
           const info = (MODES_COPY[lang] && MODES_COPY[lang][id]) || MODES_COPY.en[id];
@@ -906,6 +916,7 @@ function vLobby(){
     on("lhe", () => act({ type:"lang", lang:"he" }));
     on("len", () => act({ type:"lang", lang:"en" }));
     each("[data-seat]", b => b.onclick = () => act({ type:"seating", seating:b.dataset.seat }));
+    each("[data-roads]", b => b.onclick = () => act({ type:"roads", roads:b.dataset.roads === "1" }));
     each("[data-gm]", b => b.onclick = () => { gameMode = b.dataset.gm; render(); });
     on("reroll", () => act({ type:"reroll_map" }));
     on("start", () => act({ type:"start", seating:seat, gameMode }));
@@ -1377,10 +1388,18 @@ function vReveal(s){
   const winnerUnit = solved ? (s.units.find(u => u.members.indexOf(r.solvedBy) >= 0) || {}).id : null;
   const rows = r.rows.slice().sort((a,b) => b.pts - a.pts);
   const moves = Object.keys(s.steps || {}).length > 0;
+  /* The token drops. The game is named for the moment somebody gets it, so
+     when the word was got the token falls into the receipt, lands with a
+     bounce, and only then does the confetti go. It falls once — the first
+     draw of this round's reveal — and on every redraw after that it is
+     simply lying where it landed. */
+  const stamp = s.round + ":" + r.word, first = solved && burstFor !== stamp;
+  const still = (typeof REDUCED !== "undefined") && REDUCED;
 
   h('<div class="stack grow">'+offBox()+
     '<p class="kicker">'+t("solved_k", s.round)+'</p>'+
     '<div><div class="hero '+(solved?"good":"none")+'">'+watermark(s.topicKey, 132)+
+    (solved ? '<span class="tokdrop'+(first && !still ? " drop" : "")+'" aria-hidden="true"><i></i>'+coinMark(74)+'</span>' : '')+
     '<p class="kicker">'+t("the_word")+'</p>'+
     '<div class="bigword">'+(r.pair
       ? r.pair.map(w => esc(w.text)).join('<span style="opacity:.35"> · </span>')
@@ -1415,10 +1434,12 @@ function vReveal(s){
       : '<p class="note">'+t("waitjudge")+'</p>')+
     '</div>');
   on("next", () => act({ type:"next" }));
-  const stamp = s.round + ":" + r.word;
-  if(solved && burstFor !== stamp){
+  if(first){
     burstFor = stamp;
-    setTimeout(() => burst({ y: innerHeight * 0.28 }), 220);
+    /* the confetti waits for the token to land; the landing has its own sound */
+    const landAt = still ? 220 : 470;
+    if(!still) setTimeout(() => { try{ if(window.SFX) SFX.play("land"); }catch(e){} }, landAt);
+    setTimeout(() => burst({ y: innerHeight * 0.28 }), landAt + 60);
   }
 }
 
@@ -1435,7 +1456,6 @@ function bandGlyph(i){
 /* The map itself is drawn in boardart.js, because the screen in the room
    draws the same one. What stays here is what only a phone knows: which
    squares are yours to tap, and what the squares are called in this language. */
-const COLC = ["var(--accent)","var(--good)","var(--blind)","var(--guilty)"];
 function boardSVG(s, spots, picked, crop){
   return asimonBoard.draw({
     board: s.board, units: s.units, spots, picked, pick: true, window: crop,
@@ -1811,8 +1831,31 @@ function vQuit(s){
 
 /* ---------------- dispatch ---------------- */
 /* ---------------- how to play, and reading the board ---------------- */
-/* which lane each twist mostly lives in, so the legend is coloured like the board */
-const MOD_LANE = { T:0, F:1, O:1, D:2, B:3, M:3 };
+/* Which round kinds each lane carries, read off the board actually on the
+   table. This used to be a constant — the classic map's four lanes, written
+   down once and coloured in the classic map's four colours. It was wrong on
+   the other four maps, whose lanes carry different kinds in different colours;
+   wrong again on a road board, which has no lanes to speak of; and it had
+   never heard of Gamble, Duel, Two words or The link, so half the repertoire
+   was missing from the legend that was supposed to be exhaustive. The board
+   already tells the phone what is on every square. Ask it. */
+function boardLanes(){
+  const counts = [0,1,2,3].map(() => ({}));
+  const nodes = (state && state.board && state.board.nodes) || [];
+  nodes.forEach(n => {
+    if(n.t === "CARD" || n.t === "WILD" || n.t === "S") return;
+    if(n.c >= 0 && n.c < 4) counts[n.c][n.t] = (counts[n.c][n.t] || 0) + 1;
+  });
+  /* commonest first, so a lane reads as what it mostly is */
+  const per = counts.map(m => Object.keys(m).sort((a,z) => m[z] - m[a] || (a < z ? -1 : 1)));
+  /* and where a kind appears in more than one lane, its tag takes the colour
+     of the lane it lives in most */
+  const home = {};
+  per.forEach((keys, c) => keys.forEach(k => {
+    if(home[k] === undefined || counts[c][k] > counts[home[k]][k]) home[k] = c;
+  }));
+  return { per, home };
+}
 const K_SEEN = "lastsecond.sawboard";
 const sawBoard = () => { try{ return !!localStorage.getItem(K_SEEN); }catch(e){ return true; } };
 const markBoard = () => { try{ localStorage.setItem(K_SEEN, "1"); }catch(e){} };
@@ -1845,17 +1888,28 @@ function rulesBody(){
     '<p class="kicker">'+t("hw_board_k")+'</p>'+
     '<p class="note">'+t("hw_board_d")+'</p>';
 }
-/* one step: a row forward, and at most one lane sideways */
-function stepDiagram(){
+/* one step. On a lattice: a row forward, and at most one lane sideways. On a
+   road board that picture is a lie — most squares have exactly one way on, and
+   the fan belongs at the junction — so the drawing changes with the board. */
+function stepDiagram(roads){
   const to = [46, 110, 174];
-  return '<svg class="lgdiag" viewBox="0 0 220 104" role="img" aria-hidden="true">'+
-    to.map(x => '<line x1="110" y1="72" x2="'+x+'" y2="34" stroke="var(--accent)" '+
-                'stroke-width="2" opacity=".38" stroke-linecap="round"/>').join("")+
-    to.map(x => '<circle cx="'+x+'" cy="30" r="10.5" fill="var(--accent-soft)" '+
-                'stroke="var(--accent)" stroke-width="2"/>').join("")+
-    '<circle cx="110" cy="74" r="12.5" fill="var(--accent)"/>'+
-    '<text x="110" y="100" text-anchor="middle" font-family="Assistant,sans-serif" '+
-    'font-size="11.5" font-weight="700" fill="var(--muted)">'+esc(t("lg_you"))+'</text></svg>';
+  const line = (x1,y1,x2,y2) => '<line x1="'+x1+'" y1="'+y1+'" x2="'+x2+'" y2="'+y2+
+    '" stroke="var(--accent)" stroke-width="2" opacity=".38" stroke-linecap="round"/>';
+  const spot = (x,y,r) => '<circle cx="'+x+'" cy="'+y+'" r="'+r+'" fill="var(--accent-soft)" '+
+    'stroke="var(--accent)" stroke-width="2"/>';
+  const you = (x,y) => '<circle cx="'+x+'" cy="'+y+'" r="12.5" fill="var(--accent)"/>';
+  const caption = y => '<text x="110" y="'+y+'" text-anchor="middle" font-family="Assistant,sans-serif" '+
+    'font-size="11.5" font-weight="700" fill="var(--muted)">'+esc(t("lg_you"))+'</text>';
+  if(!roads) return '<svg class="lgdiag" viewBox="0 0 220 104" role="img" aria-hidden="true">'+
+    to.map(x => line(110, 72, x, 34)).join("")+
+    to.map(x => spot(x, 30, 10.5)).join("")+ you(110, 74) + caption(100) +'</svg>';
+  return '<svg class="lgdiag tall" viewBox="0 0 220 128" role="img" aria-hidden="true">'+
+    line(110, 86, 110, 79) + line(110, 61, 110, 55) +
+    to.map(x => line(110, 33, x, 25)).join("")+
+    to.map(x => spot(x, 16, 9)).join("")+
+    /* the junction, drawn heavier because it is the square worth reaching */
+    '<circle cx="110" cy="44" r="11" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="3"/>'+
+    spot(110, 70, 9) + you(110, 98) + caption(124) +'</svg>';
 }
 function miniNode(kind){
   const open = '<svg class="lgmini" viewBox="0 0 40 22" aria-hidden="true">';
@@ -1873,22 +1927,30 @@ function miniNode(kind){
 }
 function legendBody(){
   const mods = (pack && pack.mods) || {};
+  const board = (state && state.board) || {};
+  /* a road board sends the ways between its squares; a lattice sends none */
+  const roads = !!board.ways;
+  const COL = themeColc(board.themeId);
+  const { per, home } = boardLanes();
   const lanes = [0,1,2,3].map(i =>
-    '<div class="keyrow"><span class="lgswatch" style="background:'+COLC[i]+'"></span>'+
-    '<span class="kd">'+t("lg_lane_"+i)+'</span></div>').join("");
+    '<div class="keyrow"><span class="lgswatch" style="background:'+COL[i]+'"></span>'+
+    '<span class="kd">'+(per[i].length
+      ? per[i].map(k => esc((mods[k] || {}).n || k)).join(", ")
+      : t("lg_lane_plain"))+'</span></div>').join("");
   const key = ["dot","card","wild","end"].map(k =>
     '<div class="keyrow">'+miniNode(k)+'<span class="kd"><b>'+t("lg_"+k)+'</b> — '+t("lg_"+k+"_d")+'</span></div>').join("");
-  const tags = Object.keys(MOD_LANE).filter(k => mods[k]).map(k => {
-    const col = COLC[MOD_LANE[k]];
+  /* only the kinds this board actually deals, in the colour it deals them in */
+  const tags = Object.keys(home).filter(k => mods[k] && mods[k].s).map(k => {
+    const col = COL[home[k]];
     return '<div class="keyrow"><span class="lgbadge">'+modSvg(k, 28)+
       '<span class="lgtag" style="border-color:'+col+';color:'+col+'">'+esc(mods[k].s)+'</span></span>'+
       '<span class="kd"><b>'+esc(mods[k].n)+'</b> — '+mods[k].d+'</span></div>';
   }).join("");
-  return '<p class="kicker">'+t("lg_step_k")+'</p>'+stepDiagram()+
-    '<p class="note">'+t("lg_step_d")+'</p>'+
+  return '<p class="kicker">'+t("lg_step_k")+'</p>'+stepDiagram(roads)+
+    '<p class="note">'+t(roads ? "lg_step_rd" : "lg_step_d")+'</p>'+
     '<p class="kicker">'+t("lg_key_k")+'</p><div class="keylist">'+key+'</div>'+
-    '<p class="kicker">'+t("lg_lane_k")+'</p>'+
-    '<p class="note">'+t("lg_lane_d")+'</p><div class="keylist">'+lanes+'</div>'+
+    '<p class="kicker">'+t(roads ? "lg_lane_rk" : "lg_lane_k")+'</p>'+
+    '<p class="note">'+t(roads ? "lg_lane_rd" : "lg_lane_d")+'</p><div class="keylist">'+lanes+'</div>'+
     '<p class="kicker">'+t("lg_why_k")+'</p>'+
     '<p class="note">'+t("lg_why_d")+'</p>'+
     (tags ? '<p class="kicker">'+t("lg_twist_k")+'</p><div class="keylist">'+tags+'</div>' : '');

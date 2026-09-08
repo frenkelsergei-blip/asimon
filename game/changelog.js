@@ -36,6 +36,54 @@ const RANK = { patch:0, minor:1, major:2 };
 
 const RELEASES = [
 
+  { v:"0.8.1", date:"2026-09-08", lines:[
+    { kind:"fix",
+      en:"What is this board? now describes the board you are actually on — its own colours, the kinds of round it deals, and on Crossroads how a step down a road really works — instead of the classic four lanes every time.",
+      he:"«מה זה הלוח?» מתאר עכשיו את הלוח שאתם באמת עליו — הצבעים שלו, סוגי הסבבים שהוא מחלק, ובפרשת דרכים גם איך צעד בדרך באמת עובד — במקום ארבעת המסלולים הקלאסיים בכל פעם." },
+    { kind:"fix",
+      en:"A square you may move to is readable on every board: on four of the five maps one whole lane was writing its words in dark brown on a dark colour.",
+      he:"משבצת שאפשר לזוז אליה קריאה בכל לוח: בארבע מתוך חמש המפות מסלול שלם כתב את המילים שלו בחום כהה על צבע כהה." },
+    { kind:"change",
+      en:"The desert's four lanes are four colours now — green, blue, rose and gold — instead of two greens and two blues nobody could tell apart.",
+      he:"לארבעת המסלולים של המדבר יש עכשיו ארבעה צבעים — ירוק, כחול, ורוד וזהב — במקום שני ירוקים ושני כחולים שאי אפשר היה להבחין ביניהם." }
+  ]},
+
+  { v:"0.8.0", date:"2026-09-08", lines:[
+    { kind:"new",
+      en:"The token drops. When somebody gets the word, the token falls into the reveal, lands with a bounce, and only then does the confetti go.",
+      he:"האסימון נופל. כשמישהו קולט את המילה, האסימון נופל לתוך מסך התוצאה, נוחת עם קפיצה, ורק אז יוצא הקונפטי." },
+    { kind:"change",
+      en:"On the screen every square wears its twist's own print instead of the word, and a Legend button in the corner says what each print is.",
+      he:"על המסך כל משבצת עונדת את הסימן של הסוג שלה במקום המילה, וכפתור מקרא בפינה אומר מה כל סימן." },
+    { kind:"fix",
+      en:"A square you have chosen but not yet confirmed lights up in its own colour, on the phone and on the screen, instead of being ringed in black.",
+      he:"משבצת שבחרתם ועוד לא אישרתם נדלקת בצבע שלה, בטלפון ועל המסך, במקום להיות מוקפת בשחור." },
+    { kind:"change",
+      en:"The wildcard square on the screen flies a question mark now — a glowing sign hovering over the square with sparks about it, so the one square that rolls something is the one you want to reach.",
+      he:"משבצת ההפתעה על המסך מניפה עכשיו סימן שאלה — שלט זוהר מרחף מעל המשבצת עם ניצוצות סביבו, כך שהמשבצת האחת שמגרילה משהו היא זו שרוצים להגיע אליה." },
+    { kind:"fix",
+      en:"A long board — three players is eighteen rows — closes its squares up a little instead of running its start and its flag off the coast.",
+      he:"לוח ארוך — שלושה שחקנים זה שמונה־עשרה שורות — מצופף קצת את המשבצות במקום להריץ את ההתחלה והדגל אל מחוץ לחוף." },
+    { kind:"rules",
+      en:"Each board now has a taste of its own: Twist plays the word rounds, Storm the five hard ones, Sprint the gentle ones with a single Gamble lane, while Classic and Chaos still deal all ten kinds.",
+      he:"\u05dc\u05db\u05dc \u05dc\u05d5\u05d7 \u05d9\u05e9 \u05e2\u05db\u05e9\u05d9\u05d5 \u05d0\u05d5\u05e4\u05d9 \u05de\u05e9\u05dc\u05d5: \u05ea\u05e4\u05e0\u05d9\u05ea \u05de\u05e9\u05d7\u05e7\u05ea \u05d0\u05ea \u05e1\u05d1\u05d1\u05d9 \u05d4\u05de\u05d9\u05dc\u05d9\u05dd, \u05e1\u05d5\u05e4\u05d4 \u05d0\u05ea \u05d7\u05de\u05e9\u05ea \u05d4\u05e7\u05e9\u05d9\u05dd, \u05e1\u05e4\u05e8\u05d9\u05e0\u05d8 \u05d0\u05ea \u05d4\u05e0\u05d5\u05d7\u05d9\u05dd \u05e2\u05dd \u05de\u05e1\u05dc\u05d5\u05dc \u05d4\u05d9\u05de\u05d5\u05e8 \u05d4\u05d9\u05d7\u05d9\u05d3, \u05d5\u05e7\u05dc\u05d0\u05e1\u05d9 \u05d5\u05ea\u05d5\u05d4\u05d5 \u05d5\u05d1\u05d5\u05d4\u05d5 \u05de\u05d7\u05dc\u05e7\u05d9\u05dd \u05e2\u05d3\u05d9\u05d9\u05df \u05d0\u05ea \u05db\u05dc \u05e2\u05e9\u05e8\u05ea \u05d4\u05e1\u05d5\u05d2\u05d9\u05dd." }
+  ]},
+
+  { v:"0.7.0", date:"2026-09-08", lines:[
+    { kind:"rules",
+      en:"Crossroads is not a board of its own any more but a way to lay any of the five: pick it in the lobby beside the board, and the farm, the jungle, the storm, the desert and the volcano can each be roads and junctions.",
+      he:"פרשת דרכים כבר לא לוח משלה אלא דרך להניח כל אחד מהחמישה: בוחרים אותה בלובי ליד הלוח, והחווה, הג׳ונגל, הסערה, המדבר והר הגעש יכולים כל אחד להיות דרכים וצמתים." },
+    { kind:"change",
+      en:"Each place on the screen has a coast of its own now — the meadow rolls, the jungle bulges, the storm's rock is jagged, the desert is a mesa, the volcano is angular — and the board fills more of it, with the road showing between the squares.",
+      he:"לכל מקום על המסך יש עכשיו חוף משלו — האחו מתגלגל, הג׳ונגל מתנפח, סלע הסערה משונן, המדבר הוא מישור גבוה, הר הגעש זוויתי — והלוח ממלא יותר ממנו, עם הדרך נראית בין המשבצות." },
+    { kind:"change",
+      en:"The screen's scenes move more: trees sway, the lighthouse beam sweeps, clouds drag their shadows over the ground, ponds shimmer.",
+      he:"הנופים על המסך זזים יותר: עצים מתנדנדים, אלומת המגדלור סורקת, עננים גוררים צל על הקרקע, אגמים מנצנצים." },
+    { kind:"fix",
+      en:"The windmill turns on every television, and the place can be heard on Crossroads too — it sounds like the jungle it is played in.",
+      he:"טחנת הרוח מסתובבת בכל טלוויזיה, ואת המקום אפשר לשמוע גם בפרשת דרכים — הוא נשמע כמו הג׳ונגל שבו משחקים אותו." }
+  ]},
+
   { v:"0.6.0", date:"2026-09-08", lines:[
     { kind:"new",
       en:"A sixth board, Crossroads \u2014 roads and junctions instead of four open lanes, half as many squares, and five of the ten kinds of round drawn fresh for each game.",

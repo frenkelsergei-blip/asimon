@@ -48,9 +48,15 @@ const L = {
     sc_host:"מארח/ת",
     sc_maponly:"רק המפה", sc_mapback:"להראות גם את המצב",
     sc_snd_on:"להשמיע את המקום", sc_snd_off:"להשתיק",
+    sc_legend:"מקרא", sc_legend_k:"מה יש על הלוח", sc_close:"סגירה",
+    sc_lg_plain:"משבצת ריקה", sc_lg_plain_d:"סבב רגיל. תשעים שניות, משפט אחד.",
+    sc_lg_card:"משבצת קלף", sc_lg_card_d:"נחיתה עליה נותנת קלף לבחירה.",
+    sc_lg_wild:"משבצת הפתעה", sc_lg_wild_d:"נדירה. נחיתה עליה מגלגלת משהו — לרוב לטובתכם.",
+    sc_lg_end:"הסוף", sc_lg_end_d:"הראשון שמגיע מנצח.",
     sc_over_k:"נגמר", sc_wins:"{0} מנצח/ת", sc_wins_p:"{0} מנצחים", sc_won_tag:"ניצח",
     sc_pts:"נק׳", sc_cards_k:"קלפים", sc_card_k:"קלף", sc_row_k:"שורה", sc_waiting:"מחכים ל{0}",
     /* the six boards and the four speeds, named as the phone names them */
+    sc_roads:"פרשת דרכים",
     sc_map_classic:"קלאסי", sc_map_twist:"תפנית", sc_map_storm:"סופה",
     sc_map_sprint:"ספרינט", sc_map_chaos:"תוהו ובוהו", sc_map_crossroads:"פרשת דרכים",
     sc_gm_quick:"מהיר", sc_gm_regular:"רגיל", sc_gm_slow:"רגוע", sc_gm_challenge:"אתגר",
@@ -88,9 +94,15 @@ const L = {
     sc_host:"Host",
     sc_maponly:"The map on its own", sc_mapback:"Show the state as well",
     sc_snd_on:"Hear the place", sc_snd_off:"Quiet",
+    sc_legend:"Legend", sc_legend_k:"What is on the board", sc_close:"Close",
+    sc_lg_plain:"A plain square", sc_lg_plain_d:"A regular round. Ninety seconds, one sentence.",
+    sc_lg_card:"A card square", sc_lg_card_d:"Landing on it hands you a card to choose.",
+    sc_lg_wild:"A wildcard", sc_lg_wild_d:"Rare. Landing on it rolls something — usually in your favour.",
+    sc_lg_end:"The finish", sc_lg_end_d:"The first to arrive wins.",
     sc_over_k:"That is the game", sc_wins:"{0} wins", sc_wins_p:"{0} win", sc_won_tag:"won",
     sc_pts:"pts", sc_cards_k:"cards", sc_card_k:"card", sc_row_k:"row", sc_waiting:"Waiting on {0}",
     /* the six boards and the four speeds, named as the phone names them */
+    sc_roads:"Crossroads",
     sc_map_classic:"Classic", sc_map_twist:"Twist", sc_map_storm:"Storm",
     sc_map_sprint:"Sprint", sc_map_chaos:"Chaos", sc_map_crossroads:"Crossroads",
     sc_gm_quick:"Quick", sc_gm_regular:"Regular", sc_gm_slow:"Slow", sc_gm_challenge:"Challenge",
@@ -235,7 +247,7 @@ async function watch(v){
 /* ---------------- the head ---------------- */
 const fact = (label, value, cls) =>
   '<div class="sfact"><span>'+label+'</span><b class="'+(cls||"")+'">'+value+'</b></div>';
-const mapName  = id => t("sc_map_" + (id || "classic"));
+const mapName  = (id, roads) => t("sc_map_" + (id || "classic")) + (roads ? " · " + t("sc_roads") : "");
 const modeName = id => t("sc_gm_" + (id || "regular"));
 
 function shead(s){
@@ -243,7 +255,7 @@ function shead(s){
   if(s.round) bits.push(fact(t("sc_round_k"), String(s.round), "num"));
   /* which board and which speed are worth a wall's room and not a phone's,
      so they travel together and the stylesheet drops them when it is tight */
-  bits.push('<span class="sextra">'+fact(t("sc_board_k"), esc(mapName(s.mapId)))+
+  bits.push('<span class="sextra">'+fact(t("sc_board_k"), esc(mapName(s.mapId, s.roads)))+
             fact(t("sc_speed_k"), esc(modeName(s.gameMode)))+'</span>');
   return '<div class="shead">'+
     '<span class="mark"><span class="coin">'+coinMark(30)+'</span>'+
@@ -301,7 +313,7 @@ function vLobby(s){
         receipt({ tone:"ink", kick:t("sc_players_k"), head:t("sc_lobby"),
                   sub: need ? t("sc_need", (s.minPlayers || 3)) : t("sc_lobby_d") })+
         '<div class="chips">'+
-          '<span class="chip">'+esc(mapName(s.mapId))+'</span>'+
+          '<span class="chip">'+esc(mapName(s.mapId, s.roads))+'</span>'+
           '<span class="chip">'+esc(modeName(s.gameMode))+'</span>'+
           '<span class="chip">'+t("sc_seat_" + (s.seating || "solo"))+'</span>'+
         '</div>'+
@@ -482,7 +494,7 @@ function vGame(s){
     '<div class="sbody">'+
       '<div class="boardpane" id="mapzone" title="'+esc(t("sc_maponly"))+'">'+
         '<div class="boardfit">'+drawBoard(s, { tall:true })+'</div>'+
-        '<p class="cap">'+esc(mapName(s.mapId))+' · '+t("board_k", s.rows + 1)+'</p>'+
+        '<p class="cap">'+esc(mapName(s.mapId, s.roads))+' · '+t("board_k", s.rows + 1)+'</p>'+
       '</div>'+
       '<div class="side">'+ receipt(m) + chips(s) + standings(s) +'</div>'+
     '</div>'+ corner());
@@ -507,6 +519,7 @@ function vMap(s){
 function corner(o){
   const opts = o || {};
   return '<div class="corner">'+
+    (opts.map === false || !window.asimonWorld ? '' : '<button id="lgbtn">'+t("sc_legend")+'</button>')+
     (opts.map === false || !window.asimonWorld ? '' :
       '<button id="sndbtn">'+t(sound ? "sc_snd_off" : "sc_snd_on")+'</button>')+
     (opts.map === false ? '' :
@@ -527,6 +540,33 @@ function tick(s, m){
   }, 250);
 }
 function stopTick(){ if(ticker){ clearInterval(ticker); ticker = null; } }
+
+/* ---------------- the legend ----------------
+   Every square on the place wears its twist's print instead of its word, and
+   this is where the prints are read: the ten twists as the phone names them,
+   with the phone's own line under each, and the three squares that are not
+   twists. A sheet over the screen, gone on a tap. */
+function showLegend(){
+  if(document.getElementById("legend")) return;
+  const pk = pack || {}, mods = pk.mods || {};
+  const disc = (bg, inner) => '<svg viewBox="0 0 40 40" width="40" height="40" aria-hidden="true"><circle cx="20" cy="20" r="20" fill="'+bg+'"/>'+inner+'</svg>';
+  const row = (icon, name, d) => '<div class="lgrow"><span class="lgicon">'+icon+'</span><div><b>'+esc(name)+'</b><p>'+d+'</p></div></div>';
+  let rows = row(disc("var(--sunk)", '<circle cx="20" cy="20" r="5" fill="var(--faint)"/>'), t("sc_lg_plain"), esc(t("sc_lg_plain_d")));
+  ["F","O","M","B","T","U","W","G","L"].forEach(k => {
+    const m = mods[k]; if(!m) return;
+    /* the twist's line is the phone's own copy, HTML and all */
+    rows += row(modSvg(k, 40), m.n, m.d || "");
+  });
+  rows += row(disc("var(--good)", '<rect x="12" y="8" width="16" height="24" rx="3" fill="#FFFFFF"/><rect x="15" y="12" width="10" height="3" rx="1.5" fill="var(--good)"/>'), t("sc_lg_card"), esc(t("sc_lg_card_d")));
+  rows += row(disc("var(--violet)", '<text x="20" y="27" text-anchor="middle" font-family="Suez One,Georgia,serif" font-size="22" fill="#FFFFFF">?</text>'), t("sc_lg_wild"), esc(t("sc_lg_wild_d")));
+  rows += row(disc("var(--ink)", '<text x="20" y="25" text-anchor="middle" font-family="Assistant,sans-serif" font-size="12" font-weight="800" fill="#FFFFFF">'+(lang === "he" ? "סוף" : "END")+'</text>'), t("sc_lg_end"), esc(t("sc_lg_end_d")));
+  const el = document.createElement("div");
+  el.id = "legend"; el.className = "legend";
+  el.innerHTML = '<div class="lgpanel"><div class="lghead"><p class="kicker">'+t("sc_legend_k")+'</p>'+
+    '<button id="lgx">'+t("sc_close")+'</button></div><div class="lglist">'+rows+'</div></div>';
+  el.onclick = e => { if(e.target === el || e.target.id === "lgx") el.remove(); };
+  document.body.appendChild(el);
+}
 
 /* ---------------- painting ---------------- */
 function setMap(on){
@@ -565,13 +605,16 @@ function render(){
   const flip = () => setMap(!mapOnly);
   const btn = document.getElementById("mapbtn");
   if(btn) btn.onclick = flip;
+  const lg = document.getElementById("lgbtn");
+  if(lg) lg.onclick = e => { e.stopPropagation(); showLegend(); };
   const snd = document.getElementById("sndbtn");
   if(snd) snd.onclick = e => { e.stopPropagation(); setSound(!sound); };
   const zone = document.getElementById("mapzone");
   if(zone) zone.onclick = flip;
   /* the place is heard only while it is on the wall, and only once asked */
   if(window.asimonWorld)
-    asimonWorld.ambience(sound && state && state.phase !== "lobby" ? (state.mapId || "classic") : null);
+    asimonWorld.ambience(sound && state && state.phase !== "lobby"
+      ? ((state.board && state.board.themeId) || state.mapId || "classic") : null);
 }
 /* turning a tablet sideways changes which way the map is drawn */
 let turnTimer = null;

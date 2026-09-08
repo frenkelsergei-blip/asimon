@@ -5,6 +5,52 @@ game itself shows under the version at the foot of the first screen.
 
 Generated from `game/changelog.js` by `npm run release` — edit that file, not this one.
 
+## 0.8.1 — 2026-09-08
+
+### Changed
+
+- The desert's four lanes are four colours now — green, blue, rose and gold — instead of two greens and two blues nobody could tell apart.
+
+### Fixed
+
+- What is this board? now describes the board you are actually on — its own colours, the kinds of round it deals, and on Crossroads how a step down a road really works — instead of the classic four lanes every time.
+- A square you may move to is readable on every board: on four of the five maps one whole lane was writing its words in dark brown on a dark colour.
+
+## 0.8.0 — 2026-09-08
+
+### Added
+
+- The token drops. When somebody gets the word, the token falls into the reveal, lands with a bounce, and only then does the confetti go.
+
+### Rules
+
+- Each board now has a taste of its own: Twist plays the word rounds, Storm the five hard ones, Sprint the gentle ones with a single Gamble lane, while Classic and Chaos still deal all ten kinds.
+
+### Changed
+
+- On the screen every square wears its twist's own print instead of the word, and a Legend button in the corner says what each print is.
+- The wildcard square on the screen flies a question mark now — a glowing sign hovering over the square with sparks about it, so the one square that rolls something is the one you want to reach.
+
+### Fixed
+
+- A square you have chosen but not yet confirmed lights up in its own colour, on the phone and on the screen, instead of being ringed in black.
+- A long board — three players is eighteen rows — closes its squares up a little instead of running its start and its flag off the coast.
+
+## 0.7.0 — 2026-09-08
+
+### Rules
+
+- Crossroads is not a board of its own any more but a way to lay any of the five: pick it in the lobby beside the board, and the farm, the jungle, the storm, the desert and the volcano can each be roads and junctions.
+
+### Changed
+
+- Each place on the screen has a coast of its own now — the meadow rolls, the jungle bulges, the storm's rock is jagged, the desert is a mesa, the volcano is angular — and the board fills more of it, with the road showing between the squares.
+- The screen's scenes move more: trees sway, the lighthouse beam sweeps, clouds drag their shadows over the ground, ponds shimmer.
+
+### Fixed
+
+- The windmill turns on every television, and the place can be heard on Crossroads too — it sounds like the jungle it is played in.
+
 ## 0.6.0 — 2026-09-08
 
 ### Added

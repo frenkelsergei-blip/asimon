@@ -520,7 +520,8 @@ const server = http.createServer(async (req, res) => {
         if(room.hostId !== me.id) return sendJSON(res, 403, { error:"host_only" });
         if(room.phase !== "lobby") return sendJSON(res, 409, { error:"already_started" });
         if(room.players.length < play.MIN_PLAYERS) return sendJSON(res, 409, { error:"need_3" });
-        play.startGame(room, { seating: body.seating, mode: body.mode, gameMode: body.gameMode });
+        play.startGame(room, { seating: body.seating, mode: body.mode, gameMode: body.gameMode,
+                               roads: body.roads !== undefined ? !!body.roads : undefined });
         broadcast(room);
         return sendJSON(res, 200, { ok:true });
       }

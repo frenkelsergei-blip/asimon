@@ -52,8 +52,11 @@ quiet ────────────────────────�
 
 ### Road boards
 
-A map carrying a `roads` rule is a network rather than a lattice, and
-`buildRoads()` lays it out once when the board is set. Three things change, and
+Any map can be laid as **Crossroads** instead of lanes — a dial the host turns in
+the lobby beside the map (`room.roads`, action `roads`). Laid that way the map is
+a network rather than a lattice, and `buildRoads()` lays it out once when the
+board is set, from `ROADS` in `game/engine.js`. The map keeps its paint, its card
+and wildcard rules and its row nudge. Three things change, and
 only inside `nextFrom()` — `reachable()`, the phones, the screen and the bots
 all read the board through it:
 
@@ -344,21 +347,33 @@ net, and `game/engine.test.js` is what holds it.
 Quick and Slow both weight `M`, `B` to zero: a short evening should never ask
 anyone to mime or play blind. Challenge weights them to 3.
 
-## 9. The six maps
+## 9. The five maps, laid two ways
 
 `MAPS` in `game/engine.js`. Same 4-column shape, six-row repeating pattern per
 column, its own card and wildcard rules, its own row nudge, and a `themeId` the
-client repaints with. **crossroads** additionally carries a `roads` rule, which
-makes it a network rather than a lattice — see [Road boards](#road-boards).
+client repaints with. Every one of them can be laid as lanes or as
+**Crossroads** — see [Road boards](#road-boards).
 
-| map | rows | card square | wildcard | its character |
-|---|---|---|---|---|
-| **classic** | 0 | col 1, every 3 | col 3, every 5 | the original balance |
-| **twist** | 0 | col 2, every 4 | col 0, every 5 | the wildcard sits in the quiet lane |
-| **storm** | +1 | col 1, every 4 | col 2, every 4 | the wild board — Blind and Gamble everywhere right |
-| **sprint** | −3 | col 0, every 3 | col 3, every 4 | short, and **never** asks you to mime or play blind |
-| **chaos** | 0 | col 3, every 3 | col 1, every 4 | the one board where the quiet lane is not quiet |
-| **crossroads** | 0 | col 1, every 3 | col 3, every 4 | roads instead of lanes: half the squares, a junction every fifth row, and five of the ten kinds of round drawn fresh each game. Borrows twist's paint |
+### What each board plays
+
+Ten kinds of round is the whole game, but a board that deals all ten has no
+taste of its own — five boards playing the same ten in a different order is one
+board shuffled five ways. Three of them carry a **repertoire** instead: the
+plain square plus five of the nine variants, which is what the line under the
+name in the lobby is describing.
+
+| map | rows | card square | wildcard | kinds | its character |
+|---|---|---|---|---|---|
+| **classic** | 0 | col 1, every 3 | col 3, every 5 | **all ten** | the board that teaches you the game — an even mix of everything |
+| **twist** | 0 | col 2, every 4 | col 0, every 5 | Partners, Two words, One word, The link, Blind | the words and how you may say them. Nothing about the clock or about nerve. The wildcard sits in the quiet lane |
+| **storm** | +1 | col 1, every 4 | col 2, every 4 | Duel, The link, Gamble, Mime, Blind | the hard five and nothing else. Its quiet lane is quiet because it is nearly empty, not because it is gentle |
+| **sprint** | −3 | col 0, every 3 | col 3, every 4 | Fast, Partners, One word, Duel, Gamble | the gentle five, with Gamble alone on the right so a short board still has something to lose. Keeps its promise: never Mime, never Blind |
+| **chaos** | 0 | col 3, every 3 | col 1, every 4 | **all ten** | named for playing everything, and the one board where the quiet lane is not quiet |
+
+Laid as Crossroads, any of them has half its squares and a junction every fifth
+row. A board with a repertoire **keeps it** — storm as roads is still the five
+hard rounds. The two that play all ten have no taste to keep, so those draw
+five of the nine fresh for the night (`kindsOf()`, `drawRepertoire()`).
 
 The host can reroll the map from the lobby (`reroll_map`).
 

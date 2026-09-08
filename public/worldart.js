@@ -4,10 +4,9 @@
    thumb on it, four lanes of pills is the honest drawing. The screen in the
    room is looked at from the other side of a sofa, and there the same board
    is drawn as somewhere you could stand — a farm, a jungle, a coast in a
-   storm, a desert, a volcano: one place for each of the five painted maps —
-   with the racers standing on it and a move as a hop from one square to the
-   next. Crossroads borrows the jungle until its shape has earned a place of
-   its own.
+   storm, a desert, a volcano: one place for each of the five maps — with the
+   racers standing on it and a move as a hop from one square to the next. A
+   map laid as roads is the same place with a piece of road per way.
 
    It is the same board. The rows, the lanes, the card and wildcard squares,
    the ways on from every square — all of it comes in as the state
@@ -90,7 +89,34 @@ window.asimonWorld = (function(){
     else    { S = 40; ORG = { x:58, y:222 }; WORLD = { w:28, d:15 }; PAGE = { w:1280, h:720 }; }
   }
   const pt = (u, v, h) => ({ x: ORG.x + (u + v * SH) * S, y: ORG.y + v * FS * S - (h || 0) * S });
-  const BOARD = { du: 1.5, dv: 2.3, v0: 5 };
+  /* The board fills the island: four lanes across most of its depth on a
+     wall, and most of its width on a tablet, with the scenery pushed to the
+     edges. The gap between rows is what shows the road between two squares. */
+  const BOARD = { du: 1.5, dv: 2.7, v0: 4.2, dl: 3.0 };
+
+  /* ---------------- the clock ----------------
+     Every ambient motion is phased off the moment the drawing was made, so a
+     redraw a second later does not send a cloud back to where it started.
+     Motion that turns about a point — the windmill, the lighthouse beam, a
+     tree in the wind — is SVG's own animateTransform with the centre written
+     in, because that works on every television's browser; the rest is CSS in
+     board.css. Both stop for anyone who has asked their device for less. */
+  let T0 = 0;
+  /* how big a square is drawn, against the room it has: 1 on a board that
+     keeps its spacing, less on a long one, so the coins never touch */
+  let NS = 1;
+  let REDUCED = false;
+  try{ REDUCED = !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches); }catch(e){}
+  const turn = (cx, cy, dur, o) => REDUCED ? "" :
+    el("animateTransform", { attributeName:"transform", type:"rotate",
+      from:(o && o.from !== undefined ? o.from : 0) + " " + n1(cx) + " " + n1(cy),
+      to:(o && o.to !== undefined ? o.to : 360) + " " + n1(cx) + " " + n1(cy),
+      dur:dur + "s", repeatCount:"indefinite", begin:(-(T0 % dur)).toFixed(2) + "s" });
+  const sway = (cx, cy, dur, deg, seed) => REDUCED ? "" :
+    el("animateTransform", { attributeName:"transform", type:"rotate",
+      values:(-deg) + " " + n1(cx) + " " + n1(cy) + ";" + deg + " " + n1(cx) + " " + n1(cy) + ";" + (-deg) + " " + n1(cx) + " " + n1(cy),
+      dur:dur + "s", repeatCount:"indefinite", calcMode:"spline", keyTimes:"0;0.5;1", keySplines:"0.4 0 0.6 1;0.4 0 0.6 1",
+      begin:(-((T0 + (seed || 0) * 1.7) % dur)).toFixed(2) + "s" });
 
   /* ---------------- things that stand on the ground ----------------
      Every prop takes a base point (u, v), a size s in units, and returns SVG.
@@ -101,11 +127,11 @@ window.asimonWorld = (function(){
 
   function tree(u, v, s, col){
     const b = pt(u, v), k = s * S, c = col || "#4CAF50";
-    return shadow(b, k*0.5, k*0.17) +
+    return shadow(b, k*0.5, k*0.17) + "<g>" + sway(b.x, b.y, 5.5, 1.6, u + v) +
       el("rect", { x:b.x - k*0.09, y:b.y - k*0.6, width:k*0.18, height:k*0.64, rx:k*0.06, fill:"#7A5233" }) +
       el("circle", { cx:b.x + k*0.06, cy:b.y - k*0.86, r:k*0.46, fill:dark(c) }) +
       el("circle", { cx:b.x - k*0.05, cy:b.y - k*0.96, r:k*0.42, fill:c }) +
-      el("circle", { cx:b.x - k*0.2, cy:b.y - k*1.12, r:k*0.15, fill:light(c), opacity:0.75 });
+      el("circle", { cx:b.x - k*0.2, cy:b.y - k*1.12, r:k*0.15, fill:light(c), opacity:0.75 }) + "</g>";
   }
   function pine(u, v, s, col){
     const b = pt(u, v), k = s * S, c = col || "#2E8B57";
@@ -120,7 +146,7 @@ window.asimonWorld = (function(){
   }
   function palm(u, v, s, col){
     const b = pt(u, v), k = s * S, c = col || "#3FA34D", tx = b.x + k*0.22, ty = b.y - k*1.35;
-    let out = shadow(b, k*0.5, k*0.17) +
+    let out = shadow(b, k*0.5, k*0.17) + "<g>" + sway(b.x, b.y, 4.6, 2.4, u * 2 + v) +
       el("path", { d:"M" + n1(b.x) + " " + n1(b.y) + "Q" + n1(b.x + k*0.05) + " " + n1(b.y - k*0.9) + " " + n1(tx) + " " + n1(ty),
         stroke:"#9C6B3C", "stroke-width":k*0.13, fill:"none", "stroke-linecap":"round" });
     [-160, -125, -85, -45, -10].forEach((a, i) => {
@@ -128,7 +154,7 @@ window.asimonWorld = (function(){
         transform:"rotate(" + a + " " + n1(tx) + " " + n1(ty) + ")" });
     });
     return out + el("circle", { cx:tx - k*0.08, cy:ty + k*0.1, r:k*0.07, fill:"#6B4A2E" }) +
-      el("circle", { cx:tx + k*0.06, cy:ty + k*0.12, r:k*0.07, fill:"#6B4A2E" });
+      el("circle", { cx:tx + k*0.06, cy:ty + k*0.12, r:k*0.07, fill:"#6B4A2E" }) + "</g>";
   }
   function bush(u, v, s, col){
     const b = pt(u, v), k = s * S, c = col || "#5DBB63";
@@ -148,7 +174,7 @@ window.asimonWorld = (function(){
     return (rim ? el("ellipse", { cx:b.x, cy:b.y, rx:k*1.02, ry:k*0.46, fill:rim }) : "") +
       el("ellipse", { cx:b.x, cy:b.y, rx:k*0.95, ry:k*0.4, fill:dark(c, 0.14) }) +
       el("ellipse", { cx:b.x - k*0.06, cy:b.y - k*0.05, rx:k*0.8, ry:k*0.3, fill:c }) +
-      el("ellipse", { cx:b.x - k*0.3, cy:b.y - k*0.12, rx:k*0.26, ry:k*0.07, fill:light(c, 0.5) });
+      el("ellipse", { cx:b.x - k*0.3, cy:b.y - k*0.12, rx:k*0.26, ry:k*0.07, fill:light(c, 0.5), class:"glow", style:"--d:" + n1(-u % 2.4) + "s" });
   }
   /* a box with its lid and its left side, the shape barns and towers start from */
   function box(u, v, w, d, h, col, o){
@@ -175,7 +201,7 @@ window.asimonWorld = (function(){
       el("polygon", { points:pts([[b.x, b.y], [b.x + k*0.6, b.y], [b.x + k*0.44, b.y - k*1.45], [b.x + k*0.16, b.y - k*1.45]]), fill:"#EADCC3" }) +
       el("polygon", { points:pts([[b.x + k*0.3, b.y], [b.x + k*0.6, b.y], [b.x + k*0.44, b.y - k*1.45], [b.x + k*0.3, b.y - k*1.45]]), fill:"#C9B592" }) +
       el("polygon", { points:pts([[b.x + k*0.1, b.y - k*1.45], [b.x + k*0.5, b.y - k*1.45], [b.x + k*0.3, b.y - k*1.7]]), fill:"#8A3B2E" });
-    out += '<g class="spin">';
+    out += "<g>" + turn(top.x, top.y, 9);
     [20, 110, 200, 290].forEach(a => {
       out += el("rect", { x:top.x - k*0.05, y:top.y - k*0.75, width:k*0.1, height:k*0.75, rx:k*0.04, fill:"#6B4A2E",
         transform:"rotate(" + a + " " + n1(top.x) + " " + n1(top.y) + ")" }) +
@@ -265,7 +291,8 @@ window.asimonWorld = (function(){
     return out + el("rect", { x:x - w*0.78, y:y - k*2.18, width:w*1.56, height:k*0.1, fill:"#3B3A44" }) +
       el("rect", { x:x - w*0.42, y:y - k*2.58, width:w*0.84, height:k*0.42, fill:"#FFE082" }) +
       el("polygon", { points:pts([[x - w*0.62, y - k*2.58], [x + w*0.62, y - k*2.58], [x, y - k*2.95]]), fill:"#D9483B" }) +
-      el("polygon", { points:pts([[x - w*0.4, y - k*2.5], [x - k*2.8, y - k*3.2], [x - k*2.8, y - k*1.8], [x - w*0.4, y - k*2.24]]), fill:"#FFE082", opacity:0.32 });
+      "<g>" + turn(x, y - k*2.37, 12) +
+      el("polygon", { points:pts([[x - w*0.4, y - k*2.5], [x - k*2.8, y - k*3.2], [x - k*2.8, y - k*1.8], [x - w*0.4, y - k*2.24]]), fill:"#FFE082", opacity:0.32 }) + "</g>";
   }
   function boat(u, v, s){
     const b = pt(u, v), k = s * S, x = b.x, y = b.y;
@@ -290,7 +317,10 @@ window.asimonWorld = (function(){
   }
   function cloud(u, v, s, col, h){
     const b = pt(u, v, h || 0), k = s * S, c = col || "#FFFFFF";
-    return '<g class="drift" style="--d:' + n1(-(u * 1.7) % 11) + 's">' + el("ellipse", { cx:b.x, cy:b.y, rx:k*0.7, ry:k*0.2, fill:c }) +
+    const g = pt(Math.min(WORLD.w - 2, u + 2.5), TALL ? 3.2 : 2.6);
+    return '<g class="drift" style="--d:' + n1(-(u * 1.7) % 11) + 's">' +
+      el("ellipse", { cx:g.x, cy:g.y, rx:k*1.1, ry:k*0.36, fill:"#1A1030", opacity:0.1, filter:"url(#soft)" }) +
+      el("ellipse", { cx:b.x, cy:b.y, rx:k*0.7, ry:k*0.2, fill:c }) +
       el("circle", { cx:b.x - k*0.25, cy:b.y - k*0.12, r:k*0.26, fill:c }) +
       el("circle", { cx:b.x + k*0.12, cy:b.y - k*0.2, r:k*0.32, fill:c }) +
       el("circle", { cx:b.x + k*0.45, cy:b.y - k*0.08, r:k*0.22, fill:c }) + "</g>";
@@ -441,6 +471,9 @@ window.asimonWorld = (function(){
         ["rock", 11.6, 13.9, 0.8, "#5A4C58"], ["dino", 15.5, 13.8, 0.9], ["rock", 19.4, 13.9, 1.0, "#5A4C58"],
         ["lava", 22.6, 13.7, 0.9], ["pine", 25.6, 13.4, 0.9, "#4A3A55"] ] }
   };
+  /* a scene knows its own name: the coast and the sound are keyed by it */
+  Object.keys(SCENES).forEach(k => { SCENES[k].id = k; });
+
 
 
   /* where a square is, in the world: rows run along the screen, lanes run away
@@ -449,7 +482,8 @@ window.asimonWorld = (function(){
     if(TALL){
       /* lanes across the page, lane 0 on the left as the phone has it; rows
          run away from the viewer, the start nearest, the finish at the far end */
-      const dl = 2.4, u0 = (WORLD.w - 3 * dl) / 2, far = 5, near = WORLD.d - 2.4, dr = (near - far) / (rows + 1);
+      const dl = BOARD.dl, u0 = (WORLD.w - 3 * dl) / 2, far = 5.2, near = WORLD.d - 2.6, dr = (near - far) / (rows + 1);
+      NS = Math.max(0.72, Math.min(1, dr * FS * S / 38));
       const vr = r => near - r * dr;
       return {
         u: c => u0 + c * dl, v: r => vr(r),
@@ -459,14 +493,20 @@ window.asimonWorld = (function(){
         flag: { u: u0 + 1.5 * dl + 1.15, v: vr(rows + 1) }
       };
     }
-    const span = (rows + 1) * BOARD.du, u0 = (WORLD.w - span) / 2;
-    const ur = r => rtl ? u0 + (rows + 1 - r) * BOARD.du : u0 + r * BOARD.du;
+    /* The rows share the island's length between them. A short board keeps
+       the spacing it likes; a long one — three players is seventeen rows —
+       closes up rather than running its start and its flag off the coast.
+       The margin is what a start figure and a flag need to stand inside. */
+    const EDGE = 2.0, du = Math.min(BOARD.du, (WORLD.w - 2 * EDGE) / (rows + 1));
+    NS = Math.max(0.72, Math.min(1, du / BOARD.du));
+    const span = (rows + 1) * du, u0 = (WORLD.w - span) / 2;
+    const ur = r => rtl ? u0 + (rows + 1 - r) * du : u0 + r * du;
     return {
       u: r => ur(r), v: c => BOARD.v0 + c * BOARD.dv,
       at: (r, c) => pt(ur(r), BOARD.v0 + (r === 0 || r > rows ? 1.5 : c) * BOARD.dv),
       depth: (r, c) => BOARD.v0 + (r === 0 || r > rows ? 1.5 : c) * BOARD.dv,
       laneDepth: c => BOARD.v0 + c * BOARD.dv - 0.6,
-      flag: { u: ur(rows + 1) + (rtl ? -0.85 : 0.85), v: BOARD.v0 + 1.5 * BOARD.dv }
+      flag: { u: ur(rows + 1) + (rtl ? -0.8 : 0.8), v: BOARD.v0 + 1.5 * BOARD.dv }
     };
   }
 
@@ -475,6 +515,17 @@ window.asimonWorld = (function(){
      that can stand anywhere are dealt out along the two sides. Sky things stay
      in the sky. */
   const ANYWHERE = { tree:1, pine:1, palm:1, bush:1, rock:1, cactus:1, cow:1, sheep:1, chicken:1, monkey:1, parrot:1, camel:1, tortoise:1, dino:1 };
+  /* the same scenery on a wall, kept out of the board's way now that the
+     board reaches nearer the edges: the far band comes forward less, the
+     near band stands at the very front, a size down */
+  function wideProps(list){
+    return list.map(p => {
+      const q = p.slice(), v = p[2];
+      if(v < 0) return q;
+      if(v <= 4.5){ q[2] = v * 0.74; return q; }
+      q[2] = 13.75 + (v - 13.3) * 0.7; q[3] = (p[3] || 1) * 0.85; return q;
+    });
+  }
   function tallProps(list){
     const out = [], sides = [];
     list.forEach(p => {
@@ -688,7 +739,8 @@ window.asimonWorld = (function(){
   function node(sc, x, y, col, o){
     const fn = NODES[sc.nodeKind];
     if(!fn) return coin(x, y, col, o);
-    return '<g opacity="' + (o.dimmed ? 0.4 : 1) + '">' + fn(x, y, col, o) + (o.inner || "") + "</g>";
+    const shrink = NS < 1 ? ' transform="translate(' + n1(x) + ' ' + n1(y) + ') scale(' + NS.toFixed(3) + ') translate(' + n1(-x) + ' ' + n1(-y) + ')"' : "";
+    return '<g opacity="' + (o.dimmed ? 0.4 : 1) + '"' + shrink + '>' + fn(x, y, col, o) + (o.inner || "") + "</g>";
   }
 
   /* the twist's own emblem, held up beside whoever is standing on its square,
@@ -706,6 +758,35 @@ window.asimonWorld = (function(){
       '<circle cx="20" cy="20" r="20" fill="url(#sheen)"/></g>';
   }
 
+
+  /* The wildcard's sign. A square that rolls something is the one square
+     worth being drawn to, so it does not print its question mark — it flies
+     one, a little above the square: a violet glyph with a thickness, a thin
+     halo of light on the stone beneath it, two sparks that come and go. Kept
+     quiet on purpose; a thing that glows too hard stops being mysterious.
+     When somebody is standing on the square the figure and its badge take
+     the space and only the halo stays. */
+  function wildSign(x, y, o){
+    const c = VIOLET, deep = dark(c, 0.5);
+    let out = el("ellipse", { cx:x, cy:y + 1, rx:19, ry:8, fill:light(c, 0.3), opacity:o.lit ? 0.5 : 0.3, filter:"url(#soft)", class:"glow" });
+    if(o.held) return out;
+    const spark = (dx, dy, r, d) => el("path", { d:"M" + n1(x + dx) + " " + n1(y + dy - r) + "q0 " + n1(r) + " " + n1(r) + " " + n1(r) + "q" + n1(-r) + " 0 " + n1(-r) + " " + n1(r) + "q0 " + n1(-r) + " " + n1(-r) + " " + n1(-r) + "q" + n1(r) + " 0 " + n1(r) + " " + n1(-r) + "Z",
+      fill:"#FFFFFF", class:"twinkle", style:"--d:" + d + "s" });
+    const glyph = (dx, dy, fill, extra) => el("text", Object.assign({ x:x + dx, y:y - 16 + dy, "text-anchor":"middle", "font-family":"Suez One,Georgia,serif", "font-size":32, "font-weight":700, fill }, extra || {}), "?");
+    out += '<g class="float" style="--d:' + n1(-(x / 37) % 2.8) + 's">' +
+      glyph(2.2, 2.2, deep) + glyph(1.1, 1.1, dark(c, 0.3)) +
+      glyph(0, 0, light(c, 0.78), { stroke:dark(c, 0.15), "stroke-width":0.9 }) +
+      spark(-17, -30, 3, -0.4) + spark(15, -40, 2.4, -1.5) +
+      "</g>";
+    return out;
+  }
+
+  /* A print lying on a square: the twist's badge, foreshortened the way the
+     square's own top is, so it reads as a sticker on a tilted surface and
+     not a coin standing on it. */
+  function print(key, x, y, r){
+    return '<g transform="translate(' + n1(x) + ' ' + n1(y) + ') scale(1 0.58) translate(' + n1(-x) + ' ' + n1(-y) + ')">' + badge(key, x, y, r) + "</g>";
+  }
 
   /* ---------------- one of the cast, standing on the map ----------------
      The phone shows a face on a disc; here the same drawing stands up. A
@@ -730,8 +811,8 @@ window.asimonWorld = (function(){
         '<text x="20" y="25" text-anchor="middle" font-family="Assistant,sans-serif" font-size="14" font-weight="800" fill="#FFFFFF">' + esc(initials(u.name)) + '</text>' +
         '<circle cx="20" cy="20" r="20" fill="url(#sheen)"/>';
     const hop = o.from ? ' style="--dx:' + n1(o.from.x - x) + 'px;--dy:' + n1(o.from.y - y) + 'px"' : "";
-    return '<g class="' + (o.from ? "hopshadow" : "") + '"' + hop + '>' +
-        el("ellipse", { cx:x, cy:y, rx:s*0.4, ry:s*0.17, fill:INK, opacity:0.3, filter:"url(#soft)" }) + '</g>' +
+    return (o.noShadow ? "" : '<g class="' + (o.from ? "hopshadow" : "") + '"' + hop + '>' +
+        el("ellipse", { cx:x, cy:y, rx:s*0.4, ry:s*0.17, fill:INK, opacity:0.3, filter:"url(#soft)" }) + '</g>') +
       '<g class="' + (o.from ? "hop" : "") + '"' + hop + '><g class="idle" style="--d:' + n1(-(o.seed || 0) * 0.7) + 's">' +
       '<g transform="translate(' + n1(x) + ' ' + n1(y) + ') translate(' + n1(-s/2) + ' ' + n1(-s + 3) + ') scale(' + k.toFixed(4) + ')">' +
       body + '</g></g></g>';
@@ -744,6 +825,46 @@ window.asimonWorld = (function(){
     '<radialGradient id="sheen" cx="0.36" cy="0.3" r="0.78"><stop offset="0" stop-color="#FFFFFF" stop-opacity="0.5"/><stop offset="0.45" stop-color="#FFFFFF" stop-opacity="0"/><stop offset="1" stop-color="#1A1030" stop-opacity="0.3"/></radialGradient>' +
     '<linearGradient id="bodysheen" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFFFFF" stop-opacity="0.3"/><stop offset="1" stop-color="#1A1030" stop-opacity="0.3"/></linearGradient>' +
     gradDefs() + '</defs>';
+
+  /* ---------------- the coast ----------------
+     The island is a rectangle in the world with an edge that wanders
+     outwards from it. Every place wanders differently: the farm's meadow
+     rolls, the jungle bulges, the storm's rock is jagged, the desert is a
+     mesa with its corners cut, the volcano is angular. The wander is always
+     outward, so the board's rectangle is never bitten into. */
+  const COASTS = {
+    classic:{ amp:0.9, freq:1.1, soft:true },
+    twist:{ amp:1.5, freq:1.7, soft:true },
+    storm:{ amp:1.0, freq:4.2, soft:false },
+    sprint:{ amp:0.3, freq:0.9, soft:false, chamfer:1.8 },
+    chaos:{ amp:0.9, freq:1.4, soft:false }
+  };
+  function coast(sc, dy){
+    const C = COASTS[sc.id] || COASTS.classic, W = WORLD.w, D = WORLD.d;
+    const in_ = 0.55, base = { u0:in_, u1:W - in_, v0:0.25, v1:D - 0.25 };
+    const wob = t => C.amp * (0.5 + 0.5 * (0.62 * Math.sin(C.freq * t * 6.283 + 0.9) + 0.38 * Math.sin(C.freq * 2.7 * t * 6.283 + 2.1)));
+    const N = 9, P = [];
+    const side = (from, to, nx, nv, t0) => {
+      const a = C.chamfer ? C.chamfer / Math.hypot(to[0] - from[0], to[1] - from[1]) : 0;
+      for(let i = 0; i <= N; i++){
+        const f = a + (1 - 2 * a) * (i / N), t = t0 + f * 0.25, d = wob(t);
+        P.push([from[0] + (to[0] - from[0]) * f + nx * d, from[1] + (to[1] - from[1]) * f + nv * d]);
+      }
+    };
+    side([base.u0, base.v0], [base.u1, base.v0], 0, -1, 0);      /* the far edge, wandering into the sky */
+    side([base.u1, base.v0], [base.u1, base.v1], 1, 0, 0.25);    /* the right */
+    side([base.u1, base.v1], [base.u0, base.v1], 0, 1, 0.5);     /* the near edge */
+    side([base.u0, base.v1], [base.u0, base.v0], -1, 0, 0.75);   /* the left */
+    const Q = P.map(p => { const q = pt(p[0], p[1]); return [q.x, q.y + dy]; });
+    if(!C.soft) return "M" + Q.map(q => n1(q[0]) + " " + n1(q[1])).join("L") + "Z";
+    /* soft: a curve through the midpoints, with every sample as a control */
+    let d = "";
+    for(let i = 0; i < Q.length; i++){
+      const a = Q[i], b = Q[(i + 1) % Q.length], m = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
+      d += (i ? "Q" + n1(a[0]) + " " + n1(a[1]) + " " : "M") + n1(m[0]) + " " + n1(m[1]);
+    }
+    return d + "Z";
+  }
 
   /* ---------------- the place, with the board on it ----------------
      o.board   {rows, nodes, themeId} — the layout, as boardart.js takes it
@@ -765,14 +886,10 @@ window.asimonWorld = (function(){
     const layers = [];
     const put = (v, svg) => layers.push({ v, svg });
 
-    /* the ground: a slab with a thickness, floating on the sky */
-    const isl = (dy) => {
-      const a = pt(0.9, 0), b2 = pt(WORLD.w - 0.9, 0), c = pt(WORLD.w, WORLD.d - 1.4), d = pt(WORLD.w - 1.4, WORLD.d), e = pt(1.4, WORLD.d), f = pt(0.2, WORLD.d - 1.4);
-      return "M" + n1(a.x) + " " + n1(a.y + dy) + "L" + n1(b2.x) + " " + n1(b2.y + dy) + "Q" + n1(b2.x + 24) + " " + n1(b2.y + dy) + " " + n1(b2.x + 25) + " " + n1(b2.y + 22 + dy) +
-        "L" + n1(c.x) + " " + n1(c.y + dy) + "Q" + n1(c.x + 4) + " " + n1(d.y + dy) + " " + n1(d.x) + " " + n1(d.y + dy) +
-        "L" + n1(e.x) + " " + n1(e.y + dy) + "Q" + n1(f.x - 8) + " " + n1(e.y + dy) + " " + n1(f.x) + " " + n1(f.y + dy) +
-        "L" + n1(a.x - 12) + " " + n1(a.y + 22 + dy) + "Q" + n1(a.x - 14) + " " + n1(a.y + dy) + " " + n1(a.x) + " " + n1(a.y + dy) + "Z";
-    };
+    /* the ground: a slab with a thickness, floating on the sky, and each
+       place with a coast of its own — the wobble of the edge, and whether it
+       is drawn soft or sharp, is the whole of what tells a meadow from a rock */
+    const isl = dy => coast(sc, dy);
     let bg = el("rect", { x:0, y:0, width:PAGE.w, height:PAGE.h, fill:sc.sky });
     if(sc.sea) bg += el("rect", { x:0, y:ORG.y - 22, width:PAGE.w, height:PAGE.h, fill:sc.sea });
     else bg += el("rect", { x:0, y:ORG.y - 72, width:PAGE.w, height:90, fill:sc.mist, opacity:0.55 });
@@ -784,7 +901,7 @@ window.asimonWorld = (function(){
       el("path", { d:isl(0), fill:light(sc.ground, 0.16), transform:"translate(0 -2)", opacity:0.6 });
 
     /* the scenery */
-    (TALL ? tallProps(sc.props) : sc.props).forEach(p => {
+    (TALL ? tallProps(sc.props) : wideProps(sc.props)).forEach(p => {
       const fn = PROPS[p[0]]; if(!fn) return;
       put(p[2], fn.apply(null, p.slice(1)));
     });
@@ -816,7 +933,7 @@ window.asimonWorld = (function(){
     } else {
       for(let c = 0; c < 4; c++){
         const a = L.at(1, c), z = L.at(rows, c), dx = z.x - a.x, dy = z.y - a.y, len = Math.hypot(dx, dy) || 1, ex = dx / len * 30, ey = dy / len * 30;
-        put(L.laneDepth(c), road(sc, { x:a.x - ex, y:a.y - ey }, { x:z.x + ex, y:z.y + ey }, 36));
+        put(L.laneDepth(c), road(sc, { x:a.x - ex, y:a.y - ey }, { x:z.x + ex, y:z.y + ey }, 40));
       }
       for(let rr = 0; rr <= rows; rr++){
         const froms = rr === 0 ? [{ r:0, c:1 }] : [0,1,2,3].map(c => ({ r:rr, c }));
@@ -841,14 +958,18 @@ window.asimonWorld = (function(){
       const col = nd.t === "CARD" ? GOOD : nd.t === "WILD" ? VIOLET : COL[nd.c];
       const short = label(nd) || "", th = thOf(isLit), solid = isLit || held;
       const ink = nodeInk(sc.nodeKind, col, solid);
+      /* The square wears its twist's own print rather than the word — the
+         badge the phone shows on the round notice, at the size of a coin.
+         A plain square wears nothing but a dot, so plain reads as plain. The
+         legend on the wall says what each print is. */
       let inner = "";
-      if(held) inner = "";
-      else if(nd.t === "WILD") inner = el("text", { x:p.x, y:p.y - th + 6, "text-anchor":"middle", "font-family":"Suez One,Georgia,serif", "font-size":17, fill:ink }, "?");
-      else if(short) inner = el("text", { x:p.x, y:p.y - th + 4, "text-anchor":"middle", "font-family":"Assistant,sans-serif", "font-size":10.5, "font-weight":800, fill:ink }, esc(short));
+      if(held || nd.t === "WILD") inner = "";
+      else if(nd.t === "CARD" || (short && art.MOD_ART[nd.t])) inner = print(nd.t, p.x, p.y - th, 14);
       else inner = el("circle", { cx:p.x, cy:p.y - th, r:4, fill:col, opacity:0.55 });
-      if(o.picked && o.picked.r === nd.r && o.picked.c === nd.c)
-        inner += el("ellipse", { cx:p.x, cy:p.y - th, rx:29, ry:17, fill:"none", stroke:INK, "stroke-width":2.2 });
+      if(o.picked && o.picked.r === nd.r && o.picked.c === nd.c) inner += chosen(p.x, p.y - th, col);
       put(L.depth(nd.r, nd.c), node(sc, p.x, p.y, col, { lit:isLit, raise:isLit, held, inner, dash:nd.t === "WILD", dimmed:dim && !isLit }));
+      if(nd.t === "WILD") put(L.depth(nd.r, nd.c) + 0.02,
+        '<g opacity="' + (dim && !isLit ? 0.4 : 1) + '">' + wildSign(p.x, p.y - th * NS, { lit:isLit, held }) + "</g>");
     });
     /* the start: a stone; the finish: the place's own square, in ink, with a flag beside it */
     const s0 = L.at(0, 1), e0 = L.at(rows + 1, 1);
@@ -859,7 +980,7 @@ window.asimonWorld = (function(){
     const endPick = o.picked && o.picked.r > rows;
     put(L.depth(rows + 1, 1), node(sc, e0.x, e0.y, INK, { lit:endLit, raise:endLit, held:true, dimmed:dim && !endLit, inner:
       (endHeld ? "" : el("text", { x:e0.x, y:e0.y - thOf(endLit) + 4, "text-anchor":"middle", "font-family":"Assistant,sans-serif", "font-size":11, "font-weight":800, fill:"#FFFFFF" }, esc(o.endText || "END"))) +
-      (endPick ? el("ellipse", { cx:e0.x, cy:e0.y - thOf(endLit), rx:29, ry:17, fill:"none", stroke:INK, "stroke-width":2.2 }) : "") }) +
+      (endPick ? chosen(e0.x, e0.y - thOf(endLit), GOOD) : "") }) +
       flag(L.flag.u, L.flag.v, 1.0));
 
     /* the cast: everybody who is standing on a square, and beside the last of
@@ -875,6 +996,16 @@ window.asimonWorld = (function(){
           if(fr >= 0 && fr <= rows + 1 && fc >= 0 && fc <= 3){ const q = L.at(fr, fc); from = { x:q.x, y:q.y - top }; }
         }
         const nd = b.nodes.find(q => q.r === rr && q.c === cc);
+        /* a still of the hop, for a page that cannot play it: the figure a
+           fraction of the way along the arc, its shadow left on the ground */
+        const pose = o.pose && o.pose.id === e.u.id && from ? o.pose.t : null;
+        if(pose !== null){
+          const px = from.x + (x - from.x) * pose, py = from.y + (y - from.y) * pose - Math.sin(pose * Math.PI) * 70;
+          put(L.depth(rr, cc) + 4,
+            el("ellipse", { cx:px, cy:from.y + (y - from.y) * pose, rx:22 * (1 - 0.45 * Math.sin(pose * Math.PI)), ry:9 * (1 - 0.45 * Math.sin(pose * Math.PI)), fill:INK, opacity:0.3, filter:"url(#soft)" }) +
+            figure(e.u, px, py, 1.35, { seed:e.i, noShadow:true }));
+          return;
+        }
         put(L.depth(rr, cc) + 0.05 + (from ? 4 : 0),
           figure(e.u, x, y, 1.35, { from, seed:e.i }) +
           (nd && j === list.length - 1 ? badge(nd.t, x + 26, y - 44, 11) : ""));
@@ -886,12 +1017,12 @@ window.asimonWorld = (function(){
   }
 
   function draw(o){
-    const body = scene(o);
     /* --t is how far into every ambient motion this drawing is, so a redraw
        a second later does not send the clouds back to where they started */
-    const phase = -((Date.now() / 1000) % 3600);
+    T0 = o.still ? 0 : (Date.now() / 1000) % 3600;
+    const body = scene(o);
     return '<svg class="board world' + (TALL ? " tall" : "") + '" viewBox="0 0 ' + PAGE.w + ' ' + PAGE.h +
-      '" role="img" style="--t:' + phase.toFixed(2) + 's">' + defs() + body + "</svg>";
+      '" role="img" style="--t:' + (-T0).toFixed(2) + 's">' + defs() + body + "</svg>";
   }
 
   /* ---------------- what a place sounds like ----------------
@@ -904,7 +1035,7 @@ window.asimonWorld = (function(){
     if(actx){ try{ if(actx.state === "suspended" && actx.resume) actx.resume().catch(() => {}); }catch(e){} return actx; }
     const AC = window.AudioContext || window.webkitAudioContext;
     if(!AC) return null;
-    try{ actx = new AC(); master = actx.createGain(); master.gain.value = 0.35; master.connect(actx.destination); }
+    try{ actx = new AC(); master = actx.createGain(); master.gain.value = 0.7; master.connect(actx.destination); }
     catch(e){ actx = null; }
     return actx;
   }
@@ -992,7 +1123,9 @@ window.asimonWorld = (function(){
       every(8, 15, () => burst({ type:"bandpass", f:2500, q:1, g:0.03, a:0.05, d:0.5 }));
     }
   };
+  const placeOf = id => SCENES[id] ? id : "classic";
   function ambience(mapId){
+    mapId = mapId ? placeOf(mapId) : null;
     if(playing === mapId) return;
     live.forEach(n => { try{ n.stop(); }catch(e){} try{ n.disconnect(); }catch(e){} });
     timers.forEach(clearTimeout);
@@ -1002,5 +1135,12 @@ window.asimonWorld = (function(){
     playing = mapId;
   }
 
-  return { draw, ambience, SCENES, THEMES };
+  /* a browser will not sound until the page has been touched; the switch
+     that asks for the place is a touch, but a screen set up with ?sound and
+     left alone is not — so the first tap anywhere wakes it */
+  try{ document.addEventListener("pointerdown", () => { if(actx && actx.state === "suspended") actx.resume().catch(() => {}); }, { passive:true, capture:true }); }catch(e){}
+
+  return { draw, ambience, SCENES, THEMES, COASTS,
+           /* the canvas at design/world/ draws its sheets with these */
+           parts:{ figure, node, badge, coin, defs, orient, layout, lanesOf, el, pt } };
 })();
