@@ -60,7 +60,7 @@ window, which is why the build hash and the update bar exist at all. See
 | `game/changelog.js` | the source of the version number |
 | `game/release.js` | works the number out from the tags and writes it |
 | `game/playtest.js` | a table of bots playing 13,600 games, and 29 checks on the result |
-| `game/*.test.js` | twelve suites, no network |
+| `game/*.test.js` | thirteen suites, no network |
 | `public/` | the phone and the screen |
 | `design/` | the canvases the logo, the screen, the rulebook and the poster came off |
 | `docs/` | the public site, its assets, and these specs |

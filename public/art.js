@@ -502,7 +502,7 @@ function facePin(id, x, y, r){
 }
 
 /* ============================================================
-   The twelve topics and the seven round twists. Same 40x40 box,
+   The twenty topics and the seven round twists. Same 40x40 box,
    same disc, so they drop in anywhere a face already goes.
    ============================================================ */
 const TOPIC_ART = {
@@ -578,7 +578,65 @@ const TOPIC_ART = {
   lands: { bg:"#FF5A3D", art:
     '<rect x="9.6" y="4" width="3.8" height="32" rx="1.9" fill="#FFFFFF"/>'+
     '<path d="M13.4 6.4c5.6-3 11.2 3 16.8 0v13.4c-5.6 3-11.2-3-16.8 0Z" fill="#FFB020"/>'+
-    '<ellipse cx="11.5" cy="35.4" rx="6.6" ry="2.2" fill="#FFFFFF" opacity=".55"/>' }
+    '<ellipse cx="11.5" cy="35.4" rx="6.6" ry="2.2" fill="#FFFFFF" opacity=".55"/>' },
+
+  food: { bg:"#E11D48", art:
+    '<circle cx="20" cy="20.6" r="11.8" fill="#FFFFFF"/>'+
+    '<circle cx="20" cy="20.6" r="6.8" fill="#FECDD3"/>'+
+    '<rect x="4.2" y="6.2" width="1.9" height="7.4" rx=".95" fill="#FFE4E6"/>'+
+    '<rect x="7.05" y="6.2" width="1.9" height="7.4" rx=".95" fill="#FFE4E6"/>'+
+    '<rect x="9.9" y="6.2" width="1.9" height="7.4" rx=".95" fill="#FFE4E6"/>'+
+    '<path d="M4.2 12.2h7.6v2.8a3.8 3.8 0 0 1-7.6 0Z" fill="#FFE4E6"/>'+
+    '<rect x="6.8" y="14.4" width="2.4" height="19.4" rx="1.2" fill="#FFE4E6"/>'+
+    '<path d="M31.6 6.2c2.1 0 3.4 2.4 3.4 5.5 0 2.7-1.1 4.5-2.2 5.1v16.8a1.2 1.2 0 0 1-2.4 0V16.8c-1.1-.6-2.2-2.4-2.2-5.1 0-3.1 1.3-5.5 3.4-5.5Z" fill="#FFE4E6"/>' },
+
+  work: { bg:"#475569", art:
+    '<rect x="7.6" y="5.4" width="24.8" height="29.2" rx="3.2" fill="#F8FAFC"/>'+
+    '<rect x="15.4" y="2.8" width="9.2" height="5.6" rx="2.8" fill="#94A3B8"/>'+
+    '<rect x="12.4" y="14" width="15.2" height="2.8" rx="1.4" fill="#CBD5E1"/>'+
+    '<rect x="12.4" y="20" width="15.2" height="2.8" rx="1.4" fill="#CBD5E1"/>'+
+    '<rect x="12.4" y="26" width="9.4" height="2.8" rx="1.4" fill="#FACC15"/>' },
+
+  beast: { bg:"#A16207", art:
+    '<ellipse cx="20" cy="27" rx="9.6" ry="7.8" fill="#FFFFFF"/>'+
+    '<circle cx="10.2" cy="17.6" r="4.2" fill="#FFFFFF"/>'+
+    '<circle cx="16.8" cy="12.4" r="4.4" fill="#FFFFFF"/>'+
+    '<circle cx="24.4" cy="12.4" r="4.4" fill="#FFFFFF"/>'+
+    '<circle cx="30.4" cy="18" r="4.2" fill="#FFFFFF"/>' },
+
+  town: { bg:"#0EA5E9", art:
+    '<rect x="4.6" y="16" width="10.4" height="19.6" rx="1.8" fill="#E0F2FE"/>'+
+    '<rect x="15.8" y="7.4" width="10.4" height="28.2" rx="1.8" fill="#FFFFFF"/>'+
+    '<rect x="27" y="20.4" width="8.4" height="15.2" rx="1.8" fill="#E0F2FE"/>'+
+    '<rect x="7.4" y="19.4" width="2.8" height="2.8" fill="#0369A1"/>'+
+    '<rect x="18.6" y="11.4" width="2.8" height="2.8" fill="#0369A1"/>'+
+    '<rect x="18.6" y="17.4" width="2.8" height="2.8" fill="#FFB020"/>'+
+    '<rect x="29.4" y="23.8" width="2.8" height="2.8" fill="#0369A1"/>' },
+
+  cash: { bg:"#16A34A", art:
+    '<rect x="3.6" y="11.4" width="24.4" height="14.8" rx="2.4" fill="#FFFFFF"/>'+
+    '<circle cx="15.8" cy="18.8" r="4" fill="#86EFAC"/>'+
+    '<circle cx="27.4" cy="26.6" r="8.6" fill="#FACC15"/>'+
+    '<circle cx="27.4" cy="26.6" r="5.6" fill="#CA8A04"/>' },
+
+  film: { bg:"#9333EA", art:
+    '<rect x="4.6" y="16.4" width="30.8" height="18.2" rx="2.6" fill="#FFFFFF"/>'+
+    '<g transform="rotate(-11 20 11.6)">'+
+      '<rect x="4.6" y="7.4" width="30.8" height="7.6" rx="1.6" fill="#F3E8FF"/>'+
+      '<path d="M9.4 7.4h4.2l-3.6 7.6H5.8Zm8.8 0h4.2l-3.6 7.6h-4.2Zm8.8 0h4.2l-3.6 7.6h-4.2Z" fill="#7E22CE"/>'+
+    '</g>' },
+
+  kids: { bg:"#F59E0B", art:
+    '<rect x="5.6" y="21.4" width="12.8" height="12.8" rx="2.2" fill="#FFFFFF"/>'+
+    '<rect x="21" y="21.4" width="12.8" height="12.8" rx="2.2" fill="#FEF3C7"/>'+
+    '<rect x="13.4" y="7.2" width="12.8" height="12.8" rx="2.2" fill="#FFFFFF"/>'+
+    '<circle cx="19.8" cy="13.6" r="2.6" fill="#B45309"/>'+
+    '<circle cx="12" cy="27.8" r="2.6" fill="#B45309"/>'+
+    '<circle cx="27.4" cy="27.8" r="2.6" fill="#B45309"/>' },
+
+  body: { bg:"#0F766E", art:
+    '<rect x="4.4" y="9.4" width="31.2" height="21.2" rx="4" fill="#FFFFFF"/>'+
+    '<path d="M8.4 20h4.8l3-6.4 4.4 12.8 3.4-8.4 2.4 2h5.2" stroke="#0F766E" stroke-width="2.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>' }
 };
 
 const MOD_ART = {

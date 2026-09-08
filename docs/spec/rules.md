@@ -390,11 +390,11 @@ Both languages, always. See [content.md](content.md).
 
 | | English | Hebrew |
 |---|---|---|
-| tier 2 words | 40 | 40 |
-| tier 3 | 40 | 40 |
-| tier 4 | 45 | 45 |
-| tier 5 | 43 | 43 |
-| topics | 12 | 12 |
-| links | 45 | 45 |
+| tier 2 words | 300 | 300 |
+| tier 3 | 300 | 300 |
+| tier 4 | 300 | 300 |
+| tier 5 | 300 | 300 |
+| topics | 20 | 20 |
+| links | 95 | 95 |
 | cards | 7 | 7 |
 | interface strings | 184 | 184 |

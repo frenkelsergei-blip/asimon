@@ -36,6 +36,18 @@ const RANK = { patch:0, minor:1, major:2 };
 
 const RELEASES = [
 
+  { v:"0.11.0", date:"2026-09-08", lines:[
+    { kind:"new",
+      en:"The word banks are seven times bigger — twelve hundred words in each language, three hundred at every level, so a long evening stops handing you the same word twice.",
+      he:"מאגר המילים גדל פי שבעה — אלף ומאתיים מילים בכל שפה, שלוש מאות בכל רמה, כך שערב ארוך כבר לא מחזיר לכם את אותה מילה פעמיים." },
+    { kind:"new",
+      en:"Eight new topics to hand the table: At the table, At work, Animals, Out in town, Money, At the cinema, Growing up, and Body and health.",
+      he:"שמונה נושאים חדשים לתת לשולחן: על השולחן, בעבודה, חיות, בעיר, כסף, בקולנוע, ילדות וגוף ובריאות." },
+    { kind:"new",
+      en:"Fifty more links, so The link has ninety-five things to circle rather than forty-five.",
+      he:"עוד חמישים קישורים, כך שלקישור יש תשעים וחמישה דברים לעקוף במקום ארבעים וחמישה." }
+  ]},
+
   { v:"0.10.0", date:"2026-09-08", lines:[
     { kind:"rules",
       en:"On Twist the wildcard square has moved to the far lane, beside Blind and The link, so the quiet lane is no longer the richest one as well as the safest.",

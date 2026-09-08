@@ -92,6 +92,16 @@ belongs here in the same commit.
 | **Reading the board** — the legend named off the board actually in play: its lanes, its colours, the round kinds it deals, and a road board's own way of stepping | `app.js` `legendBody()`, `boardLanes()`, `stepDiagram()` | `copy.test.js` |
 | Bilingual, Hebrew and English, everywhere | `engine.js` `EN_*`/`HE_*`, `uiPack()` | `copy.test.js` |
 
+## The content
+
+| feature | where | held by |
+|---|---|---|
+| 1,200 words a language, 300 at each of four tiers | `engine.js` `EN_WORDS` / `HE_WORDS` | `content.test.js` |
+| Twenty topics, each answering at all four tiers | `engine.js` `EN_TOPICS` / `HE_TOPICS`, `dealTopic()` | `content.test.js` |
+| A hand-drawn emblem for every topic | `public/art.js` `TOPIC_ART` | `content.test.js` |
+| Ninety-five links, each a thing and six words | `engine.js` `EN_LINKS` / `HE_LINKS`, `dealLink()` | `content.test.js`, `round.test.js` |
+| Words already used in a game are not dealt again | `engine.js` `S.used` | `engine.test.js` |
+
 ## Around the game
 
 | feature | where | held by |

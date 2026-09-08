@@ -17,7 +17,9 @@ const read = f => fs.readFileSync(path.join(__dirname, "..", "public", f), "utf8
 
 /* ---- the engine's strings, which the server pushes down and which win ---- */
 const engine = require("./engine").createEngine();
-const packHas = (lg, k) => { engine.applyLang(lg); return engine.t(k) !== k; };
+/* applyLang() takes the language off the room's own state rather than as an
+   argument, so passing one here quietly asked English twice. */
+const packHas = (lg, k) => { engine.S = engine.freshState(); engine.S.lang = lg; engine.applyLang(); return engine.t(k) !== k; };
 
 /* Keys built at runtime — t("hw_s"+i) and the like — cannot be read off the
    source, so each family is spelled out beside the page that builds it. */

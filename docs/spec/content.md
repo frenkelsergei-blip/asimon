@@ -13,16 +13,16 @@ that answers in only one — it walks every string either page asks for and
 checks that Hebrew and English both have it. That is what makes bilingual
 structural rather than a habit.
 
-At **0.4.0**, both languages carry exactly the same counts:
+At **0.11.0**, both languages carry exactly the same counts:
 
 | | count |
 |---|---|
-| words, tier 2 | 40 |
-| words, tier 3 | 40 |
-| words, tier 4 | 45 |
-| words, tier 5 | 43 |
-| topics | 12 |
-| links | 45 |
+| words, tier 2 | 300 |
+| words, tier 3 | 300 |
+| words, tier 4 | 300 |
+| words, tier 5 | 300 |
+| topics | 20 |
+| links | 95 |
 | cards | 7 |
 | squares (mods) | 10 |
 | interface strings | 184 |
@@ -51,8 +51,15 @@ Words already used in a game are avoided until the bank runs dry (`S.used`).
 
 ## The topics
 
-`EN_TOPICS` / `HE_TOPICS`. Twelve: `home`, `feel`, `move`, `folk`, `now`,
-`says`, `face`, `telly`, `sport`, `music`, `world`, `lands`.
+`EN_TOPICS` / `HE_TOPICS`. Twenty: `home`, `feel`, `move`, `folk`, `now`,
+`says`, `face`, `telly`, `sport`, `music`, `world`, `lands`, `food`, `work`,
+`beast`, `town`, `cash`, `film`, `kids`, `body`.
+
+Every topic must be able to answer at all four tiers, because `dealTopic()`
+takes one word per tier: a topic thin at a tier deals a shorter hand than the
+round is priced for. Each of the twenty covers 2 to 5 today, between its `w`
+list and its `own` block, and each also needs a 40x40 emblem in
+`TOPIC_ART` (`public/art.js`) — a topic with no drawing shows an empty tile.
 
 A topic is a list of words already in the banks, plus an optional `own` block
 of words that only appear under that topic. Choosing a topic tells the whole
@@ -60,7 +67,7 @@ table what it is, which is why it takes a point off every word.
 
 ## The links
 
-`EN_LINKS` / `HE_LINKS`. Forty-five. Each is a **thing** and six words that
+`EN_LINKS` / `HE_LINKS`. Ninety-five. Each is a **thing** and six words that
 belong to it; the giver puts three of them up and the table shouts guesses at
 what connects them. There is no tier, so a link carries one flat
 `LINK_VALUE = 3` — the dearest single ask in the game.

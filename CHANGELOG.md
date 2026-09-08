@@ -5,6 +5,14 @@ game itself shows under the version at the foot of the first screen.
 
 Generated from `game/changelog.js` by `npm run release` — edit that file, not this one.
 
+## 0.11.0 — 2026-09-08
+
+### Added
+
+- The word banks are seven times bigger — twelve hundred words in each language, three hundred at every level, so a long evening stops handing you the same word twice.
+- Eight new topics to hand the table: At the table, At work, Animals, Out in town, Money, At the cinema, Growing up, and Body and health.
+- Fifty more links, so The link has ninety-five things to circle rather than forty-five.
+
 ## 0.10.0 — 2026-09-08
 
 ### Rules

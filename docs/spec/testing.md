@@ -1,7 +1,7 @@
 # Testing
 
 ```bash
-npm test        # twelve suites, no network, about a second
+npm test        # thirteen suites, no network, about a second
 npm run playtest # 13,600 bot games, about five seconds, writes an HTML report
 ```
 
@@ -10,7 +10,7 @@ dependencies.
 
 ---
 
-## The twelve suites
+## The thirteen suites
 
 Run in this order by `npm test`. Each one is a claim; the claim is what matters,
 not the assertions.
@@ -21,6 +21,7 @@ not the assertions.
 | `cards.test.js` | all seven cards do what their own text says, including the awkward ones — Switch with nothing to switch to, Insight on a one-word round, Blindfold forcing the next round |
 | `stall.test.js` | a room waiting on somebody who is not answering can always be put back on a step somebody can take — `skip`, `IDLE_MS`, and breaks |
 | `copy.test.js` | **every key either page asks for answers in both languages.** This is what makes bilingual structural |
+| `content.test.js` | **the banks are dealable**: no word priced at two tiers at once, both languages the same size, every topic answering at all four tiers out of the real bank and carrying an emblem, every link a thing and six words |
 | `round.test.js` | the shape of a round across phones: a blind verdict belongs to the table, the podium names the winner, the aim pays, the move queue runs in order |
 | `server.test.js` | a full round over real HTTP, on a real socket — **asserting the giver's words never reach another phone** |
 | `reconnect.test.js` | phones dropping and coming back: the grace window, a second tab sharing a seat, a host who really has gone handing the room on |
