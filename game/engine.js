@@ -29,34 +29,104 @@ function createEngine(){
   const EN_WORDS = {
    2:["couch","spoon","elephant","socks","pizza","umbrella","mirror","ladder","pillow","kettle",
       "balloon","hammer","candle","blanket","bucket","guitar","tractor","sandwich","bicycle","chicken",
-      "toaster","suitcase","penguin","scissors","pencil","carrot","curtain","wallet","shoelace","doorbell","mattress","snail","whistle","jigsaw","raincoat","teapot","marble","sponge","magnet","wheelbarrow"],
+      "toaster","suitcase","penguin","scissors","pencil","carrot","curtain","wallet","shoelace","doorbell",
+      "mattress","snail","whistle","jigsaw","raincoat","teapot","marble","sponge","magnet","wheelbarrow",
+      "lamp","fridge","broom","screwdriver","toothbrush","towel","soap","bathtub","staircase","elevator",
+      "chimney","doorknob","keyhole","hook","chain","brick","fence","gate","carpet","stool",
+      "drawer","shelf","clothes peg","ironing board","hairdryer","vacuum cleaner","alarm clock","calendar","envelope","stamp",
+      "stapler","glue","eraser","ruler","paintbrush","marker pen","backpack","helmet","sunglasses","glove",
+      "scarf","belt","button","zip","apron","slipper","toothpaste","watermelon","cucumber","olive",
+      "egg","honey","soup","popcorn","ice cream","pancake","cheese","yoghurt","chocolate bar","chewing gum",
+      "lemon","onion","giraffe","camel","donkey","hedgehog","owl","bat","crab","octopus",
+      "dolphin","mosquito","ant","bee","spider","parrot","turtle","kangaroo","squirrel","frog"],
    3:["jealous","whisper","stubborn","neighbour","rescue","promise","gossip","holiday","shortcut","argument",
       "apology","souvenir","rumour","favour","patience","revenge","chore","routine","borrow","deadline",
-      "nervous","generous","complain","celebrate","forgive","exhausted","curious","disappointed","grateful","impatient","embarrassed","relieved","tradition","superstition","nickname","curfew","allowance","reunion","tantrum","homework"],
+      "nervous","generous","complain","celebrate","forgive","exhausted","curious","disappointed","grateful","impatient",
+      "embarrassed","relieved","tradition","superstition","nickname","curfew","allowance","reunion","tantrum","homework",
+      "proud","lonely","bored","confused","suspicious","shy","greedy","brave","guilty","hopeful",
+      "furious","calm","restless","overwhelmed","offended","flattered","smug","sulking","panic","regret",
+      "worry","trust","loyalty","respect","honesty","kindness","pity","courage","doubt","a compliment",
+      "an excuse","a secret","a warning","a complaint","a bribe","a hint","a reminder","an invitation","a thank-you note","a babysitter",
+      "a hand-me-down","a sleepover","a birthday card","a house move","a first day","a last day","a family dinner","a long queue","a wrong number","a surprise party",
+      "a sick day","a day off","a lie-in","a nap","a chat","a group photo","a spare key","a shopping list","a to-do list","a wrong turn",
+      "a detour","a knock at the door","a missed call","an unopened letter","a late delivery","a doorstep chat","stressed","excited","content","annoyed",
+      "ashamed","amused","hesitant","determined","selfish","polite","rude","loud","clumsy","forgetful",
+      "punctual"],
    4:["Tuesday","awkward","leftovers","expired","overrated","coincidence","reputation","hypocrite","small talk","plot twist",
       "group chat","autopilot","jet lag","cold feet","backup plan","side effect","blind spot","false alarm","running joke","red tape",
-      "eavesdrop","procrastinate","nostalgia","overshare","spoiler","cliffhanger","micromanage","ghosting","doomscrolling","icebreaker","buzzword","loophole","scapegoat","understatement","double standard","pet peeve","comfort food","small print","rain check","the last word",
-      "screen time","a dead battery","airplane mode","a read receipt","a group chat you cannot leave"],
+      "eavesdrop","procrastinate","nostalgia","overshare","spoiler","cliffhanger","micromanage","ghosting","doomscrolling","icebreaker",
+      "buzzword","loophole","scapegoat","understatement","double standard","pet peeve","comfort food","small print","rain check","the last word",
+      "screen time","a dead battery","airplane mode","a read receipt","a group chat you cannot leave","open plan","a work call at home","a lunch break","a commute","an inbox",
+      "an out-of-office","a meeting that could have been an email","a spreadsheet","a deadline extension","a probation period","a pay rise","a CV","an interview","a promotion","a resignation",
+      "unread messages","a typo","autocorrect","a voice note","a video call freezing","a shared calendar","a password reset","two-factor","a software update","a paywall",
+      "an ad you cannot skip","a cookie banner","a recommendation","a filter","a selfie","a story that disappears","an unfollow","the mute button","a spam call","a cold email",
+      "a queue-jumper","a parking fine","a speed camera","a traffic jam","roadworks","a delayed flight","hand luggage","the middle seat","a group holiday","a rented flat",
+      "a deposit","a mortgage","splitting the bill","a subscription you forgot","a free trial","a discount code","self-checkout","a receipt","an impulse buy","buyer's remorse",
+      "a wish list","a delivery window","a returns policy","a warranty","a waiting list","a plus-one","a save-the-date","a wedding invitation","a housewarming","the school run",
+      "parents' evening","a packed lunch","a growth spurt","a sleep schedule","a step count","a gym membership","a new year's resolution","meal prep","a rest day","a sugar crash"],
    5:["homesick","bittersweet","deja vu","inside joke","comfort zone","silver lining","wake-up call","second wind","growing pains","empty nest",
       "culture shock","last resort","open secret","gut feeling","safety net","white lie","guilt trip","midlife crisis","learning curve","slippery slope",
-      "cabin fever","catch-22","cold shoulder","devil’s advocate","foot in the door","ivory tower","olive branch","paper trail","second nature","storm in a teacup","tip of the iceberg","chip on your shoulder","blessing in disguise","needle in a haystack","elephant in the room",
-      "imposter syndrome","the algorithm","left on read","a red flag","main character energy","FOMO","burnout","a soft launch"]
+      "cabin fever","catch-22","cold shoulder","devil’s advocate","foot in the door","ivory tower","olive branch","paper trail","second nature","storm in a teacup",
+      "tip of the iceberg","chip on your shoulder","blessing in disguise","needle in a haystack","elephant in the room","imposter syndrome","the algorithm","left on read","a red flag","main character energy",
+      "FOMO","burnout","a soft launch","a fish out of water","the last straw","a wild goose chase","barking up the wrong tree","on the tip of your tongue","a hard pill to swallow","the cold light of day",
+      "a rough patch","a fresh start","a clean slate","a turning point","the point of no return","a leap of faith","a shot in the dark","a long shot","a lucky break","a close call",
+      "a narrow escape","a happy accident","a labour of love","a necessary evil","a means to an end","a grey area","a slap on the wrist","a taste of your own medicine","the benefit of the doubt","a change of heart",
+      "a second chance","a skeleton in the closet","a can of worms","the last laugh","the bigger picture","the middle ground","a sore point","a soft spot","a blind date","an acquired taste",
+      "a slow burn","a hard sell","a tough crowd","a full plate","a fine line","a clean break","a done deal","a fair share","a fresh pair of eyes","a familiar face",
+      "a home truth","a white elephant","a Trojan horse","a wolf in sheep’s clothing","the eleventh hour","the calm before the storm","the writing on the wall","the road not taken","the best of both worlds","the luck of the draw",
+      "the price of fame","a golden age","a rite of passage","a comfort blanket","a support system","a red herring","a paper tiger","a glass ceiling","the rat race","a broken record",
+      "a house of cards","the domino effect","a vicious circle"]
   };
   const HE_WORDS = {
    2:["ספה","כפית","פיל","גרביים","פיצה","מטרייה","מראה","סולם","כרית","קומקום",
       "בלון","פטיש","נר","שמיכה","דלי","גיטרה","טרקטור","כריך","אופניים","תרנגולת",
-      "מצנם","מזוודה","פינגווין","מספריים","עיפרון","גזר","וילון","ארנק","שרוך","פעמון דלת","מזרן","חילזון","משרוקית","פאזל","מעיל גשם","קנקן","גולה","ספוג","מגנט","מריצה"],
+      "מצנם","מזוודה","פינגווין","מספריים","עיפרון","גזר","וילון","ארנק","שרוך","פעמון דלת",
+      "מזרן","חילזון","משרוקית","פאזל","מעיל גשם","קנקן","גולה","ספוג","מגנט","מריצה",
+      "מנורה","מקרר","מטאטא","מברג","מברשת שיניים","מגבת","סבון","אמבטיה","מדרגות","מעלית",
+      "ארובה","ידית דלת","חור מנעול","וו","שרשרת","לבנה","גדר","שער","שטיח","שרפרף",
+      "מגירה","מדף","אטב כביסה","קרש גיהוץ","מייבש שיער","שואב אבק","שעון מעורר","לוח שנה","מעטפה","בול",
+      "שדכן","דבק","מחק","סרגל","מכחול","טוש","תיק גב","קסדה","משקפי שמש","כפפה",
+      "צעיף","חגורה","כפתור","רוכסן","סינר","נעל בית","משחת שיניים","אבטיח","מלפפון","זית",
+      "ביצה","דבש","מרק","פופקורן","גלידה","פנקייק","גבינה","יוגורט","חטיף שוקולד","מסטיק",
+      "לימון","בצל","ג׳ירפה","גמל","חמור","קיפוד","ינשוף","עטלף","סרטן","תמנון",
+      "דולפין","יתוש","נמלה","דבורה","עכביש","תוכי","צב","קנגורו","סנאי","צפרדע"],
    3:["מקנא","ללחוש","עקשן","שכן","להציל","הבטחה","רכילות","חופשה","קיצור דרך","ויכוח",
       "התנצלות","מזכרת","שמועה","טובה","סבלנות","נקמה","מטלה","שגרה","לשאול","דדליין",
-      "לחוץ","נדיב","להתלונן","לחגוג","לסלוח","מותש","סקרן","מאוכזב","אסיר תודה","חסר סבלנות","נבוך","הוקל לו","מסורת","אמונה טפלה","כינוי","שעת עוצר","דמי כיס","מפגש מחזור","התקף זעם","שיעורי בית"],
+      "לחוץ","נדיב","להתלונן","לחגוג","לסלוח","מותש","סקרן","מאוכזב","אסיר תודה","חסר סבלנות",
+      "נבוך","הוקל לו","מסורת","אמונה טפלה","כינוי","שעת עוצר","דמי כיס","מפגש מחזור","התקף זעם","שיעורי בית",
+      "גאה","בודד","משועמם","מבולבל","חשדן","ביישן","חמדן","אמיץ","מרגיש אשם","מלא תקווה",
+      "זועם","רגוע","חסר מנוחה","מוצף","נעלב","מוחמא","שבע רצון מעצמו","עושה פרצוף","בהלה","חרטה",
+      "דאגה","אמון","נאמנות","כבוד","כנות","טוב לב","רחמים","אומץ","ספק","מחמאה",
+      "תירוץ","סוד","אזהרה","תלונה","שוחד","רמז","תזכורת","הזמנה","פתק תודה","בייביסיטר",
+      "בגד יד שנייה","שינה אצל חבר","כרטיס ברכה","מעבר דירה","יום ראשון בעבודה","יום אחרון","ארוחה משפחתית","תור ארוך","טעות במספר","מסיבת הפתעה",
+      "יום מחלה","יום חופש","לישון עד מאוחר","נמנום","שיחה","תמונה קבוצתית","מפתח רזרבי","רשימת קניות","רשימת מטלות","פנייה לא נכונה",
+      "עיקוף","דפיקה בדלת","שיחה שלא נענתה","מכתב שלא נפתח","משלוח שמתעכב","שיחה במדרגות","במתח","מתרגש","מרוצה","מעוצבן",
+      "מתבייש","משועשע","מהסס","נחוש","אנוכי","מנומס","גס רוח","רועש","מגושם","שכחן",
+      "דייקן"],
    4:["יום שלישי","מביך","שאריות","פג תוקף","צירוף מקרים","מוניטין","צבוע","שיחת חולין","תפנית בעלילה","קבוצת ווטסאפ",
       "טייס אוטומטי","ג׳ט לג","רגליים קרות","תוכנית גיבוי","תופעת לוואי","נקודה עיוורת","אזעקת שווא","בדיחה חוזרת","בירוקרטיה","מוערך יתר על המידה",
-      "לצותת","לדחות למחר","נוסטלגיה","לשתף יותר מדי","ספוילר","סוף פתוח","ניהול זעיר","היעלמות פתאומית","גלילה אינסופית","שובר קרח","מילת באזז","פרצה בחוק","שעיר לעזאזל","לשון המעטה","איפה ואיפה","מה שמעצבן אותי","אוכל מנחם","האותיות הקטנות","לדחות לפעם אחרת","המילה האחרונה",
-      "זמן מסך","סוללה שנגמרה","מצב טיסה","אישור קריאה","קבוצה שאי אפשר לצאת ממנה"],
+      "לצותת","לדחות למחר","נוסטלגיה","לשתף יותר מדי","ספוילר","סוף פתוח","ניהול זעיר","היעלמות פתאומית","גלילה אינסופית","שובר קרח",
+      "מילת באזז","פרצה בחוק","שעיר לעזאזל","לשון המעטה","איפה ואיפה","מה שמעצבן אותי","אוכל מנחם","האותיות הקטנות","לדחות לפעם אחרת","המילה האחרונה",
+      "זמן מסך","סוללה שנגמרה","מצב טיסה","אישור קריאה","קבוצה שאי אפשר לצאת ממנה","חלל פתוח","שיחת עבודה מהבית","הפסקת צהריים","נסיעה לעבודה","תיבת דואר נכנס",
+      "אאוט אוף אופיס","ישיבה שיכלה להיות מייל","אקסל","דחיית דדליין","תקופת ניסיון","העלאה במשכורת","קורות חיים","ראיון עבודה","קידום","מכתב התפטרות",
+      "הודעות שלא נקראו","שגיאת הקלדה","תיקון אוטומטי","הודעה קולית","שיחת וידאו שנתקעת","יומן משותף","איפוס סיסמה","אימות דו־שלבי","עדכון תוכנה","חומה של תשלום",
+      "פרסומת שאי אפשר לדלג עליה","באנר עוגיות","המלצה מותאמת","פילטר","סלפי","סטורי שנעלם","להפסיק לעקוב","השתקה","שיחת ספאם","מייל קר",
+      "מישהו שעוקף בתור","דוח חניה","מצלמת מהירות","פקק","עבודות בכביש","טיסה שמתעכבת","כבודת יד","מושב אמצעי","חופשה עם חברים","דירה בשכירות",
+      "פיקדון","משכנתא","לחלק את החשבון","מנוי ששכחת ממנו","תקופת התנסות חינם","קוד הנחה","קופה עצמית","קבלה","קנייה מתפרצת","חרטת קונים",
+      "רשימת משאלות","חלון משלוח","מדיניות החזרות","אחריות","רשימת המתנה","פלוס אחד","שמרו את התאריך","הזמנה לחתונה","חנוכת בית","הסעה לבית הספר",
+      "אסיפת הורים","כריך לבית הספר","קפיצת גדילה","שעות שינה","ספירת צעדים","מנוי לחדר כושר","החלטה לשנה החדשה","להכין אוכל מראש","יום מנוחה","צניחת סוכר"],
    5:["געגועים הביתה","מתוק־מר","דז׳ה וו","בדיחה פנימית","אזור הנוחות","צד חיובי","קריאת השכמה","רוח שנייה","כאבי גדילה","קן ריק",
       "הלם תרבותי","מוצא אחרון","סוד גלוי","תחושת בטן","רשת ביטחון","שקר לבן","חוכמה שבדיעבד","משבר אמצע החיים","עקומת למידה","מדרון חלקלק",
-      "לטפס על הקירות","מלכוד 22","פרקליט השטן","רגל בדלת","מגדל שן","ענף זית","טבע שני","סערה בכוס מים","קצה הקרחון","ברכה במסווה","מחט בערימת שחת","חרב פיפיות","קו אדום","שלום בית","הפיל שבחדר",
-      "תסמונת המתחזה","האלגוריתם","נקרא ולא נענה","דגל אדום","אנרגיה של דמות ראשית","פומו","שחיקה","השקה רכה"]
+      "לטפס על הקירות","מלכוד 22","פרקליט השטן","רגל בדלת","מגדל שן","ענף זית","טבע שני","סערה בכוס מים","קצה הקרחון","ברכה במסווה",
+      "מחט בערימת שחת","חרב פיפיות","קו אדום","שלום בית","הפיל שבחדר","תסמונת המתחזה","האלגוריתם","נקרא ולא נענה","דגל אדום","אנרגיה של דמות ראשית",
+      "פומו","שחיקה","השקה רכה","דג מחוץ למים","הקש ששבר את גב הגמל","לרדוף אחרי הרוח","לחפור בכיוון הלא נכון","על קצה הלשון","גלולה מרה","לשחק באש",
+      "אור היום","תקופה קשה","התחלה חדשה","דף חלק","נקודת מפנה","נקודת אל־חזור","קפיצה למים","יריה באפלה","סיכוי קלוש","מזל שנפל",
+      "פסע מאסון","הצלה ברגע האחרון","תקלה משמחת","עבודה מאהבה","רע הכרחי","אמצעי למטרה","אזור אפור","טפיחה על היד","לטעום מהתרופה של עצמך","ליהנות מהספק",
+      "שינוי בלב","הזדמנות שנייה","שלד בארון","תיבת פנדורה","הצחוק האחרון","התמונה הגדולה","שביל הזהב","נקודה רגישה","חולשה למישהו","דייט עיוור",
+      "טעם נרכש","בערה איטית","מכירה בכוח","קהל קשה","צלחת מלאה","קו דק","ניתוק נקי","עסקה סגורה","החלק שלי","עין רעננה",
+      "פנים מוכרות","אמת שכואבת","פיל לבן","סוס טרויאני","הרגע האחרון","השקט שלפני הסערה","הכתובת על הקיר","הדרך שלא נבחרה","גם וגם","עניין של מזל",
+      "מחיר התהילה","תור הזהב","טקס מעבר","שמיכת ביטחון","מערכת תמיכה","הסחת דעת מכוונת","נמר של נייר","תקרת זכוכית","מרוץ העכברים","תקליט שבור",
+      "מגדל קלפים","אפקט הדומינו","מעגל קסמים"]
   };
 
   /* ============ cards ============ */
@@ -647,11 +717,18 @@ function createEngine(){
    /* Twist is the board about words and how you are allowed to say them:
       Partners, Two words, One word, The link, and Blind at the awkward end.
       No Fast, no Duel, no Gamble and no Mime — nothing here is about the
-      clock or about nerve. */
+      clock or about nerve.
+
+      Its wildcard used to sit in column 0, which made the quiet lane the best
+      lane on the board as well as the safest: hug it, take a wildcard every
+      five rows, and never once play Blind. A lane costs nothing to stay in —
+      two moves in three can reach any of them — so the only thing that pulls
+      a player across is where the board keeps its treasure. On every other
+      map that pull runs toward the awkward end. Here it ran away from it. */
    twist:{ id:"twist", themeId:"twist", rowsDelta:0,
      pattern:{ 0:["S","T","W","T","S","W"], 1:["T","W","O","W","T","O"],
                2:["O","L","W","L","O","T"], 3:["B","L","B","O","B","L"] },
-     cardRule:{ col:2, every:4 }, wildRule:{ col:0, every:5 } },
+     cardRule:{ col:2, every:4 }, wildRule:{ col:3, every:5 } },
    /* Storm is the wild board, not the long one — its character is in the
       pattern, and two extra rows on top of it ran one game in eight past
       forty minutes once the rounds themselves grew longer. */

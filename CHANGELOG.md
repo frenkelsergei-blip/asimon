@@ -5,6 +5,12 @@ game itself shows under the version at the foot of the first screen.
 
 Generated from `game/changelog.js` by `npm run release` — edit that file, not this one.
 
+## 0.10.0 — 2026-09-08
+
+### Rules
+
+- On Twist the wildcard square has moved to the far lane, beside Blind and The link, so the quiet lane is no longer the richest one as well as the safest.
+
 ## 0.9.0 — 2026-09-08
 
 ### Added

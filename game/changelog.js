@@ -36,6 +36,12 @@ const RANK = { patch:0, minor:1, major:2 };
 
 const RELEASES = [
 
+  { v:"0.10.0", date:"2026-09-08", lines:[
+    { kind:"rules",
+      en:"On Twist the wildcard square has moved to the far lane, beside Blind and The link, so the quiet lane is no longer the richest one as well as the safest.",
+      he:"בתפנית משבצת ההפתעה עברה לנתיב הרחוק, ליד עיוור והקישור, כך שהנתיב השקט כבר לא גם הבטוח וגם העשיר ביותר." }
+  ]},
+
   { v:"0.9.0", date:"2026-09-08", lines:[
     { kind:"change",
       en:"On the screen the fox, the cat, the owl, the frog and the panda stand up like everybody else — a head with ears on a pair of shoulders, not a badge on a stick.",

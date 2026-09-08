@@ -365,10 +365,17 @@ name in the lobby is describing.
 | map | rows | card square | wildcard | kinds | its character |
 |---|---|---|---|---|---|
 | **classic** | 0 | col 1, every 3 | col 3, every 5 | **all ten** | the board that teaches you the game — an even mix of everything |
-| **twist** | 0 | col 2, every 4 | col 0, every 5 | Partners, Two words, One word, The link, Blind | the words and how you may say them. Nothing about the clock or about nerve. The wildcard sits in the quiet lane |
+| **twist** | 0 | col 2, every 4 | col 3, every 5 | Partners, Two words, One word, The link, Blind | the words and how you may say them. Nothing about the clock or about nerve |
 | **storm** | +1 | col 1, every 4 | col 2, every 4 | Duel, The link, Gamble, Mime, Blind | the hard five and nothing else. Its quiet lane is quiet because it is nearly empty, not because it is gentle |
 | **sprint** | −3 | col 0, every 3 | col 3, every 4 | Fast, Partners, One word, Duel, Gamble | the gentle five, with Gamble alone on the right so a short board still has something to lose. Keeps its promise: never Mime, never Blind |
 | **chaos** | 0 | col 3, every 3 | col 1, every 4 | **all ten** | named for playing everything, and the one board where the quiet lane is not quiet |
+
+On every board, at least one of the two treasures — the card square or the
+wildcard — sits on the awkward side. That is the only thing pulling anybody
+across the board: a lane costs nothing to stay in, since two moves in three can
+reach any of them, so a player who is never tempted out of the quiet lane never
+leaves it. Chaos does it with cards, which it deals in column 3 every third
+row; the rest do it with the wildcard.
 
 Laid as Crossroads, any of them has half its squares and a junction every fifth
 row. A board with a repertoire **keeps it** — storm as roads is still the five
