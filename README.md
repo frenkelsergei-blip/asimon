@@ -15,6 +15,10 @@ node server.js
 Then everyone opens the address it prints. On this machine that is the Wi-Fi
 address; once it is hosted, it is the public one.
 
+**What the game *is* — every rule, every number, the feature inventory and the
+protocol — is in [`docs/spec/`](docs/spec/).** This README is how to run it and
+how to ship it.
+
 ## What is here
 
 | | |
@@ -23,6 +27,8 @@ address; once it is hosted, it is the public one.
 | `game/engine.js` | the rules and all the content — written by hand |
 | `game/build-engine.js` | lifts that engine out of the pass-and-play build |
 | `game/play.js` | the round across several phones, and who may see what |
+| `game/changelog.js` | what changed and in which version &mdash; and the source of the version number |
+| `game/release.js` | works that number out from the tags and writes it, and `CHANGELOG.md`, from the same file |
 | `public/` | the phone: `index.html`, `app.js`, `art.js`, `style.css` |
 | `public/board.html` | the screen in the room &mdash; with `board.js` and `board.css` |
 | `public/boardart.js` | the board itself, drawn once for both the phone and the screen |
@@ -32,6 +38,7 @@ address; once it is hosted, it is the public one.
 | `design/logo/` | the logo canvas the mark came out of |
 | `design/screen/` | the canvas the screen in the room was drawn on |
 | `design/poster/` | the printed sheets, built by `node design/poster/build.js` |
+| `docs/spec/` | the specs &mdash; the rules, the features, the protocol, the conventions |
 
 The engine began as a lift out of the pass-and-play build, and `game/build-engine.js`
 is the script that did it. It does not run any more: the game modes, the five
@@ -46,13 +53,14 @@ says what a change did to the game.
 npm test
 ```
 
-Eleven suites: the rules over 540 simulated games, the seven cards, a stalled
+Twelve suites: the rules over 540 simulated games, the seven cards, a stalled
 room, the copy (every key either page asks for answers in both languages), the
 shape of a round (a blind verdict belongs to the table; the podium names the
 winner), a full round over real HTTP (asserting the giver's words never reach
 another phone), phones dropping and reconnecting, a phone carrying a group, a
 seat given up mid-round, the screen in the room (no seat, and no word before
-the reveal), and the version surface.
+the reveal), the changelog (nothing drifted from `game/changelog.js`), and the
+version surface.
 
 ## The playtest
 
@@ -192,13 +200,31 @@ The token and the palette are lifted out of `public/art.js` and
 with the game it is a poster for. `design/poster/canvas.json` keeps the two
 printed sheets on one page and two other poster directions on a second.
 
-The PDFs under `docs/assets/` are those print files rendered at A4:
+The PDFs under `docs/assets/` are A4 renders, but the two come from
+different places and it matters which.
+
+**The sheet** is its print file, rendered straight:
 
 ```bash
 "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
   --headless --no-pdf-header-footer --virtual-time-budget=6000 \
-  --print-to-pdf=docs/assets/asimon-poster-A4.pdf d/Main.html
+  --print-to-pdf=docs/assets/asimon-how-to-play-A4.pdf \
+  design/poster/print/HowToPlay.html
 ```
+
+**The poster is not `Main.html`.** `Main.dc.html` draws the room in the game's
+own flat shapes and stays the layout of record &mdash; it is where the wording,
+the steps and the foot strip are decided. What ships is that same layout
+*painted*: `design/kit/export/poster_asimon.jpg`, wrapped full bleed at A4
+(`object-fit: cover`; the art is 0.3% wide of A4, so about a pixel a side goes).
+Rendering `d/Main.html` over `asimon-poster-A4.pdf` would quietly put the vector
+version back.
+
+That is the trade the painting makes: it is 1728&times;2436, so roughly 210dpi
+at A4 &mdash; fine for a sheet somebody pins up, short of a print shop's 300
+&mdash; and every word on it is pixels. Change the address, the player count or
+the three steps and the poster has to be repainted, which is exactly what
+`Main.dc.html` is kept for.
 
 ## Versions, and getting a phone off an old one
 
@@ -229,8 +255,54 @@ screen, in the lobby, and on the podium, but never mid-round, which is not the
 moment to ask anyone to reload. Tapping it drops any service worker and cache
 the phone may be holding, then comes back on an address it has never seen.
 
-Bump `version` in `package.json` for a release anyone should notice. Nothing
-depends on remembering to: the hash moves on its own the moment a file does.
+The build hash moves on its own the moment a file does, so a phone always knows
+it is stale. What it cannot know from a hash is *what it is missing* &mdash;
+which is what the version number and the changelog are for, and they are the
+same thing here.
+
+`game/changelog.js` is the source of the version number rather than a record of
+it. You write the lines and the number falls out of them &mdash; nobody chooses
+a digit:
+
+```js
+{ lines:[
+  { kind:"rules", en:"A Gamble nobody gets now costs the giver two, not one.",
+                  he:"הימור שאף אחד לא קולט עולה לנותן שתיים, לא אחת." }
+]},
+```
+
+Each line is tagged `new`, `rules`, `change` or `fix`. The first two are things
+a player did not have before or no longer work the way they learned them, and a
+release carrying either is a **minor**; a release of nothing but `change` and
+`fix` is a **patch**. `bump:"major"` on an entry raises that &mdash; which is
+how 1.0 will happen &mdash; and nothing can lower it.
+
+`npm run release` reads those tags, writes the number and today's date into the
+entry at the top, sets `version` in `package.json`, and regenerates
+`CHANGELOG.md` from the English side:
+
+```
+release 0.5.0
+  game/changelog.js  0.4.1 -> 0.5.0   (its lines earn a minor)
+  package.json 0.4.1 -> 0.5.0
+  CHANGELOG.md
+```
+
+So the version cannot move without a line saying what moved with it, a line
+cannot be written without a version to hang it on, and neither of them depends
+on anybody's judgement at the end of the day. `npm test` holds all three ends:
+`game/changelog.test.js` fails when a release carries a number its own lines do
+not earn, or when `package.json` or `CHANGELOG.md` has drifted from the source,
+and `game/version.test.js` fails when the server is serving a version the
+changelog does not name. The one judgement left &mdash; whether a change is
+worth a line at all &mdash; is in [CLAUDE.md](CLAUDE.md), next to the rest of
+what a commit here owes.
+
+The phone reads the same list from `/api/changelog`, already in the language it
+is drawing in, and shows it under **What's new** on the version line at the foot
+of the first screen &mdash; beside the build it is running and the check for a
+newer one, because that is where somebody is already asking. The release they
+are actually on is marked.
 
 The caching follows from the same stamp. The page is never cached &mdash; it
 is the one thing that must be fresh, because it names everything else. An asset
