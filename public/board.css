@@ -102,9 +102,17 @@ body{ margin:0 }
 .chip.tone{ background:var(--tone-soft); color:var(--tone-ink) }
 
 /* ---------------- the table: where everybody stands ---------------- */
+/* The pane is given whatever height is left over, and the rows have to live
+   inside it. Centring a list that is taller than its box crops it at BOTH
+   ends — the first row loses the giver's tag off the top and the last player
+   loses their score off the bottom — so instead the pane keeps its own em:
+   it is told how many rows it is holding, and every row comes down together,
+   face, name, bar and score, until they fit. Six is the height of one row in
+   its own em; the quarter is the pane's own padding shared out. */
 .standings{ background:var(--surface); border:1px solid var(--rule); border-radius:.875em;
-  padding:.25em 1.375em; flex:1; min-height:0; overflow:hidden;
+  padding:.25em 1.375em; flex:1; min-height:0; overflow:hidden; container-type:size;
   display:flex; flex-direction:column; justify-content:center }
+.standings .srow{ font-size:min(1em, 100cqh / (var(--n, 4) * 6.25)) }
 .srow{ display:grid; grid-template-columns:3.25em minmax(0,1fr) auto; align-items:center;
   column-gap:1.125em; padding:.9375em 0; border-bottom:1px solid var(--hair) }
 .srow:last-child{ border-bottom:0 }
@@ -209,7 +217,10 @@ body{ margin:0 }
   .sbody{ grid-template-columns:minmax(0,1fr); grid-template-rows:auto minmax(0,1fr) }
   .boardpane{ min-height:46vh }
   .side{ order:-1 }
-  .standings{ flex:0 0 auto; overflow:visible }
+  /* stood up, the page scrolls instead of squeezing, so the pane sizes itself
+     off its rows again and they go back to the page's own em */
+  .standings{ flex:0 0 auto; overflow:visible; container-type:normal }
+  .standings .srow{ font-size:1em }
   .srow{ padding:.625em 0 }
   .rbox h2{ font-size:2em }
   .rbox h2.word{ font-size:2.6em }

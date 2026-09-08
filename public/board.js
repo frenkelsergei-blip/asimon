@@ -421,7 +421,7 @@ function chips(s){
 function standings(s){
   const rows = s.rows || 1, steps = s.steps || {}, pts = {};
   if(s.phase === "reveal" && s.result) s.result.rows.forEach(r => { pts[r.id] = r.pts; });
-  const out = (s.units || []).slice()
+  const list = (s.units || []).slice()
     /* Whoever won leads, then by how far up the board, then by score. Two
        units can cross in the same round, and the one with more points is not
        always the one that got there — sorted on score alone the screen put
@@ -454,8 +454,9 @@ function standings(s){
           '<span class="sscore">'+u.score+'</span>'+
           '<span class="spts">'+t("sc_pts")+'</span></span>'+
         '</div>';
-    }).join("");
-  return '<div class="standings">'+out+'</div>';
+    });
+  /* the pane scales its rows to fit, and cannot count them itself */
+  return '<div class="standings" style="--n:'+Math.max(1, list.length)+'">'+list.join("")+'</div>';
 }
 
 /* the whole screen: the board, the moment, the table */
