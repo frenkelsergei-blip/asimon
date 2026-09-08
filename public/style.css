@@ -377,8 +377,18 @@ button.quiet.warn{color:var(--guilty-ink)}
 .band .hit.bad{background:var(--guilty)}
 
 /* the board */
-.boardwrap{background:var(--surface);border:1px solid var(--rule);border-radius:16px;padding:12px 8px 8px}
+.boardwrap{background:var(--surface);border:1px solid var(--rule);border-radius:16px;padding:12px 8px 8px;
+  position:relative}
 .board{width:100%;display:block}
+/* Cropped, the board is a strip of the rows you may reach rather than all
+   seventeen, so it no longer has the tall board's ratio and must not be sized
+   off it. The way back out sits in the corner of the card: a word, quiet
+   enough that the squares under it stay the thing being looked at. */
+.boardwrap.zoomable{padding-top:calc(40px * var(--k))}
+.zoomer{position:absolute;inset-block-start:calc(8px * var(--k));inset-inline-end:calc(9px * var(--k));
+  z-index:1;width:auto;background:var(--sunk);color:var(--muted);box-shadow:none;border-radius:999px;
+  font-size:calc(12.5px * var(--k));font-weight:700;
+  padding:calc(6px * var(--k)) calc(13px * var(--k))}
 .track{display:flex;flex-direction:column;gap:10px}
 .trow{display:grid;grid-template-columns:calc(26px * var(--k)) 1fr auto;align-items:center;column-gap:10px}
 .tname{font-size:calc(13.5px * var(--k));font-weight:700;display:flex;align-items:baseline;gap:7px;min-width:0}
@@ -792,7 +802,7 @@ button.quiet.warn{color:var(--guilty-ink)}
      hold it to the height there is and, being an svg with a fixed ratio,
      it gives up width instead of running off the bottom */
   #app .boardwrap{ display:flex; justify-content:center }
-  #app .board{ max-width:min(100%,calc(var(--boardh) * 4 / 7)) }
+  #app .board:not(.cropped){ max-width:min(100%,calc(var(--boardh) * 4 / 7)) }
 }
 
 /* ---- a large tablet: further from the eye, so larger again ---- */
@@ -873,8 +883,14 @@ button.quiet.warn{color:var(--guilty-ink)}
     grid-column:2; grid-row:1 / span 40; margin-bottom:0; align-self:center;
     width:min(40vw,calc(300px * var(--k))) }
 
-  /* given a height, the board's svg works out its own width */
-  #app .stack:has(> .boardwrap) .board{ width:auto; height:var(--boardh); max-width:none }
+  /* given a height, the board's svg works out its own width — but a cropped
+     board is wide and short, and given a height it would work out a width
+     wider than the room it is standing in */
+  #app .stack:has(> .boardwrap) .board:not(.cropped){ width:auto; height:var(--boardh); max-width:none }
+  /* a cropped board has no height to be sized off, so it takes the column
+     instead: the half of the glass this layout set aside for the figure */
+  #app .stack:has(> .boardwrap) > .boardwrap:has(.board.cropped){ width:46vw }
+  #app .stack:has(> .boardwrap) .board.cropped{ width:100%; max-height:var(--boardh) }
   /* the dome is the thing a hand goes for, and it is bigger here than a
      phone ever gets it, because it no longer stands under the clock */
   /* the dome's halo pings out well past its own edge, so the column it

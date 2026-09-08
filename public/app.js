@@ -107,6 +107,7 @@ const L = {
     hw_board_d:"כל נקודה שצברתם היא צעד על הלוח. הראשון שמגיע לסוף מנצח — בערך שמונה סבבים, כ־25 דקות. במסך התנועה יש הסבר מלא על הלוח.",
     /* ---- מקרא הלוח ---- */
     lg_open:"מה זה הלוח?", lg_teaser:"מסלולים, קלפים, ואיך בכלל זזים.",
+    zoom_out:"כל הלוח", zoom_in:"רק המהלכים שלי",
     lg_k:"קוראים את הלוח", lg_close:"סגירה",
     lg_step_k:"איך זזים",
     lg_step_d:"כל נקודה שצברתם בסבב היא צעד אחד. צעד = שורה אחת קדימה, ואפשר לגלוש מסלול אחד ימינה או שמאלה. אפשר לעצור בכל משבצת שמסומנת — לא חייבים לנצל את כל הצעדים.",
@@ -237,6 +238,7 @@ const L = {
     hw_board_d:"Every point you score is a step on the board. First to the end wins — about eight rounds, 25 minutes. The move screen explains the board in full.",
     /* ---- the board legend ---- */
     lg_open:"What is this board?", lg_teaser:"Lanes, cards, and how a step works.",
+    zoom_out:"The whole board", zoom_in:"Just my moves",
     lg_k:"Reading the board", lg_close:"Close",
     lg_step_k:"How you move",
     lg_step_d:"Every point you scored this round is one step. A step is one row forward, and you may drift one lane left or right. Stop on any marked square — you do not have to spend them all.",
@@ -346,6 +348,9 @@ const K_FACE = "lastsecond.face" + (SEAT ? "." + SEAT : "");
 let waitAt = 0, waitTimer = null, idleMs = 45000;
 const waitedMs = () => Date.now() - waitAt;
 let movePickLocal = null, showHand = false;
+/* The move screen opens on the squares you may actually stand on rather than
+   on all seventeen rows; this is the way back out, and back in. */
+let boardZoom = true;
 /* the help sheet: null | "rules" | "legend". sheetSeen stops it sliding in again
    every time the room pushes new state while it is open */
 let sheet = null, sheetSeen = false;
@@ -492,7 +497,8 @@ function connect(){
     const prev = state;
     state = msg.state;
     if(state.lang !== lang){ lang = state.lang; applyLang(); }
-    if(!prev || prev.phase !== state.phase || prev.round !== state.round){ movePickLocal = null; showHand = false; }
+    if(!prev || prev.phase !== state.phase || prev.round !== state.round){
+      movePickLocal = null; showHand = false; boardZoom = true; }
     if(typeof state.remainMs === "number"){ clockMs = state.remainMs; clockAt = Date.now(); }
     if(state.paused){ pauseMs = state.paused.ms; pauseAt = Date.now(); pauseAsk = false; }
     waitAt = Date.now() - ((state.waiting && state.waiting.forMs) || 0);
@@ -1394,9 +1400,9 @@ function bandGlyph(i){
    draws the same one. What stays here is what only a phone knows: which
    squares are yours to tap, and what the squares are called in this language. */
 const COLC = ["var(--accent)","var(--good)","var(--blind)","var(--guilty)"];
-function boardSVG(s, spots, picked){
+function boardSVG(s, spots, picked, crop){
   return asimonBoard.draw({
-    board: s.board, units: s.units, spots, picked, pick: true,
+    board: s.board, units: s.units, spots, picked, pick: true, window: crop,
     label: n => n.t === "CARD" ? t("card_node") : n.t === "WILD" ? "" : ((pack.mods[n.t]||{}).s || ""),
     endText: lang === "he" ? "סוף" : "END",
     moved: u => !!(lastPos[u.id] && (lastPos[u.id] !== u.pos.r+","+u.pos.c))
@@ -1425,6 +1431,15 @@ function vMove(s){
   if(mv.mine && !sawBoard()){ markBoard(); sheet = "legend"; sheetSeen = false; }
   const picked = mv.mine ? (movePickLocal || mv.picked) : mv.picked;
   const sel = picked && mv.spots.find(p => p.r === picked.r && p.c === picked.c);
+  /* Cropped to the squares that are yours, plus the one you are standing on so
+     the step is a step from somewhere. Only on your own turn: watching somebody
+     else move, the whole board is the thing worth seeing. */
+  const here = (s.units.find(u => u.id === mv.unitId) || {}).pos;
+  const crop = mv.mine && boardZoom && mv.spots.length
+    ? asimonBoard.windowFor(s.rows, mv.spots.concat(here ? [here] : []))
+    : null;
+  const zoomer = mv.mine && mv.spots.length
+    ? '<button class="zoomer" id="zoom">'+(crop ? t("zoom_out") : t("zoom_in"))+'</button>' : '';
   const queue = mv.of < 2 ? "" :
     '<p class="kicker">'+t("move_queue_k", mv.of)+'</p><div class="qbar">'+
     (s.queue||[]).map(q => '<span class="qchip'+(q.done?" done":(q.now?" now":""))+'">'+
@@ -1448,7 +1463,8 @@ function vMove(s){
         '<span><span class="wt">'+tUnit("waitmove", s.units.find(u=>u.id===mv.unitId), mv.unitName)+'</span>'+
         '<span class="ws">'+t("yourturn", esc(mv.unitName))+'</span></span></div>')+
     queue+stuckBar(s)+
-    '<div class="boardwrap">'+boardSVG(s, mv.mine ? mv.spots : [], picked)+'</div>'+
+    '<div class="boardwrap'+(zoomer?" zoomable":"")+'">'+zoomer+
+      boardSVG(s, mv.mine ? mv.spots : [], picked, crop)+'</div>'+
     learnBtn("boardhelp", t("lg_open"), t("lg_teaser"))+
     (mv.mine ? readout : "")+errBox()+
     (mv.mine ? '<button id="go"'+(sel?"":" disabled")+'>'+(sel?t("move_confirm"):t("move_pick"))+'</button>' : '')+
@@ -1461,6 +1477,7 @@ function vMove(s){
       act({ type:"movepick", r, c });
     }));
     on("go", () => { movePickLocal = null; act({ type:"moveconfirm" }); });
+    on("zoom", () => { boardZoom = !boardZoom; render(); });
   }
 }
 function podium(s){
