@@ -12,7 +12,7 @@ different design.
 
 `game/engine.js` is written by hand and must stay that way — `game/build-engine.js`
 records how it was first lifted out of the pass-and-play build and no longer
-runs. Regenerating it deletes the game modes, the five boards, the wildcard
+runs. Regenerating it deletes the game modes, the six boards, the wildcard
 square and the board's balance.
 
 ## Every commit sets the version

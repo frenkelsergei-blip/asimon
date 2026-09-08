@@ -302,7 +302,7 @@ const MODES_COPY = {
 };
 const MODE_IDS = ["quick","regular","slow","challenge"];
 
-/* the five maps: different board shapes, card placement, and colour theme.
+/* the six maps: different board shapes, card placement, and colour theme.
    Picked randomly per game; the host may reroll before starting. */
 const MAPS_COPY = {
   he:{
@@ -310,14 +310,16 @@ const MAPS_COPY = {
     twist:  {n:"תפנית",     d:"אותם סוגי סבבים, סידור אחר על הלוח."},
     storm:  {n:"סופה",      d:"לוח ארוך יותר, עמוס בסבבים קשים."},
     sprint: {n:"ספרינט",    d:"לוח קצר וזורם, כמעט בלי סיבוכים."},
-    chaos:  {n:"תוהו ובוהו", d:"בלי דפוס קבוע — כל מסלול מפתיע."}
+    chaos:  {n:"תוהו ובוהו", d:"בלי דפוס קבוע — כל מסלול מפתיע."},
+    crossroads:{n:"פרשת דרכים", d:"דרכים במקום מסלולים — בוחרים אחת ונשארים עליה עד הצומת הבא."}
   },
   en:{
     classic:{n:"Classic", d:"The board you already know — an even mix of everything."},
     twist:  {n:"Twist",   d:"The same kinds of rounds, laid out differently."},
     storm:  {n:"Storm",   d:"A longer board, thick with the hard rounds."},
     sprint: {n:"Sprint",  d:"A short, flowing board with barely a snag."},
-    chaos:  {n:"Chaos",   d:"No fixed pattern — every lane keeps you guessing."}
+    chaos:  {n:"Chaos",   d:"No fixed pattern — every lane keeps you guessing."},
+    crossroads:{n:"Crossroads", d:"Roads instead of lanes — take one and you are on it until the next junction."}
   }
 };
 /* four lane colours per map theme, read off the CSS custom properties so a

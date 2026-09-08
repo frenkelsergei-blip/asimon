@@ -756,7 +756,7 @@ checkMin("Modes", "quick and slow actually differ in length", modeSpread,
       "the four modes are meant to feel different — widen the timer or rowsDelta gap");
 
 /* ---------- 3. boards ---------- */
-head("by board — five maps");
+head("by board — six maps");
 table(SLICE_COLS, MAPS.map(m => slice(m, runs.filter(g => g.cfg.map === m))).filter(Boolean));
 line();
 line("  what each board actually deals out:");

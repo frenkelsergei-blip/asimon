@@ -78,11 +78,18 @@ function boardLayout(room){
   const e = room.engine;
   const mapId = e.S.mapId;
   if(room.boardCache && room.boardCache.rows === e.ROWS() && room.boardCache.mapId === mapId) return room.boardCache;
-  const rows = e.ROWS(), nodes = [];
+  const rows = e.ROWS(), nodes = [], ways = [];
   for(let r = 1; r <= rows; r++)
-    for(let c = 0; c < 4; c++)
+    e.nodeCols(r).forEach(c => {
       nodes.push({ r, c, t: e.isCardNode(r,c) ? "CARD" : e.isWildNode(r,c) ? "WILD" : e.nodeTypeAt(r,c) });
-  room.boardCache = { rows, cols:4, mapId, themeId: (e.MAPS[mapId] || e.MAPS.classic).themeId, nodes };
+      /* On a road map the ways between squares are the board — a square with
+         one way on is a road you are committed to, and a phone that drew the
+         old lattice behind it would be drawing a rule the board is not
+         playing. A lattice sends none of these and the phone assumes them. */
+      if(e.S.shape && r < rows) e.nextFrom({ r, c }).forEach(q => ways.push([r, c, q.c]));
+    });
+  room.boardCache = { rows, cols:4, mapId, themeId: (e.MAPS[mapId] || e.MAPS.classic).themeId,
+                      nodes, ways: ways.length ? ways : null };
   return room.boardCache;
 }
 

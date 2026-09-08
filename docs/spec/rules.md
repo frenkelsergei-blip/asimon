@@ -39,15 +39,51 @@ of it. The full list of phases is in [architecture.md](architecture.md#phases).
 `COLS = 4`. A position is `{r,c}`. `r = 0` is the start line, `r = ROWS()+1` is
 the finish.
 
-From any square there are **three ways on**: straight up, or one column left,
-or one column right (`nextFrom()`). From the start line you may enter any of
-the four columns. You re-choose every single round, which is the whole point of
-the board — the lane is a running decision, not a starting one.
+On a **lattice** board — five of the six — every square exists and there are
+**three ways on** from each: straight up, or one column left, or one column
+right (`nextFrom()`). From the start line you may enter any of the four
+columns. You re-choose every single round, which is the whole point of the
+board — the lane is a running decision, not a starting one.
 
 ```
 col 0        col 1        col 2        col 3
 quiet ────────────────────────────────► awkward
 ```
+
+### Road boards
+
+A map carrying a `roads` rule is a network rather than a lattice, and
+`buildRoads()` lays it out once when the board is set. Three things change, and
+only inside `nextFrom()` — `reachable()`, the phones, the screen and the bots
+all read the board through it:
+
+- **Not every square is there.** `nodeCols(r)` says which columns row `r`
+  carries; `nodeExists(r,c)` asks about one. About half a lattice's squares.
+- **The ways between them are laid, not assumed.** Between two junctions the
+  board carries two or three roads that do not touch, each wandering a column
+  either way as it climbs. Most squares therefore have **one** way on: get on
+  a road and you are on it until the next junction. A **crossover** — one or
+  two per segment, where two roads run within a column of each other — is the
+  only place a route changes its mind mid-segment.
+- **Every `junction`th row is one square**, which the whole table passes
+  through and which fans out to every road of the segment above. It is the
+  place to change your mind about the rest of the board, and the start line
+  has always worked exactly this way.
+
+The card and the wildcard keep the frequency their map asked for: where the
+square a rule names is not on the board, the rule takes the next one up its own
+column rather than losing its turn. A wildcard's leap or slip keeps its column,
+so on a road board it lands on the nearest square that is actually there
+(`landOn()`).
+
+A road board also draws its **repertoire** each game: the plain square, plus
+`roads.kinds` of the nine variants, spanned so at least one is gentle and at
+least one is harsh, and laid out gentle-left to harsh-right. Two games on it
+are two different games, and neither asks the table to hold ten rules at once.
+A third of the board is Standard, against a fifth on a lattice — with fewer
+squares and no free lane change, somewhere quiet has to be built in rather than
+always being one step away. A mode's reweighting still colours the board, but
+inside that repertoire (`buildPattern(map, modeId, allowed)`).
 
 Column 0 is the lane you hug when you want a round that cannot punish you. It
 carries Partners and Fast and none of Gamble, Mime or Blind — on every map but
@@ -308,11 +344,12 @@ net, and `game/engine.test.js` is what holds it.
 Quick and Slow both weight `M`, `B` to zero: a short evening should never ask
 anyone to mime or play blind. Challenge weights them to 3.
 
-## 9. The five maps
+## 9. The six maps
 
 `MAPS` in `game/engine.js`. Same 4-column shape, six-row repeating pattern per
 column, its own card and wildcard rules, its own row nudge, and a `themeId` the
-client repaints with.
+client repaints with. **crossroads** additionally carries a `roads` rule, which
+makes it a network rather than a lattice — see [Road boards](#road-boards).
 
 | map | rows | card square | wildcard | its character |
 |---|---|---|---|---|
@@ -321,6 +358,7 @@ client repaints with.
 | **storm** | +1 | col 1, every 4 | col 2, every 4 | the wild board — Blind and Gamble everywhere right |
 | **sprint** | −3 | col 0, every 3 | col 3, every 4 | short, and **never** asks you to mime or play blind |
 | **chaos** | 0 | col 3, every 3 | col 1, every 4 | the one board where the quiet lane is not quiet |
+| **crossroads** | 0 | col 1, every 3 | col 3, every 4 | roads instead of lanes: half the squares, a junction every fifth row, and five of the ten kinds of round drawn fresh each game. Borrows twist's paint |
 
 The host can reroll the map from the lobby (`reroll_map`).
 

@@ -47,12 +47,12 @@ const L = {
     sc_w_jack:"ג׳קפוט", sc_w_jack_d:"שתי נקודות, כאן ועכשיו.",
     sc_host:"מארח/ת",
     sc_maponly:"רק המפה", sc_mapback:"להראות גם את המצב",
-    sc_tip:"להטות את הלוח", sc_lay:"לשטח את הלוח",
+    sc_snd_on:"להשמיע את המקום", sc_snd_off:"להשתיק",
     sc_over_k:"נגמר", sc_wins:"{0} מנצח/ת", sc_wins_p:"{0} מנצחים", sc_won_tag:"ניצח",
     sc_pts:"נק׳", sc_cards_k:"קלפים", sc_card_k:"קלף", sc_row_k:"שורה", sc_waiting:"מחכים ל{0}",
-    /* the five boards and the four speeds, named as the phone names them */
+    /* the six boards and the four speeds, named as the phone names them */
     sc_map_classic:"קלאסי", sc_map_twist:"תפנית", sc_map_storm:"סופה",
-    sc_map_sprint:"ספרינט", sc_map_chaos:"תוהו ובוהו",
+    sc_map_sprint:"ספרינט", sc_map_chaos:"תוהו ובוהו", sc_map_crossroads:"פרשת דרכים",
     sc_gm_quick:"מהיר", sc_gm_regular:"רגיל", sc_gm_slow:"רגוע", sc_gm_challenge:"אתגר",
     sc_seat_solo:"כל אחד לעצמו", sc_seat_pairs:"בזוגות", sc_seat_groups:"בקבוצות"
   },
@@ -87,12 +87,12 @@ const L = {
     sc_w_jack:"Jackpot", sc_w_jack_d:"Two points, right now.",
     sc_host:"Host",
     sc_maponly:"The map on its own", sc_mapback:"Show the state as well",
-    sc_tip:"Tip the board", sc_lay:"Lay it flat",
+    sc_snd_on:"Hear the place", sc_snd_off:"Quiet",
     sc_over_k:"That is the game", sc_wins:"{0} wins", sc_wins_p:"{0} win", sc_won_tag:"won",
     sc_pts:"pts", sc_cards_k:"cards", sc_card_k:"card", sc_row_k:"row", sc_waiting:"Waiting on {0}",
-    /* the five boards and the four speeds, named as the phone names them */
+    /* the six boards and the four speeds, named as the phone names them */
     sc_map_classic:"Classic", sc_map_twist:"Twist", sc_map_storm:"Storm",
-    sc_map_sprint:"Sprint", sc_map_chaos:"Chaos",
+    sc_map_sprint:"Sprint", sc_map_chaos:"Chaos", sc_map_crossroads:"Crossroads",
     sc_gm_quick:"Quick", sc_gm_regular:"Regular", sc_gm_slow:"Slow", sc_gm_challenge:"Challenge",
     sc_seat_solo:"Every player for themselves", sc_seat_pairs:"In pairs", sc_seat_groups:"In groups"
   }
@@ -108,10 +108,12 @@ let clockAt = 0, clockMs = 0, ticker = null, pauseAt = 0, pauseMs = 0;
    up that way once is meant to be left alone. */
 const K_MAP = "asimon.screen.map";
 let mapOnly = false;
-/* and, once it is on its own, whether the board is tipped back into the room
-   or lying flat. Remembered the same way and for the same reason. */
-const K_TIP = "asimon.screen.tip";
-let tipped = false;
+/* Whether the place is heard as well as seen — a breeze over the farm, the
+   insects in the jungle. Off until somebody in the room asks, because a
+   television that starts making noise on its own is not a guest; and
+   remembered, because one that has been asked is meant to stay asked. */
+const K_SND = "asimon.screen.sound";
+let sound = false;
 /* remembers where each token was, so only a token that moved animates */
 const lastPos = {};
 
@@ -253,19 +255,27 @@ function shead(s){
 }
 
 /* ---------------- the board ---------------- */
-/* Turned on its side when it has a wall to fill: the same board, the long way
-   round, because a portrait map on a television leaves two thirds of the
-   screen over. In Hebrew the race then runs right to left. */
+/* The board is drawn as a place — worldart.js — wherever this page shows it:
+   a long island with the race running along it on a wall, a deep one with the
+   race running away from you in a column or on a tablet stood up. In Hebrew
+   the race runs right to left. The flat drawing boardart.js makes for the
+   phone is the fallback if the place cannot be drawn. */
 const wideScreen = () => window.matchMedia("(min-aspect-ratio: 5/4)").matches;
 function drawBoard(s, opts){
-  return asimonBoard.draw(Object.assign({
+  const o = Object.assign({
     board: s.board, units: s.units,
     spots: (s.phase === "move" && s.move) ? s.move.spots : [],
     picked: (s.phase === "move" && s.move) ? s.move.picked : null,
     label: n => n.t === "CARD" ? t("card_node") : n.t === "WILD" ? "" : ((pack.mods[n.t]||{}).s || ""),
     endText: lang === "he" ? "סוף" : "END",
-    moved: u => !!(lastPos[u.id] && (lastPos[u.id] !== u.pos.r+","+u.pos.c))
-  }, opts || {}));
+    moved: u => !!(lastPos[u.id] && (lastPos[u.id] !== u.pos.r+","+u.pos.c)),
+    /* where each one stood at the last draw, so a figure that moved hops
+       from there rather than appearing */
+    from: u => lastPos[u.id] || null,
+    rtl: lang === "he"
+  }, opts || {});
+  if(window.asimonWorld) return asimonWorld.draw(o);
+  return asimonBoard.draw(Object.assign({ across: !o.tall }, o));
 }
 
 /* ---------------- before the game ---------------- */
@@ -471,7 +481,7 @@ function vGame(s){
   h(shead(s)+
     '<div class="sbody">'+
       '<div class="boardpane" id="mapzone" title="'+esc(t("sc_maponly"))+'">'+
-        '<div class="boardfit">'+drawBoard(s)+'</div>'+
+        '<div class="boardfit">'+drawBoard(s, { tall:true })+'</div>'+
         '<p class="cap">'+esc(mapName(s.mapId))+' · '+t("board_k", s.rows + 1)+'</p>'+
       '</div>'+
       '<div class="side">'+ receipt(m) + chips(s) + standings(s) +'</div>'+
@@ -482,9 +492,8 @@ function vGame(s){
 /* the other shape: the map over the wall, and one quiet line under it */
 function vMap(s){
   const m = moment(s);
-  const across = wideScreen();
   h('<div class="mapfull" id="mapzone" title="'+esc(t("sc_mapback"))+'">'+
-      drawBoard(s, { across, rtl: across && lang === "he", tipped: across && tipped })+'</div>'+
+      drawBoard(s, { tall: !wideScreen() })+'</div>'+
     '<div class="mapline">'+
       '<span class="mcode">'+esc(s.code)+'</span>'+
       '<span class="mnow">'+m.head+'</span>'+
@@ -492,17 +501,14 @@ function vMap(s){
     '</div>'+ corner());
   tick(s, m);
 }
-/* The two things a screen can be asked, kept out of the way in a corner:
-   which shape it is in, and which room it is watching. */
+/* The three things a screen can be asked, kept out of the way in a corner:
+   which shape it is in, whether the place is heard, and which room it is
+   watching. */
 function corner(o){
   const opts = o || {};
-  /* Tipping is offered only where there is a wall to tip into. The board
-     tipped back is a wide, shallow thing; asked to fill a screen stood on its
-     end it would draw itself a strip across the middle and leave the rest,
-     which is the very thing the map on its own exists to stop. */
-  const canTip = opts.map !== false && mapOnly && wideScreen();
   return '<div class="corner">'+
-    (canTip ? '<button id="tipbtn">'+t(tipped ? "sc_lay" : "sc_tip")+'</button>' : '')+
+    (opts.map === false || !window.asimonWorld ? '' :
+      '<button id="sndbtn">'+t(sound ? "sc_snd_off" : "sc_snd_on")+'</button>')+
     (opts.map === false ? '' :
       '<button id="mapbtn">'+t(mapOnly ? "sc_mapback" : "sc_maponly")+'</button>')+
     '<button id="swap">'+t("sc_other")+'</button></div>';
@@ -528,9 +534,9 @@ function setMap(on){
   try{ localStorage.setItem(K_MAP, mapOnly ? "1" : ""); }catch(e){}
   render();
 }
-function setTip(on){
-  tipped = !!on;
-  try{ localStorage.setItem(K_TIP, tipped ? "1" : ""); }catch(e){}
+function setSound(on){
+  sound = !!on;
+  try{ localStorage.setItem(K_SND, sound ? "1" : ""); }catch(e){}
   render();
 }
 function render(){
@@ -559,16 +565,18 @@ function render(){
   const flip = () => setMap(!mapOnly);
   const btn = document.getElementById("mapbtn");
   if(btn) btn.onclick = flip;
-  const tip = document.getElementById("tipbtn");
-  if(tip) tip.onclick = e => { e.stopPropagation(); setTip(!tipped); };
+  const snd = document.getElementById("sndbtn");
+  if(snd) snd.onclick = e => { e.stopPropagation(); setSound(!sound); };
   const zone = document.getElementById("mapzone");
   if(zone) zone.onclick = flip;
+  /* the place is heard only while it is on the wall, and only once asked */
+  if(window.asimonWorld)
+    asimonWorld.ambience(sound && state && state.phase !== "lobby" ? (state.mapId || "classic") : null);
 }
 /* turning a tablet sideways changes which way the map is drawn */
 let turnTimer = null;
 window.addEventListener("resize", () => {
   if(!mapOnly || !state) return;
-  /* turning it back up takes the tip button away with the shape it belongs to */
   clearTimeout(turnTimer);
   turnTimer = setTimeout(render, 150);
 });
@@ -599,8 +607,9 @@ const asked = (q.get("room") || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slic
    once and never touched again; otherwise it comes back as it was left */
 if(q.has("map")) mapOnly = q.get("map") !== "0";
 else try{ mapOnly = localStorage.getItem(K_MAP) === "1"; }catch(e){}
-if(q.has("tip")) tipped = q.get("tip") !== "0";
-else try{ tipped = localStorage.getItem(K_TIP) === "1"; }catch(e){}
+/* ?sound for a screen that should be heard from the moment it is set up */
+if(q.has("sound")) sound = q.get("sound") !== "0";
+else try{ sound = localStorage.getItem(K_SND) === "1"; }catch(e){}
 let saved = "";
 try{ saved = localStorage.getItem(K_ROOM) || ""; }catch(e){}
 if(asked.length === 4){ watch(asked); }

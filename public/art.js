@@ -478,11 +478,16 @@ function pinShape(x, y, r){
     'Q'+n(x + px*0.62)+' '+n(y - q)+' '+n(x)+' '+n(y)+'Z' };
 }
 /* the drop on the square and the white halo that lifts the pin off whatever
-   is behind it — every pin wears both, whatever is printed on its head */
+   is behind it — every pin wears both, whatever is printed on its head.
+
+   The drop has to be wider than the halo or the halo rubs it out from the
+   inside and the pin goes back to floating, which is the one thing the drop
+   is there to stop. */
 function pinBase(d, x, y, r){
   const n = v => Math.round(v*10)/10;
-  return '<ellipse cx="'+n(x)+'" cy="'+n(y)+'" rx="'+n(r*0.82)+'" ry="'+n(r*0.3)+'" fill="var(--ink)" opacity="0.22"/>'+
-    '<path d="'+d+'" fill="var(--surface)" stroke="var(--surface)" stroke-width="'+n(r*0.34)+'" stroke-linejoin="round"/>';
+  return '<ellipse cx="'+n(x)+'" cy="'+n(y + r*0.08)+'" rx="'+n(r*0.94)+'" ry="'+n(r*0.33)+
+    '" fill="var(--ink)" opacity="0.18"/>'+
+    '<path d="'+d+'" fill="var(--surface)" stroke="var(--surface)" stroke-width="'+n(r*0.26)+'" stroke-linejoin="round"/>';
 }
 /* a face on a pin: the tail takes the face's own colour, so a pin still reads
    as whose it is from the far end of the room when the head is half hidden */

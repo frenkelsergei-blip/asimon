@@ -17,7 +17,7 @@ not the assertions.
 
 | suite | what it claims |
 |---|---|
-| `engine.test.js` | the rules hold over 540 simulated games — scoring, bands, the board, the five maps, the four modes. Includes the **`regular` is inert** guarantee: a game played as `regular` comes out identical to the game the engine played before modes existed |
+| `engine.test.js` | the rules hold over 540 simulated games — scoring, bands, the board, the six maps, the four modes. Includes the **`regular` is inert** guarantee: a game played as `regular` comes out identical to the game the engine played before modes existed |
 | `cards.test.js` | all seven cards do what their own text says, including the awkward ones — Switch with nothing to switch to, Insight on a one-word round, Blindfold forcing the next round |
 | `stall.test.js` | a room waiting on somebody who is not answering can always be put back on a step somebody can take — `skip`, `IDLE_MS`, and breaks |
 | `copy.test.js` | **every key either page asks for answers in both languages.** This is what makes bilingual structural |

@@ -193,7 +193,10 @@ The hash says *that* you are stale. The version number and the changelog say
 faces and the token, hand-written SVG — 40×40 flat shapes on a disc, no images
 anywhere. `public/boardart.js` draws the board **once for both the phone and
 the screen**, taking an `across` flag, so the two can never disagree about what
-the board looks like. `public/sfx.js` synthesises the sounds — no audio files,
+the board looks like. On the screen it is the fallback: `public/worldart.js`
+draws the same board state as a place — one scene per map, the cast standing
+on it as little figures, a move as a hop — and is loaded on the wall's page
+only. The phone never sees it. `public/sfx.js` synthesises the sounds — no audio files,
 the way there are no images.
 
 `public/style.css` hangs everything off one number, `--k` at the head of the

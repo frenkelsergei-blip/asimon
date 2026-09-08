@@ -5,6 +5,18 @@ game itself shows under the version at the foot of the first screen.
 
 Generated from `game/changelog.js` by `npm run release` — edit that file, not this one.
 
+## 0.6.0 — 2026-09-08
+
+### Added
+
+- A sixth board, Crossroads — roads and junctions instead of four open lanes, half as many squares, and five of the ten kinds of round drawn fresh for each game.
+
+## 0.5.0 — 2026-09-08
+
+### Added
+
+- The screen in the room draws each board as a place — a farm, a jungle, a coast in a storm, a desert, a volcano — with the players standing on it, hopping from square to square, and the place can be heard as well as seen.
+
 ## 0.4.0 — 2026-09-08
 
 ### Added

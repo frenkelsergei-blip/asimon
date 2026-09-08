@@ -31,7 +31,8 @@ belongs here in the same commit.
 | Four columns, three ways on from any square | `engine.js` `nextFrom()`, `reachable()` | `engine.test.js` |
 | Points as steps you spend, stopping early allowed | `play.js` `movepick`, `moveconfirm` | `round.test.js` |
 | Board length by unit count and crowd | `engine.js` `boardRows()` | playtest sweep |
-| Five maps, each with its own pattern | `engine.js` `MAPS` | `engine.test.js` |
+| Six maps, each with its own pattern | `engine.js` `MAPS` | `engine.test.js` |
+| Crossroads: a board of roads and junctions rather than four open lanes, with half the squares and a repertoire of five round kinds drawn each game | `engine.js` `buildRoads()`, `drawRepertoire()` | `engine.test.js`, `playtest.js` |
 | Rerolling the map from the lobby | `play.js` `reroll_map` | `server.test.js` |
 | Card squares — three offered, one kept | `engine.js` `isCardNode()`, `play.js` `take` | `cards.test.js` |
 | The wildcard square — six outcomes | `engine.js` `isWildNode()`, `WILD_ODDS` | `engine.test.js` |
@@ -61,8 +62,12 @@ belongs here in the same commit.
 | Watching a room by its code alone, no seat | `server.js` `/api/board` | `screen.test.js` |
 | Never shows the four words, ever | `play.js` `boardView()` | `screen.test.js` |
 | Four layouts: wide, tall, phone, map-only | `public/board.css`, `board.js` | — |
-| The map turned sideways on a landscape screen | `public/boardart.js` `across` | — |
-| The board drawn once for phone and screen alike | `public/boardart.js` | — |
+| The board drawn as a place — one scene per map, with the players standing on it | `public/worldart.js` `draw()` | — |
+| Five places: farm, jungle, storm coast, desert, volcano — each with its own squares and roads | `worldart.js` `SCENES`, `NODES`, `road()` | — |
+| A move is a hop from square to square; the scenery moves on its own | `worldart.js` `figure()`, `board.css` `w-hop` | — |
+| The place stood up for a tablet, laid long for a wall | `worldart.js` `orient()` | — |
+| The place heard as well as seen, once asked (`?sound`, the corner switch) | `worldart.js` `ambience()` | — |
+| The flat board, drawn once for the phone and as the screen's fallback | `public/boardart.js` | — |
 | Up to 8 screens per room | `server.js` `MAX_SCREENS` | `server.test.js` |
 
 ## The phone
@@ -93,6 +98,7 @@ belongs here in the same commit.
 | The poster and the how-to-play sheet | `design/poster/build.js` | — |
 | The painted poster that actually ships | `design/kit/export/poster_asimon.jpg` | — |
 | The logo, the screen and the card canvases | `design/logo/`, `design/screen/`, `design/cards/` | — |
+| The map-as-a-place canvas the screen was built from | `design/world/build.js` | — |
 | The public site, trailer and PDFs | `docs/index.html`, `docs/assets/` | — |
 
 ---
@@ -104,7 +110,9 @@ Written down so a session does not have to rediscover that they are absent.
 - No accounts, no persistence, no database. A room is gone 90 minutes after the
   last tap and that is deliberate.
 - No spectator chat, no reactions, no emoji.
-- No sound on the screen in the room — the sounds are the phone's.
+- No sound on the screen in the room until somebody asks for it — the game's
+  sounds are the phone's; the screen has only the ambience of its place, off
+  by default.
 - No reconnect across a server restart. Rooms are in memory; a redeploy ends
   every game in progress.
 - No horizontal scaling. **Run exactly one instance.**

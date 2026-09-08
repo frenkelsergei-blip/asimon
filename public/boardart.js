@@ -53,6 +53,27 @@ window.asimonBoard = (function(){
     return { x, y };
   }
 
+  /* Which squares a square leads to, and which squares are there at all. A
+     lattice answers both by arithmetic — four lanes the whole way up, three
+     ways on from each square — and sends nothing, because the phone can work
+     it out. A road map sends its own answer with the layout: there the ways
+     between squares *are* the board, and a phone drawing the lattice behind
+     one would be drawing a rule that board is not playing. */
+  function waysOf(b){
+    const rows = b.rows, out = {}, row = {};
+    b.nodes.forEach(n => (row[n.r] = row[n.r] || []).push(n.c));
+    if(b.ways) b.ways.forEach(w => (out[w[0]+","+w[1]] = out[w[0]+","+w[1]] || []).push(w[2]));
+    return {
+      from: r => (r === 0 ? [1] : (row[r] || [])).map(c => ({ r, c })),
+      to: p => {
+        if(p.r >= rows) return [{ r:rows+1, c:1 }];
+        if(p.r === 0) return (row[1] || [0,1,2,3]).map(c => ({ r:1, c }));
+        if(b.ways) return (out[p.r+","+p.c] || []).map(c => ({ r:p.r+1, c }));
+        return [p.c-1,p.c,p.c+1].filter(c => c>=0 && c<4).map(c => ({ r:p.r+1, c }));
+      }
+    };
+  }
+
   /* The crop that holds a set of squares, in the coordinates of the box the
      board is drawn into. A whole board is seventeen rows of near-identical
      pills, and the five or six you may actually stand on are somewhere in the
@@ -129,17 +150,29 @@ window.asimonBoard = (function(){
      It gets its own box rather than sharing ACROSS: tipped, the board is a
      shallower thing, and a box with the flat one's headroom would draw it
      small in the middle of a wall for no reason.                            */
-  const ISO = { w:1200, h:300, near:88, far:1112, y0:78, depth:166, lean:0.5,
-                back:0.80, slab:13 };
+  const ISO = { w:1200, h:300, near:88, far:1112, y0:78, depth:166, back:0.75, slab:13 };
   ISO.mid = (ISO.near + ISO.far) / 2;
-  /* u runs 0..1 along the race, t runs 0..1 from the far lane to the near one.
-     Nearer is wider and the gaps between lanes open up — `lean` is how much,
-     and it is the whole of the perspective. */
+  /* u runs 0..1 along the race, t runs 0..1 from the far lane to the near one,
+     and `back` — how wide the far lane is against the near one — is the only
+     dial: a real camera has no second one.
+
+     It is worth having got this right rather than eyeballed. A tipped plane
+     seen by an eye is a projective map, and the whole of what that buys is
+     that anything straight on the board is straight on the wall: the lanes,
+     the table's own four edges, a line between two squares. Faked instead —
+     lanes spread apart by one curve and narrowed by another — the numbers can
+     be made to look almost the same and the edges of the table quietly bow,
+     which reads as a rendering fault rather than as depth.
+
+     So it is one divide. A lane at t sits `z` deep; everything at that depth
+     is drawn `back/z` of full size, and how far down the wall it falls is
+     that same size again — which is why the gaps between the lanes open up on
+     the way forward without anybody choosing by how much.                    */
   function plane(u, t, rtl){
-    const s = ISO.back + (1 - ISO.back) * t;
-    const y = ISO.y0 + ISO.depth * (t + ISO.lean * t * t) / (1 + ISO.lean);
+    const z = 1 - (1 - ISO.back) * t;
+    const s = ISO.back / z;
     const a = ISO.near + (ISO.far - ISO.near) * (rtl ? 1 - u : u);
-    return { x: ISO.mid + (a - ISO.mid) * s, y, s };
+    return { x: ISO.mid + (a - ISO.mid) * s, y: ISO.y0 + ISO.depth * t * s, s };
   }
   /* the start line and the finish sit between the middle two lanes, exactly
      where the flat board puts them */
@@ -161,35 +194,34 @@ window.asimonBoard = (function(){
 
     /* The table the board is printed on. It is a trapezoid because it is
        tipped, and it carries a band of its own edge along the bottom — that
-       edge is the whole of what says this is an object and not a drawing. */
-    const corners = [[-0.02,-0.20],[1.02,-0.20],[1.02,1.06],[-0.02,1.06]]
+       edge is the whole of what says this is an object and not a drawing.
+
+       Four corners and no more: the plane is a projective map, so its sides
+       come out straight on their own. */
+    const rim = [[-0.05,-0.22],[1.05,-0.22],[1.05,1.08],[-0.05,1.08]]
       .map(p => plane(p[0], p[1], rtl));
     const quad = pts => 'M'+pts.map(p => n1(p.x)+' '+n1(p.y)).join('L')+'Z';
-    out += '<path d="'+quad(corners.map(p => ({ x:p.x, y:p.y + ISO.slab })))+'" fill="var(--rule)"/>'+
-           '<path d="'+quad(corners)+'" fill="var(--sunk)"/>';
+    out += '<path d="'+quad(rim.map(p => ({ x:p.x, y:p.y + ISO.slab })))+'" fill="var(--rule)"/>'+
+           '<path d="'+quad(rim)+'" fill="var(--sunk)" stroke="var(--rule)" stroke-width="1.5"/>';
 
-    /* the four lanes, painted flat on the table */
-    for(let c = 0; c < 4; c++){
+    /* the four lanes, painted flat on the table — a road map has no lanes to
+       paint, only roads, and those are the lines below */
+    const way = waysOf(b);
+    if(!b.ways) for(let c = 0; c < 4; c++){
       const a = at(1,c), z = at(rows,c), th = 9 * a.s, pad = 15 * a.s;
       const x0 = Math.min(a.x, z.x) - pad, x1 = Math.max(a.x, z.x) + pad;
       out += '<rect x="'+n1(x0)+'" y="'+n1(a.y - th)+'" width="'+n1(x1-x0)+'" height="'+n1(th*2)+
              '" rx="'+n1(th)+'" fill="'+COLC[c]+'" opacity="0.14"/>';
     }
     /* and the ways on and off each square, painted flat as well, so a pin
-       always stands above them */
-    for(let r = 0; r <= rows; r++){
-      const froms = r === 0 ? [{r:0,c:1}] : [0,1,2,3].map(c => ({r,c}));
-      froms.forEach(p => {
-        const nxt = p.r >= rows ? [{r:rows+1,c:1}]
-                  : p.r === 0 ? [0,1,2,3].map(c => ({r:1,c}))
-                  : [p.c-1,p.c,p.c+1].filter(c => c>=0 && c<4).map(c => ({r:p.r+1,c}));
-        nxt.forEach(q => {
-          const A = at(p.r,p.c), B = at(q.r,q.c);
-          out += '<line x1="'+n1(A.x)+'" y1="'+n1(A.y)+'" x2="'+n1(B.x)+'" y2="'+n1(B.y)+
-                 '" stroke="'+COLC[Math.min(q.c,3)]+'" stroke-width="'+n1(1.5*A.s)+'" opacity="0.24"/>';
-        });
-      });
-    }
+       always stands above them. On a road map they are drawn heavier: there
+       they are the board rather than a reminder of a rule. */
+    for(let r = 0; r <= rows; r++) way.from(r).forEach(p => way.to(p).forEach(q => {
+      const A = at(p.r,p.c), B = at(q.r,q.c);
+      out += '<line x1="'+n1(A.x)+'" y1="'+n1(A.y)+'" x2="'+n1(B.x)+'" y2="'+n1(B.y)+
+             '" stroke="'+COLC[Math.min(q.c,3)]+'" stroke-width="'+n1((b.ways?4.5:1.5)*A.s)+
+             '" stroke-linecap="round" opacity="'+(b.ways?0.34:0.24)+'"/>';
+    }));
 
     /* From here on the order is the drawing. A pin sticks up, so it can only
        ever cover ground that is further away than the square it stands on —
@@ -274,11 +306,12 @@ window.asimonBoard = (function(){
     (o.units||[]).forEach(u => { const k = u.pos.r+","+u.pos.c; (byKey[k] = byKey[k] || []).push(u); });
     Object.keys(byKey).forEach(k => {
       const rc = k.split(",").map(Number), list = byKey[k], p0 = at(rc[0], rc[1]);
-      /* a crowded square draws its pins a size down rather than hiding them
-         behind each other */
-      const R = 15 * p0.s * (list.length > 2 ? 0.84 : 1);
+      /* a crowded square draws its pins a size down and further apart rather
+         than hiding them behind each other */
+      const many = list.length > 2;
+      const R = 15 * p0.s * (many ? 0.78 : 1);
       list.forEach((u,j) => {
-        const x = p0.x + (j - (list.length-1)/2) * 23 * p0.s;
+        const x = p0.x + (j - (list.length-1)/2) * (many ? 22 : 26) * p0.s;
         const sh = pinShape(x, p0.y, R);
         const pin = u.face ? facePin(u.face, x, p0.y, R)
           : pinBase(sh.d, x, p0.y, R)+'<path d="'+sh.d+'" fill="'+(u.color||"#2C6BFF")+'"/>'+
@@ -332,7 +365,8 @@ window.asimonBoard = (function(){
     const dim = (o.spots||[]).length > 0;
     const faded = n => dim ? '<g opacity="0.28">'+n+'</g>' : n;
     let out = "";
-    for(let c = 0; c < 4; c++){
+    const way = waysOf(b);
+    if(!b.ways) for(let c = 0; c < 4; c++){
       const a = at(1,c), z = at(rows,c);
       out += how.across
         ? '<rect x="'+(Math.min(a.x,z.x)-15)+'" y="'+(a.y-15)+'" width="'+(Math.abs(a.x-z.x)+30)+
@@ -340,19 +374,12 @@ window.asimonBoard = (function(){
         : '<rect x="'+(a.x-15)+'" y="'+(z.y-15)+'" width="30" height="'+((a.y-z.y)+30)+
           '" rx="15" fill="'+COLC[c]+'" opacity="0.10"/>';
     }
-    for(let r = 0; r <= rows; r++){
-      const froms = r === 0 ? [{r:0,c:1}] : [0,1,2,3].map(c => ({r,c}));
-      froms.forEach(p => {
-        const nxt = p.r >= rows ? [{r:rows+1,c:1}]
-                  : p.r === 0 ? [0,1,2,3].map(c => ({r:1,c}))
-                  : [p.c-1,p.c,p.c+1].filter(c => c>=0 && c<4).map(c => ({r:p.r+1,c}));
-        nxt.forEach(q => {
-          const A = at(p.r,p.c), B = at(q.r,q.c);
-          out += '<line x1="'+A.x+'" y1="'+A.y+'" x2="'+B.x+'" y2="'+B.y+'" stroke="'+
-                 COLC[Math.min(q.c,3)]+'" stroke-width="1.6" opacity="0.28"/>';
-        });
-      });
-    }
+    for(let r = 0; r <= rows; r++) way.from(r).forEach(p => way.to(p).forEach(q => {
+      const A = at(p.r,p.c), B = at(q.r,q.c);
+      out += '<line x1="'+A.x+'" y1="'+A.y+'" x2="'+B.x+'" y2="'+B.y+'" stroke="'+
+             COLC[Math.min(q.c,3)]+'" stroke-width="'+(b.ways?5:1.6)+
+             '" stroke-linecap="round" opacity="'+(b.ways?0.32:0.28)+'"/>';
+    }));
     b.nodes.forEach(n => {
       const xy = at(n.r, n.c), key = n.r+","+n.c, isLit = !!lit[key];
       const col = n.t === "CARD" ? "var(--good)" : n.t === "WILD" ? "var(--violet)" : COLC[n.c];

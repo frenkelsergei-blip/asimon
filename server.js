@@ -36,7 +36,7 @@ const LAN_URL = "http://" + lanAddress() + ":" + PORT;
 const VERSION = require("./package.json").version;
 const changelog = require("./game/changelog");
 const ASSETS = ["index.html","app.js","art.js","boardart.js","sfx.js","style.css","gestures.css",
-                "board.html","board.js","board.css"];
+                "board.html","board.js","board.css","worldart.js"];
 
 let BUILD = "", assetStamp = null;
 function currentBuild(){

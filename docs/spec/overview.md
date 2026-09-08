@@ -41,8 +41,8 @@ a rule that flips has to be visible on the square you are standing on.
 | surface | address | what it is |
 |---|---|---|
 | **the phone** | `/` | the game. `public/index.html`, `app.js`, `art.js`, `style.css` |
-| **the screen in the room** | `/board?room=ABCD` | a television or spare tablet. Holds no seat, sends nothing, and **never shows the words** |
-| **the map on the wall** | `/board?room=ABCD&map` | the board alone, turned sideways on a landscape screen |
+| **the screen in the room** | `/board?room=ABCD` | a television or spare tablet. Holds no seat, sends nothing, and **never shows the words**. Draws the board as a place — a farm, a jungle, a coast in a storm, a desert, a volcano, one per map |
+| **the map on the wall** | `/board?room=ABCD&map` | the place alone, laid long on a landscape screen, stood up on a tablet |
 | **the printed sheets** | `design/rules/`, `design/poster/` | the rulebook and the poster, built from the game's own palette and art |
 | **the site** | `docs/index.html` | the page a stranger lands on, with the trailer and the PDFs |
 
@@ -72,7 +72,7 @@ window, which is why the build hash and the update bar exist at all. See
    needs a package, it needs a different design.
 2. **`game/engine.js` is hand-maintained.** `game/build-engine.js` records how
    it was first lifted out of the old pass-and-play build and *refuses to run*.
-   Regenerating it would delete the game modes, the five maps, the wildcard
+   Regenerating it would delete the game modes, the six maps, the wildcard
    square and the board's whole balance, none of which were ever in that build.
 
 ## Glossary
@@ -88,6 +88,6 @@ window, which is why the build hash and the update bar exist at all. See
 | **band** | how much the timing was worth: too obvious, well pitched, almost lost them |
 | **the shot / aim** | the one person the giver secretly bets will get it |
 | **wildcard** | the square that rolls a random event instead of a mod |
-| **map** | one of the five boards. Same shape, different pattern of squares |
+| **map** | one of the six boards. Five are the same four-lane shape with a different pattern of squares; **crossroads** is a network of roads and junctions |
 | **game mode** | quick / regular / slow / challenge — clock, length and how you win |
 | **build** | the hash of every file a page loads. Tells a phone it is stale |

@@ -36,6 +36,18 @@ const RANK = { patch:0, minor:1, major:2 };
 
 const RELEASES = [
 
+  { v:"0.6.0", date:"2026-09-08", lines:[
+    { kind:"new",
+      en:"A sixth board, Crossroads \u2014 roads and junctions instead of four open lanes, half as many squares, and five of the ten kinds of round drawn fresh for each game.",
+      he:"\u05dc\u05d5\u05d7 \u05e9\u05d9\u05e9\u05d9, \u05e4\u05e8\u05e9\u05ea \u05d3\u05e8\u05db\u05d9\u05dd \u2014 \u05d3\u05e8\u05db\u05d9\u05dd \u05d5\u05e6\u05de\u05ea\u05d9\u05dd \u05d1\u05de\u05e7\u05d5\u05dd \u05d0\u05e8\u05d1\u05e2\u05d4 \u05de\u05e1\u05dc\u05d5\u05dc\u05d9\u05dd \u05e4\u05ea\u05d5\u05d7\u05d9\u05dd, \u05d7\u05e6\u05d9 \u05de\u05d4\u05de\u05e9\u05d1\u05e6\u05d5\u05ea, \u05d5\u05d7\u05de\u05d9\u05e9\u05d4 \u05de\u05ea\u05d5\u05da \u05e2\u05e9\u05e8\u05ea \u05e1\u05d5\u05d2\u05d9 \u05d4\u05e1\u05d1\u05d1\u05d9\u05dd \u05e0\u05e9\u05dc\u05e4\u05d9\u05dd \u05de\u05d7\u05d3\u05e9 \u05dc\u05db\u05dc \u05de\u05e9\u05d7\u05e7." }
+  ]},
+
+  { v:"0.5.0", date:"2026-09-08", lines:[
+    { kind:"new",
+      en:"The screen in the room draws each board as a place — a farm, a jungle, a coast in a storm, a desert, a volcano — with the players standing on it, hopping from square to square, and the place can be heard as well as seen.",
+      he:"המסך בחדר מצייר כל לוח כמקום — חווה, ג׳ונגל, חוף בסערה, מדבר, הר געש — עם השחקנים עומדים עליו, קופצים ממשבצת למשבצת, ואפשר גם לשמוע את המקום." }
+  ]},
+
   { v:"0.4.0", date:"2026-09-08", lines:[
     { kind:"new",
       en:"What's new. The version at the foot of the first screen opens the list of everything that has changed, and which version it arrived in.",

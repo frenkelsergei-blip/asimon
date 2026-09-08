@@ -272,7 +272,7 @@ function render(a, opts){
   table(SLICE_COLS, sliceRows(a.slices.mode)) +
 '</div></section>' +
 
-'<section><h2>The five boards</h2><div class="panel">' +
+'<section><h2>The six boards</h2><div class="panel">' +
   table(SLICE_COLS, sliceRows(a.slices.map)) +
   '<div><h3>What each board deals out</h3>' +
   table([""].concat(a.modNames), a.squaresByMap.map(m =>

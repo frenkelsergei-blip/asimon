@@ -10,7 +10,7 @@ const path = require("path");
    This no longer runs, and must not.
 
    game/engine.js began life here, lifted out of the pass-and-play build. It
-   has since grown four game modes, five maps, the wildcard square, the board's
+   has since grown four game modes, six maps, the wildcard square, the board's
    own balance and a scoring scale — none of which exist in any buzz.html.
    Regenerating produces roughly six hundred lines against the engine's eight
    hundred and takes the rest with it, and play.js stops finding its exports

@@ -1,7 +1,7 @@
 /* The rules, and all the content.
 
    This file was generated once, out of the pass-and-play build, and it is not
-   generated any more: the game modes, the five maps, the wildcard square and
+   generated any more: the game modes, the six maps, the wildcard square and
    the board's own balance were all written here by hand and were never in that
    build. Regenerating would delete them. game/build-engine.js is kept only as
    a record of where the file came from, and refuses to run.
@@ -662,7 +662,19 @@ function createEngine(){
    chaos:{ id:"chaos", themeId:"chaos", rowsDelta:0,
      pattern:{ 0:["S","U","G","W","T","U"], 1:["O","G","U","W","G","O"],
                2:["G","L","B","T","G","M"], 3:["B","M","L","M","B","G"] },
-     cardRule:{ col:3, every:3 }, wildRule:{ col:1, every:4 } }
+     cardRule:{ col:3, every:3 }, wildRule:{ col:1, every:4 } },
+   /* The one board that is a network rather than a lattice. `roads` is what
+      makes it one; everything else here is an ordinary map. Its lanes still
+      run quiet on the left and awkward on the right, because a route you have
+      to plan is only worth planning towards something. It borrows the
+      jungle's paint until the shape has earned a place of its own. */
+   crossroads:{ id:"crossroads", themeId:"twist", rowsDelta:0,
+     roads:{ junction:5, kinds:5 },
+     /* the pattern a road map plays is drawn each game — this one is the
+        fallback, and what the drawn ones are shaped like */
+     pattern:{ 0:["S","F","S","T","W","S"], 1:["F","T","S","W","U","T"],
+               2:["O","G","L","S","O","L"], 3:["M","B","G","L","B","M"] },
+     cardRule:{ col:1, every:3 }, wildRule:{ col:3, every:4 } }
   };
   /* How long the board is, by how many units are racing on it. A unit scores
      when it gives or when it gets the word, so the fewer of them there are the
@@ -707,11 +719,16 @@ function createEngine(){
      every round played came out Standard. A mode's weights are a target share
      now rather than a one-way drain, so a mode with harsh taste can reach into
      the quiet lanes — which is the whole of what Challenge is for. */
-  function buildPattern(map, modeId){
+  function buildPattern(map, modeId, allowed){
     const mode = MODES[modeId] || MODES.regular;
     const base = map.pattern;
     if(!mode.modWeights || !mode.reweighChance) return base;
-    const letters = Object.keys(mode.modWeights);
+    /* A road map drew five kinds and meant it. A mode still colours the board
+       — it just does the colouring inside that repertoire instead of reaching
+       past it for the four kinds this board is not playing tonight. */
+    const letters = Object.keys(mode.modWeights)
+      .filter(l => !allowed || allowed.indexOf(l) >= 0);
+    if(!letters.length) return base;
     const total = letters.reduce((s,l) => s + mode.modWeights[l], 0);
     const weighted = () => {
       let r = Math.random() * total;
@@ -724,14 +741,170 @@ function createEngine(){
     });
     return out;
   }
+  /* ---- a road map ----
+     Every other board is a lattice: four lanes the whole way up, three ways on
+     from every square, every square there. Across 158,565 moves the bots
+     actually made, two in three could reach any lane on the board — so the
+     lane you stood in was a preference, not a decision, and the map on the
+     wall had to draw ninety-eight identical footpaths to state a rule that
+     never varies.
+
+     A road map is a network instead. Not every row carries four squares, the
+     ways between them are drawn rather than assumed, and every fifth row
+     narrows to one square the whole table has to pass through — the one place
+     you get to change your mind about the rest of the board.
+
+     Two ways on from an ordinary square, and never fewer. A fifth of all moves
+     are a single step, and a single step with one place to go is not a
+     decision at all: cutting the board down to one road would have bought the
+     strategy by taking away the choice. What it costs instead is that reaching
+     a *named* lane takes rounds of intent rather than one step across.
+
+     Generated once, when the board is set, and it travels to the phones with
+     the layout exactly as S.pattern already does. */
+  /* ---- what a road map plays ----
+     Ten kinds of round is the whole game, and on a lattice you meet all ten
+     every time. A table holding a shorter board with fewer squares on it does
+     not want more to remember, it wants a board with a character — so this one
+     draws its own repertoire: the plain square, which is most of the road, and
+     five of the nine variants. Two games on this map are two different games,
+     and neither of them asks the table to hold ten rules at once.
+
+     Ranked by how much a square asks of you. The draw is made to span that
+     range — one gentle kind at least, one harsh one at least — because five
+     kinds all from the same end is not a character, it is a mood.
+
+     A third of the board stays plain. On a lattice that share is a fifth, and
+     it can be: there are four lanes running the whole way and somewhere quiet
+     is always one step off. Here it has to be built in. */
+  const MOD_RANK = { F:0, T:1, W:2, O:3, U:4, L:5, G:6, M:7, B:8 };
+  const ROAD_S = [3,2,2,1];              /* plain squares per lane, out of six */
+  function drawRepertoire(howMany){
+    const pool = Object.keys(MOD_RANK);
+    let picks = [];
+    for(let tries=0; tries<40; tries++){
+      const bag = pool.slice();
+      for(let i=bag.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [bag[i],bag[j]]=[bag[j],bag[i]]; }
+      picks = bag.slice(0, howMany).sort((a,b) => MOD_RANK[a] - MOD_RANK[b]);
+      if(MOD_RANK[picks[0]] <= 2 && MOD_RANK[picks[picks.length-1]] >= 6) break;
+    }
+    /* the gentle end of the draw to the quiet lane, the harsh end to the
+       awkward one, and the lanes overlap so none of them is one-note */
+    const at = i => picks[Math.min(picks.length-1, Math.max(0, i))];
+    const lanes = [[at(0)], [at(0), at(1)], [at(2), at(3)], [at(3), at(4)]];
+    const pattern = {};
+    lanes.forEach((kinds, c) => {
+      const cells = [];
+      for(let i=0;i<6;i++) cells.push(i < ROAD_S[c] ? "S" : kinds[(i - ROAD_S[c]) % kinds.length]);
+      for(let i=cells.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [cells[i],cells[j]]=[cells[j],cells[i]]; }
+      pattern[c] = cells;
+    });
+    return { kinds:["S"].concat(picks), pattern };
+  }
+  /* Roads, not rows. The board between two junctions carries two or three
+     roads that do not touch: get on one and you are on it until the next
+     junction, which is what makes the junction worth reaching and the choice
+     there worth making. A road wanders a lane either way as it climbs, so
+     none of them is straight and none of them is a lane in the old sense.
+
+     Every so often two roads run close enough to step between — a crossover,
+     the only place a route changes its mind mid-segment. They are rare on
+     purpose. A board where you can always cross is the board this one is not.
+
+     Most squares therefore lead to exactly one square, and that is the part
+     worth being honest about: on a single-step move down a road with no fork
+     in it, the only thing you choose is nothing. What is left in its place is
+     the choice a lattice never really offered — how far along to go, and which
+     square to stand on when you stop, which a third of the board being plain
+     is what makes worth thinking about. */
+  const ROAD_STARTS = { 2:[[0,2],[0,3],[1,3],[0,2],[1,3]], 3:[[0,1,3],[0,2,3],[0,1,2],[1,2,3]] };
+  function buildRoads(map, rows){
+    const cfg = map.roads, pick = a => a[Math.floor(Math.random()*a.length)];
+    const k = (r,c) => r + "," + c;
+    const cols = {}, out = {};
+    const add = (r,a,c) => { const key = k(r,a); (out[key] = out[key] || []).push(c); };
+
+    /* where the junctions fall: one square, the whole table through it */
+    const junc = {};
+    for(let r=cfg.junction; r<rows; r+=cfg.junction) if(r > 1) junc[r] = true;
+
+    /* the segments between them, each laid with its own roads */
+    const segs = [];
+    let a = 1;
+    for(let r=1;r<=rows;r++) if(junc[r]){ if(r-1 >= a) segs.push([a, r-1]); a = r+1; }
+    if(a <= rows) segs.push([a, rows]);
+
+    segs.forEach(seg => {
+      const n = Math.min(seg[1]-seg[0] >= 1 ? pick([2,2,3]) : 2, 3);
+      let cur = pick(ROAD_STARTS[n]).slice();
+      const road = [];
+      for(let r=seg[0]; r<=seg[1]; r++){
+        if(r > seg[0] && Math.random() < 0.4){
+          /* Now and then a road shifts a lane, so long as the roads keep their
+             order and never land on each other. Now and then, not every row: a
+             road that changes lane at every step is a zigzag, and on the screen
+             in the room — where a row is a short step and a lane is a deep one
+             — a zigzag is what it looks like. */
+          const nxt = cur.slice(), i = Math.floor(Math.random()*n);
+          const t = cur[i] + (Math.random() < 0.5 ? -1 : 1);
+          const lo = i > 0 ? cur[i-1] + 1 : 0, hi = i < n-1 ? cur[i+1] - 1 : 3;
+          if(t >= lo && t <= hi) nxt[i] = t;
+          cur = nxt;
+        }
+        road.push(cur.slice());
+        cols[r] = cur.slice().sort((x,y) => x - y);
+      }
+      for(let i=0;i<road.length-1;i++)
+        for(let j=0;j<n;j++) add(seg[0]+i, road[i][j], road[i+1][j]);
+      /* one or two crossovers, where two roads run close enough to step across */
+      let want = pick([1,1,2]);
+      for(let tries=0; tries<10 && want > 0; tries++){
+        const i = 1 + Math.floor(Math.random()*Math.max(1, road.length-1)), j = Math.floor(Math.random()*(n-1));
+        if(i >= road.length) continue;
+        const from = road[i-1], to = road[i], sideA = Math.random() < 0.5 ? j : j+1, sideB = sideA === j ? j+1 : j;
+        if(Math.abs(from[sideA] - to[sideB]) > 1) continue;
+        const key = k(seg[0]+i-1, from[sideA]);
+        if((out[key] || []).indexOf(to[sideB]) >= 0) continue;
+        add(seg[0]+i-1, from[sideA], to[sideB]); want--;
+      }
+    });
+
+    /* into a junction, everything; out of it, every road of the segment above */
+    Object.keys(junc).map(Number).forEach(r => {
+      cols[r] = [pick([1,2])];
+      (cols[r-1] || []).forEach(c => { out[k(r-1,c)] = [cols[r][0]]; });
+      if(r < rows) out[k(r, cols[r][0])] = (cols[r+1] || []).slice();
+    });
+    Object.keys(out).forEach(key => out[key] = out[key].filter((c,i,arr) => arr.indexOf(c) === i).sort((x,y) => x - y));
+
+    /* The card and the wildcard keep the frequency the map asked for: where the
+       square a rule names is not on this board, the rule takes the next one up
+       its own lane rather than losing its turn. */
+    const place = (rule, taken) => {
+      const marks = {};
+      if(!rule) return marks;
+      for(let r=rule.every; r<=rows; r+=rule.every)
+        for(let d=0; d<rule.every && r+d<=rows; d++){
+          const rr = r + d;
+          if(cols[rr].indexOf(rule.col) >= 0 && !taken[k(rr,rule.col)]){ marks[k(rr,rule.col)] = true; break; }
+        }
+      return marks;
+    };
+    const card = place(map.cardRule, {});
+    const rep = drawRepertoire(cfg.kinds || 5);
+    return { junction:cfg.junction, cols, out, card, wild:place(map.wildRule, card),
+             kinds:rep.kinds, pattern:rep.pattern };
+  }
   function setBoard(n, modeId, mapId, crowd){
     const mode = MODES[modeId] || MODES.regular;
     const map = MAPS[mapId] || MAPS.classic;
     S.modeId = mode.id; S.mapId = map.id;
     S.rows = boardRows(n, mode.id, map.id, crowd);
-    S.pattern = buildPattern(map, mode.id);
+    const shape = map.roads ? buildRoads(map, S.rows) : null;
+    S.pattern = buildPattern(shape ? { pattern:shape.pattern } : map, mode.id, shape && shape.kinds);
     S.cardRule = map.cardRule;
     S.wildRule = map.wildRule;
+    S.shape = shape;
   }
   /* The start line is not a square on the board — it is where a unit waits
      until it has scored something, so it is the most-played ground in the
@@ -759,6 +932,7 @@ function createEngine(){
   }
   function isCardNode(r,c){
     if(r <= 0 || r > ROWS()) return false;
+    if(S && S.shape) return !!S.shape.card[r+","+c];
     const rule = (S && S.cardRule) || MAPS.classic.cardRule;
     return c === rule.col && r % rule.every === 0;
   }
@@ -769,6 +943,7 @@ function createEngine(){
   function isWildNode(r,c){
     if(r <= 0 || r > ROWS()) return false;
     if(isCardNode(r,c)) return false;
+    if(S && S.shape) return !!S.shape.wild[r+","+c];
     const rule = (S && S.wildRule) || MAPS.classic.wildRule;
     return c === rule.col && r % rule.every === 0;
   }
@@ -794,11 +969,11 @@ function createEngine(){
     } else if(kind === "leap"){
       const to = Math.min(ROWS(), u.pos.r + 2);
       out.fromRow = u.pos.r; out.toRow = to;
-      u.pos = { r:to, c:u.pos.c };
+      u.pos = landOn(to, u.pos.c);
     } else if(kind === "slip"){
       const to = Math.max(1, u.pos.r - 1);
       out.fromRow = u.pos.r; out.toRow = to;
-      u.pos = { r:to, c:u.pos.c };
+      u.pos = landOn(to, u.pos.c);
     } else if(kind === "steal"){
       const lead = S.units.filter(x => x.id !== u.id && x.score > 0)
                           .sort((a,b) => b.score - a.score)[0];
@@ -839,10 +1014,30 @@ function createEngine(){
   function startPos(){ return { r:0, c:1 }; }
   function posOf(u){ return u.pos || startPos(); }
   function atFinish(u){ return posOf(u).r > ROWS(); }
+  /* Which squares are on the board at all, and which of them a square leads
+     to. A lattice answers both by arithmetic — every square exists and three
+     ways lead on from each. A road map answers them from its own shape. */
+  function nodeCols(r){
+    const shape = S && S.shape;
+    if(r <= 0 || r > ROWS()) return [1];
+    return shape ? shape.cols[r] : [0,1,2,3];
+  }
+  function nodeExists(r,c){ return nodeCols(r).indexOf(c) >= 0; }
+  /* the square actually there, when something other than a move puts a unit on
+     a row — a wildcard's leap or slip keeps its lane, and on a road map that
+     lane may not run through the row it lands in */
+  function landOn(r,c){
+    if(nodeExists(r,c)) return { r, c };
+    let best = nodeCols(r)[0];
+    nodeCols(r).forEach(x => { if(Math.abs(x-c) < Math.abs(best-c)) best = x; });
+    return { r, c:best };
+  }
   function nextFrom(p){
     const out = [];
     if(p.r >= ROWS()) return [{ r:ROWS()+1, c:1 }];
-    if(p.r === 0){ for(let c=0;c<COLS;c++) out.push({ r:1, c }); return out; }
+    if(p.r === 0) return nodeCols(1).map(c => ({ r:1, c }));
+    const shape = S && S.shape;
+    if(shape) return (shape.out[p.r+","+p.c] || []).map(c => ({ r:p.r+1, c }));
     for(let c=p.c-1;c<=p.c+1;c++){ if(c>=0 && c<COLS) out.push({ r:p.r+1, c }); }
     return out;
   }
@@ -879,7 +1074,7 @@ function createEngine(){
   function freshState(){
     return { screen:"setup", lang:(typeof S!=="undefined"&&S&&S.lang)||"en",
              names:["Dana","Savta","Ilan","Yoni"], mode:"solo",
-             modeId:"regular", mapId:"classic", pattern:null, cardRule:null,
+             modeId:"regular", mapId:"classic", pattern:null, cardRule:null, shape:null,
              players:[], units:[], giverIdx:0, round:0, used:[], r:null, result:null,
              left:{}, rows:16, steps:{}, moveSeat:0, offers:null, boardBack:null, cardsWho:null };
   }
@@ -1104,6 +1299,8 @@ function createEngine(){
     ROWS,
     setBoard,
     boardRows,
+    nodeCols,
+    nodeExists,
     nodeTypeAt,
     isCardNode,
     isWildNode,

@@ -14,6 +14,7 @@ reports/
 design/pause/asimon-break-and-leave.html
 design/screen/asimon-the-screen.html
 design/rules/asimon-the-rulebook.html
+design/world/asimon-3d-map.html
 design/rules/print/
 
 # what a build script can rebuild. `--print` writes the print HTML,

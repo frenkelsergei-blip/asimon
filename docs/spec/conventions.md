@@ -20,7 +20,7 @@ what keeps a phone loading the game over a flaky hotel Wi-Fi.
 
 `game/build-engine.js` records how the engine was first lifted out of the old
 pass-and-play build. **It no longer runs and refuses to.** The game modes, the
-five maps, the wildcard square and the board's whole balance were written into
+six maps, the wildcard square and the board's whole balance were written into
 the engine by hand and exist in no `buzz.html`. Regenerating would delete about
 a third of the game.
 
