@@ -13,3 +13,12 @@ asimon-groups-mode.html
 reports/
 design/pause/asimon-break-and-leave.html
 design/screen/asimon-the-screen.html
+design/rules/asimon-the-rulebook.html
+design/rules/print/
+
+# what a build script can rebuild. `--print` writes the print HTML,
+# `--png` the renders beside it. design/kit/export/ is NOT here: kit/build.js
+# has no --png, so those sheets and the painted poster are sources, not output.
+design/poster/print/
+design/poster/export/
+design/kit/print/

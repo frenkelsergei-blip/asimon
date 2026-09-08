@@ -47,6 +47,7 @@ const L = {
     sc_w_jack:"ג׳קפוט", sc_w_jack_d:"שתי נקודות, כאן ועכשיו.",
     sc_host:"מארח/ת",
     sc_maponly:"רק המפה", sc_mapback:"להראות גם את המצב",
+    sc_tip:"להטות את הלוח", sc_lay:"לשטח את הלוח",
     sc_over_k:"נגמר", sc_wins:"{0} מנצח/ת", sc_wins_p:"{0} מנצחים", sc_won_tag:"ניצח",
     sc_pts:"נק׳", sc_cards_k:"קלפים", sc_card_k:"קלף", sc_row_k:"שורה", sc_waiting:"מחכים ל{0}",
     /* the five boards and the four speeds, named as the phone names them */
@@ -86,6 +87,7 @@ const L = {
     sc_w_jack:"Jackpot", sc_w_jack_d:"Two points, right now.",
     sc_host:"Host",
     sc_maponly:"The map on its own", sc_mapback:"Show the state as well",
+    sc_tip:"Tip the board", sc_lay:"Lay it flat",
     sc_over_k:"That is the game", sc_wins:"{0} wins", sc_wins_p:"{0} win", sc_won_tag:"won",
     sc_pts:"pts", sc_cards_k:"cards", sc_card_k:"card", sc_row_k:"row", sc_waiting:"Waiting on {0}",
     /* the five boards and the four speeds, named as the phone names them */
@@ -106,6 +108,10 @@ let clockAt = 0, clockMs = 0, ticker = null, pauseAt = 0, pauseMs = 0;
    up that way once is meant to be left alone. */
 const K_MAP = "asimon.screen.map";
 let mapOnly = false;
+/* and, once it is on its own, whether the board is tipped back into the room
+   or lying flat. Remembered the same way and for the same reason. */
+const K_TIP = "asimon.screen.tip";
+let tipped = false;
 /* remembers where each token was, so only a token that moved animates */
 const lastPos = {};
 
@@ -478,7 +484,7 @@ function vMap(s){
   const m = moment(s);
   const across = wideScreen();
   h('<div class="mapfull" id="mapzone" title="'+esc(t("sc_mapback"))+'">'+
-      drawBoard(s, { across, rtl: across && lang === "he" })+'</div>'+
+      drawBoard(s, { across, rtl: across && lang === "he", tipped: across && tipped })+'</div>'+
     '<div class="mapline">'+
       '<span class="mcode">'+esc(s.code)+'</span>'+
       '<span class="mnow">'+m.head+'</span>'+
@@ -490,7 +496,13 @@ function vMap(s){
    which shape it is in, and which room it is watching. */
 function corner(o){
   const opts = o || {};
+  /* Tipping is offered only where there is a wall to tip into. The board
+     tipped back is a wide, shallow thing; asked to fill a screen stood on its
+     end it would draw itself a strip across the middle and leave the rest,
+     which is the very thing the map on its own exists to stop. */
+  const canTip = opts.map !== false && mapOnly && wideScreen();
   return '<div class="corner">'+
+    (canTip ? '<button id="tipbtn">'+t(tipped ? "sc_lay" : "sc_tip")+'</button>' : '')+
     (opts.map === false ? '' :
       '<button id="mapbtn">'+t(mapOnly ? "sc_mapback" : "sc_maponly")+'</button>')+
     '<button id="swap">'+t("sc_other")+'</button></div>';
@@ -514,6 +526,11 @@ function stopTick(){ if(ticker){ clearInterval(ticker); ticker = null; } }
 function setMap(on){
   mapOnly = !!on;
   try{ localStorage.setItem(K_MAP, mapOnly ? "1" : ""); }catch(e){}
+  render();
+}
+function setTip(on){
+  tipped = !!on;
+  try{ localStorage.setItem(K_TIP, tipped ? "1" : ""); }catch(e){}
   render();
 }
 function render(){
@@ -542,6 +559,8 @@ function render(){
   const flip = () => setMap(!mapOnly);
   const btn = document.getElementById("mapbtn");
   if(btn) btn.onclick = flip;
+  const tip = document.getElementById("tipbtn");
+  if(tip) tip.onclick = e => { e.stopPropagation(); setTip(!tipped); };
   const zone = document.getElementById("mapzone");
   if(zone) zone.onclick = flip;
 }
@@ -549,6 +568,7 @@ function render(){
 let turnTimer = null;
 window.addEventListener("resize", () => {
   if(!mapOnly || !state) return;
+  /* turning it back up takes the tip button away with the shape it belongs to */
   clearTimeout(turnTimer);
   turnTimer = setTimeout(render, 150);
 });
@@ -579,6 +599,8 @@ const asked = (q.get("room") || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slic
    once and never touched again; otherwise it comes back as it was left */
 if(q.has("map")) mapOnly = q.get("map") !== "0";
 else try{ mapOnly = localStorage.getItem(K_MAP) === "1"; }catch(e){}
+if(q.has("tip")) tipped = q.get("tip") !== "0";
+else try{ tipped = localStorage.getItem(K_TIP) === "1"; }catch(e){}
 let saved = "";
 try{ saved = localStorage.getItem(K_ROOM) || ""; }catch(e){}
 if(asked.length === 4){ watch(asked); }

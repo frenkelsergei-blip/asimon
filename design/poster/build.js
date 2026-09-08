@@ -9,7 +9,8 @@
    poster cannot quietly disagree with the game it is a poster for.
 
    Run:  node design/poster/build.js          the artboards
-         node design/poster/build.js --print  those, plus print/*.html        */
+         node design/poster/build.js --print  those, plus print/*.html
+         node design/poster/build.js --png    those, plus export/*.jpg at 3x  */
 "use strict";
 const fs = require("fs");
 const path = require("path");
@@ -19,11 +20,14 @@ const OUT = f => path.join(__dirname, f);
 
 /* ---------------- the parts, lifted ---------------- */
 
-/* art.js is a browser file; give it just enough of one to load */
+/* art.js and boardart.js are browser files; give them just enough of one */
 const win = { matchMedia: () => ({ matches: false }) };
 const art = {};
-new Function("window", "g", fs.readFileSync(P("art.js"), "utf8") +
-  "\ng.coinSvg = coinSvg;")(win, art);
+new Function("window", "g",
+  fs.readFileSync(P("art.js"), "utf8") + "\n" +
+  fs.readFileSync(P("boardart.js"), "utf8") +
+  "\ng.coinSvg = coinSvg; g.coin = coin; g.faceOf = faceOf; g.board = window.asimonBoard;"
+)(win, art);
 
 /* the palette, read off the sheet rather than remembered */
 const CSS = fs.readFileSync(P("style.css"), "utf8");
@@ -39,6 +43,7 @@ const PAPER  = tok("paper"),   RULE   = tok("rule");
 const AMBER  = tok("blind"),   AMBER_D = tok("blind-deep"), AMBER_I = tok("blind-ink");
 const GOOD   = tok("good"),    GOOD_D = tok("good-deep");
 const HOT    = tok("guilty"),  HOT_D  = tok("guilty-deep");
+const AMBER_S = tok("blind-soft");
 
 /* the poster's own ground: the sheet's paper, warmed, so a printed page and a
    lit phone are recognisably the same object without being the same colour */
@@ -355,13 +360,64 @@ function altClock() {
     foot({ ground: CARD }) + "</div>";
 }
 
+/* ---------------- the board on the wall ---------------- */
+
+/* The screen in the poster shows a real board: the engine sets one up, four
+   units stand on it, and public/boardart.js draws it the way the television
+   in the room would. The drawing asks for its colours by custom property,
+   which a printed page has no stylesheet to answer, so they are resolved here
+   against the same :root the phone reads.                                    */
+const VARS = {};
+ROOT.replace(/--([\w-]+):\s*([^;\n}]+)/g, (_, k, v) => { VARS[k] = v.trim(); return ""; });
+const hex = v => {
+  for (let i = 0; i < 6 && /var\(/.test(v); i++)
+    v = v.replace(/var\(--([\w-]+)\)/g, (_, k) => VARS[k] || "#000000");
+  return v;
+};
+const literal = svg => svg.replace(/var\(--([\w-]+)\)/g, (_, k) => hex("var(--" + k + ")"));
+
+function wallBoard() {
+  const play = require("../../game/play.js");
+  const cast = [["סבתא", "grandma"], ["דנה", "curly"], ["יואב", "boy"], ["רון", "beard"]];
+  const room = {
+    code: "ABCD", lang: "he", hostId: "p0", phase: "lobby", mapId: "classic",
+    players: cast.map(([name, face], i) => ({ id: "p" + i, name, face, online: true })),
+    people:  cast.map(([name, face], i) => ({ id: "p" + i, name, face, phoneId: "p" + i }))
+  };
+  play.startGame(room, { seating: "solo", gameMode: "regular" });
+  /* the shuffle is the game's; a poster wants a known race, and the three
+     people holding phones on it standing where the poster says they stand */
+  const where = [{ r: 6, c: 1 }, { r: 4, c: 2 }, { r: 3, c: 0 }, { r: 2, c: 3 }];
+  room.engine.S.units.forEach((u, i) => {
+    u.name = cast[i][0]; u.face = cast[i][1]; u.members = ["p" + i]; u.pos = where[i];
+  });
+  const st = play.boardView(room), pk = play.uiPack("he");
+  /* the whole board in the width of a poster's television is a pattern, not a
+     board. The game already knows how to show a piece of one — the same crop
+     the phone takes when it is your move — so take it: eight rows, every lane,
+     with everybody on it. */
+  const window = art.board.windowFor(room.engine.ROWS(), [{ r: 1, c: 0 }, { r: 8, c: 3 }]);
+  return literal(art.board.draw({
+    board: st.board, units: st.units, window,
+    label: n => n.t === "CARD" ? pk.ui.card_node : n.t === "WILD" ? "" : ((pk.mods[n.t] || {}).s || ""),
+    endText: "סוף"
+  }));
+}
+
+const roomPoster = require("./room.js")({
+  INK, SECOND, MUTED, PAPER, CARD, SAND, RULE,
+  AMBER, AMBER_D, AMBER_I, AMBER_S, GOOD, GOOD_D, HOT, HOT_D,
+  DISPLAY, LOGO, BODY, A4, art, boardSvg: wallBoard(), n, wordmark, eyebrow, foot
+});
+
 /* ---------------- writing it out ---------------- */
 
 const FONTS = "https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700;800" +
   "&family=Rubik:wght@500;700;800&family=Suez+One&display=swap";
 
 const SHEETS = [
-  { file: "Main.dc.html",      title: "פוסטר",        html: poster },
+  { file: "Main.dc.html",      title: "פוסטר",        html: roomPoster.html },
+  { file: "Type.dc.html",      title: "כיוון א — טיפוגרפי", html: poster },
   { file: "HowToPlay.dc.html", title: "איך משחקים",   html: howToPlay },
   { file: "AltCoin.dc.html",   title: "כיוון ב — האסימון", html: altCoin },
   { file: "AltClock.dc.html",  title: "כיוון ג — השעון",   html: altClock }
@@ -388,20 +444,57 @@ const canvas = {
   artboards: [
     { file: "Main.dc.html",      x: 0,    y: 0, w: A4.w, h: A4.h, title: "פוסטר",      print: "fixed", page: "page-1" },
     { file: "HowToPlay.dc.html", x: 914,  y: 0, w: A4.w, h: A4.h, title: "איך משחקים", print: "fixed", page: "page-1" },
-    { file: "AltCoin.dc.html",   x: 0,    y: 0, w: A4.w, h: A4.h, title: "כיוון ב — האסימון", print: "fixed", page: "page-2" },
-    { file: "AltClock.dc.html",  x: 914,  y: 0, w: A4.w, h: A4.h, title: "כיוון ג — השעון",   print: "fixed", page: "page-2" }
+    { file: "Type.dc.html",      x: 0,    y: 0, w: A4.w, h: A4.h, title: "כיוון א — טיפוגרפי",  print: "fixed", page: "page-2" },
+    { file: "AltCoin.dc.html",   x: 914,  y: 0, w: A4.w, h: A4.h, title: "כיוון ב — האסימון", print: "fixed", page: "page-2" },
+    { file: "AltClock.dc.html",  x: 1828, y: 0, w: A4.w, h: A4.h, title: "כיוון ג — השעון",   print: "fixed", page: "page-2" }
   ],
   annotations: [
     { id: "brief", x: 0, y: -168, w: 520, page: "page-1",
-      text: "הפוסטר וגיליון הכללים.\nרעיון אחד לפוסטר: לא רוצים שיקלטו מהר. כל השאר ירד." },
+      text: "הפוסטר וגיליון הכללים.\nהפוסטר מראה סבב אמיתי: מי שנותן אמר משפט, השעון רץ, והאסימון נופל.\nהמסך על הקיר מצייר לוח אמיתי מהמנוע." },
     { id: "alts", x: 0, y: -168, w: 520, page: "page-2",
-      text: "שני כיוונים אחרים לאותו פוסטר — האסימון על רקע כהה, והשעון." }
+      text: "שלושה כיוונים קודמים לאותו פוסטר — הטיפוגרפי, האסימון על רקע כהה, והשעון." }
   ],
   launch: { view: "canvas", page: "page-1" }
 };
 
+/* A poster gets handed around as a picture, not as a folder of HTML. Chrome is
+   already on the machine that renders these, so the print sheet is shot at
+   three times size — 2382x3369, about 288dpi on A4, past what any home or
+   copy-shop printer resolves. Nothing is installed for this: if there is no
+   Chrome, it says so and the artboards are still written.                    */
+function shoot(dir) {
+  const { execFileSync } = require("child_process");
+  const CHROME = [
+    "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+    "/Applications/Chromium.app/Contents/MacOS/Chromium",
+    "/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge",
+    "/usr/bin/google-chrome", "/usr/bin/chromium"
+  ].find(p => fs.existsSync(p));
+  if (!CHROME) return console.log("no Chrome found — skipping the picture");
+
+  const out = path.join(__dirname, "export");
+  fs.mkdirSync(out, { recursive: true });
+  for (const s of SHEETS) {
+    const name = s.file.replace(".dc.html", "");
+    const png = path.join(out, "asimon-" + name.toLowerCase() + "@3x.png");
+    execFileSync(CHROME, ["--headless=new", "--disable-gpu", "--hide-scrollbars", "--no-sandbox",
+      "--force-device-scale-factor=3", "--window-size=" + A4.w + "," + A4.h,
+      "--virtual-time-budget=6000", "--screenshot=" + png,
+      "file://" + path.join(dir, name + ".html")], { stdio: "ignore" });
+    try {
+      execFileSync("/usr/bin/sips", ["-s", "format", "jpeg", "-s", "formatOptions", "92", png,
+        "--out", png.replace("@3x.png", ".jpg")], { stdio: "ignore" });
+    } catch (e) { /* sips is a mac thing; the png is the deliverable either way */ }
+  }
+  console.log("pictures → " + out);
+}
+
 const wantPrint = process.argv.includes("--print");
-const printDir = process.argv[process.argv.indexOf("--print") + 1] || path.join(__dirname, "print");
+const wantPng = process.argv.includes("--png");
+/* --print may be followed by a directory, or by another flag, or by nothing */
+const printArg = process.argv[process.argv.indexOf("--print") + 1];
+const printDir = printArg && !printArg.startsWith("--")
+  ? printArg : path.join(__dirname, "print");
 
 for (const s of SHEETS) {
   const body = s.html();
@@ -414,3 +507,10 @@ for (const s of SHEETS) {
 fs.writeFileSync(OUT("canvas.json"), JSON.stringify(canvas, null, 2) + "\n");
 
 console.log(SHEETS.map(s => s.file).join(", ") + (wantPrint ? "  → " + printDir : ""));
+if (wantPng) {
+  if (!wantPrint) { fs.mkdirSync(printDir, { recursive: true });
+    for (const s of SHEETS)
+      fs.writeFileSync(path.join(printDir, s.file.replace(".dc.html", ".html")), print(s.html()));
+  }
+  shoot(printDir);
+}

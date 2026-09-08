@@ -87,7 +87,7 @@ function createEngine(){
    M:{n:"Mime",     s:"MIME", d:"No speaking at all &mdash; the giver acts it out. And the clock flips: here the giver wants it read <em>fast</em>, not late."},
    B:{n:"Blind",    s:"BLIND", d:"Everything turns around. The giver becomes the guesser, everybody else sees the word, and you each give one word until they crack it."},
    G:{n:"Gamble",   s:"BET", d:"A real bet. The board deals the hard words and starts the short clock &mdash; so the word is worth <strong>two</strong> more, a wrong shout costs two, and if nobody gets it at all the giver loses one. Nearly a third of them die. The only square you can go backwards on."},
-   T:{n:"Partners", s:"PAIR", d:"The game draws the giver a partner. If that partner gets it, they both score."},
+   T:{n:"Partners", s:"PAIR", d:"The game draws the giver a partner, and the whole table sees who. Anyone may still answer &mdash; but if that partner is the one who gets it, the giver takes a point more."},
    U:{n:"Duel",     s:"DUEL", d:"The giver names one person out loud, and only that person may answer. Everybody else watches. One shout, right or wrong, and the round is over."},
    W:{n:"Two words", s:"TWO", d:"The giver holds two words and gets one sentence for both. Each is worth a point less, and the round runs until both are found or the clock stops. Whoever says one takes it."},
    L:{n:"The link",  s:"LINK", d:"No sentence at all. The giver is given a thing and six words that belong to it, and puts three of them up. Everybody guesses at once, out loud, as often as they like &mdash; what connects them?"}
@@ -99,7 +99,7 @@ function createEngine(){
    M:{n:"פנטומימה", s:"מחזה", d:"בלי לדבר בכלל &mdash; הנותן ממחיז. והשעון מתהפך: כאן הנותן רוצה שיקלטו <em>מהר</em>, לא מאוחר."},
    B:{n:"עיוור",    s:"עיוור", d:"הכול מתהפך. הנותן הופך למנחש, כל השאר רואים את המילה, וכל אחד אומר מילה אחת עד שהוא קולט."},
    G:{n:"הימור",    s:"הימור", d:"הימור אמיתי. הלוח מחלק את המילים הקשות ומפעיל את השעון הקצר &mdash; ולכן המילה שווה <strong>שתי</strong> נקודות יותר, באזה שגוי עולה 2, ואם אף אחד לא קולט בכלל הנותן מאבד נקודה. כמעט שליש מהם מתים. המשבצת היחידה שאפשר לרדת בה אחורה."},
-   T:{n:"שותפים",   s:"זוג", d:"המשחק מגריל לנותן שותף. אם השותף קולט — שניהם מקבלים."},
+   T:{n:"שותפים",   s:"זוג", d:"המשחק מגריל לנותן שותף, וכל השולחן רואה מי. כולם עדיין יכולים לענות &mdash; אבל אם דווקא השותף הוא זה שקולט, הנותן מקבל נקודה נוספת."},
    U:{n:"דו־קרב",   s:"קרב", d:"הנותן בוחר אדם אחד בקול, ורק הוא יכול לענות. כל השאר מסתכלים. צעקה אחת, נכונה או לא, והסבב נגמר."},
    W:{n:"שתי מילים", s:"שתיים", d:"הנותן מחזיק שתי מילים ומקבל משפט אחד לשתיהן. כל אחת שווה נקודה פחות, והסבב רץ עד ששתיהן נמצאו או שהשעון נגמר. מי שאומר מילה לוקח אותה."},
    L:{n:"הקישור",   s:"קישור", d:"בלי משפט בכלל. הנותן מקבל דבר ושש מילים ששייכות אליו, ומעלה שלוש מהן. כולם מנחשים בו־זמנית, בקול, כמה פעמים שרוצים &mdash; מה מחבר ביניהן?"}

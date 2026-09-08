@@ -31,7 +31,7 @@ window.asimonBoard = (function(){
      Two boxes, because two screens are shaped differently. UP is the phone's:
      320x560, the race running up the page. ACROSS is for a television, where
      a portrait board would sit in a third of the screen with the rest of the
-     wall left over: 1200x300, the four lanes laid on their side and the race
+     wall left over: 1200x420, the four lanes laid on their side and the race
      running the long way. It is the same board — same lanes, same squares,
      same order — turned to fit the thing it is being read on. In Hebrew it
      runs right to left, because that is the direction the room reads. */
@@ -111,6 +111,198 @@ window.asimonBoard = (function(){
     return { x:X.at, y:Y.at, w:X.of, h:Y.of };
   }
 
+  /* ---------------- the board, tipped back ----------------
+
+     A third way to draw the same seventeen rows, and the only one that is not
+     a diagram: the table tipped away from the room, the four lanes running
+     back into it, and every token standing up off its square as a pin. Same
+     lanes, same squares, same order — what it adds is that you can see the
+     board is a thing on a table, which is what a room glances at rather than
+     reads.
+
+     What recedes is the lanes, never the race. Tipping it end-on would put
+     the finish line at a third the size of the start, and where everybody is
+     relative to the finish is the entire question this board answers. So the
+     race keeps its full length across the wall and the depth is spent on the
+     four lanes, which only ever needed telling apart.
+
+     It gets its own box rather than sharing ACROSS: tipped, the board is a
+     shallower thing, and a box with the flat one's headroom would draw it
+     small in the middle of a wall for no reason.                            */
+  const ISO = { w:1200, h:300, near:88, far:1112, y0:78, depth:166, lean:0.5,
+                back:0.80, slab:13 };
+  ISO.mid = (ISO.near + ISO.far) / 2;
+  /* u runs 0..1 along the race, t runs 0..1 from the far lane to the near one.
+     Nearer is wider and the gaps between lanes open up — `lean` is how much,
+     and it is the whole of the perspective. */
+  function plane(u, t, rtl){
+    const s = ISO.back + (1 - ISO.back) * t;
+    const y = ISO.y0 + ISO.depth * (t + ISO.lean * t * t) / (1 + ISO.lean);
+    const a = ISO.near + (ISO.far - ISO.near) * (rtl ? 1 - u : u);
+    return { x: ISO.mid + (a - ISO.mid) * s, y, s };
+  }
+  /* the start line and the finish sit between the middle two lanes, exactly
+     where the flat board puts them */
+  const midRow = (r, rows) => r === 0 || r > rows;
+  function isoAt(r, c, rows, rtl){
+    return plane(r / (rows + 1), midRow(r, rows) ? 0.5 : c / 3, rtl);
+  }
+
+  function drawTilted(o){
+    const b = o.board, rows = b.rows, rtl = !!o.rtl, COLC = lanes(b.themeId);
+    const label = o.label || (() => "");
+    const at = (r, c) => isoAt(r, c, rows, rtl);
+    const n1 = v => Math.round(v * 10) / 10;
+    const lit = {};
+    (o.spots||[]).forEach(p => lit[p.r+","+p.c] = p);
+    const dim = (o.spots||[]).length > 0;
+    const faded = s => dim ? '<g opacity="0.28">'+s+'</g>' : s;
+    let out = "";
+
+    /* The table the board is printed on. It is a trapezoid because it is
+       tipped, and it carries a band of its own edge along the bottom — that
+       edge is the whole of what says this is an object and not a drawing. */
+    const corners = [[-0.02,-0.20],[1.02,-0.20],[1.02,1.06],[-0.02,1.06]]
+      .map(p => plane(p[0], p[1], rtl));
+    const quad = pts => 'M'+pts.map(p => n1(p.x)+' '+n1(p.y)).join('L')+'Z';
+    out += '<path d="'+quad(corners.map(p => ({ x:p.x, y:p.y + ISO.slab })))+'" fill="var(--rule)"/>'+
+           '<path d="'+quad(corners)+'" fill="var(--sunk)"/>';
+
+    /* the four lanes, painted flat on the table */
+    for(let c = 0; c < 4; c++){
+      const a = at(1,c), z = at(rows,c), th = 9 * a.s, pad = 15 * a.s;
+      const x0 = Math.min(a.x, z.x) - pad, x1 = Math.max(a.x, z.x) + pad;
+      out += '<rect x="'+n1(x0)+'" y="'+n1(a.y - th)+'" width="'+n1(x1-x0)+'" height="'+n1(th*2)+
+             '" rx="'+n1(th)+'" fill="'+COLC[c]+'" opacity="0.14"/>';
+    }
+    /* and the ways on and off each square, painted flat as well, so a pin
+       always stands above them */
+    for(let r = 0; r <= rows; r++){
+      const froms = r === 0 ? [{r:0,c:1}] : [0,1,2,3].map(c => ({r,c}));
+      froms.forEach(p => {
+        const nxt = p.r >= rows ? [{r:rows+1,c:1}]
+                  : p.r === 0 ? [0,1,2,3].map(c => ({r:1,c}))
+                  : [p.c-1,p.c,p.c+1].filter(c => c>=0 && c<4).map(c => ({r:p.r+1,c}));
+        nxt.forEach(q => {
+          const A = at(p.r,p.c), B = at(q.r,q.c);
+          out += '<line x1="'+n1(A.x)+'" y1="'+n1(A.y)+'" x2="'+n1(B.x)+'" y2="'+n1(B.y)+
+                 '" stroke="'+COLC[Math.min(q.c,3)]+'" stroke-width="'+n1(1.5*A.s)+'" opacity="0.24"/>';
+        });
+      });
+    }
+
+    /* From here on the order is the drawing. A pin sticks up, so it can only
+       ever cover ground that is further away than the square it stands on —
+       lay the far lane down first and everything lands right without anyone
+       working out what overlaps what. Squares of a lane, then the pins on
+       them, then the next lane. */
+    const items = [];
+    const depth = (r, c) => midRow(r, rows) ? 1.5 : c;
+    const put = (d, s) => items.push({ d, s });
+
+    /* Every square is a tile with a thickness: its own outline drawn twice,
+       the lower one in the square's colour under a veil, and the sliver left
+       showing between them is what it stands on. */
+    const stand = (sil, col, rise) =>
+      '<g transform="translate(0,'+n1(rise)+')">'+sil(col)+
+        '<g opacity="0.34">'+sil("var(--ink)")+'</g></g>';
+
+    b.nodes.forEach(nd => {
+      const p = at(nd.r, nd.c), s = p.s, isLit = !!lit[nd.r+","+nd.c];
+      const col = nd.t === "CARD" ? "var(--good)" : nd.t === "WILD" ? "var(--violet)" : COLC[nd.c];
+      const short = label(nd) || "";
+      const halo = isLit ? '<ellipse cx="'+n1(p.x)+'" cy="'+n1(p.y)+'" rx="'+n1(23*s)+
+        '" ry="'+n1(13*s)+'" fill="'+col+'" opacity="0.2"/>' : '';
+      let node;
+      if(nd.t === "WILD"){
+        const sil = f => '<ellipse cx="'+n1(p.x)+'" cy="'+n1(p.y)+'" rx="'+n1(11*s)+'" ry="'+n1(7.4*s)+'" fill="'+f+'"/>';
+        node = halo + stand(sil, col, 7*s)+
+          '<ellipse cx="'+n1(p.x)+'" cy="'+n1(p.y)+'" rx="'+n1(11*s)+'" ry="'+n1(7.4*s)+'" fill="'+
+          (isLit?col:"var(--surface)")+'" stroke="'+col+'" stroke-width="'+n1((isLit?1.9:1.5)*s)+
+          '" stroke-dasharray="'+n1(3*s)+' '+n1(2.4*s)+'"/>'+
+          '<text x="'+n1(p.x)+'" y="'+n1(p.y + 4*s)+'" text-anchor="middle" font-family="Suez One,Georgia,serif" '+
+          'font-size="'+n1(12.5*s)+'" fill="'+(isLit?"#FFFFFF":col)+'">?</text>';
+      } else if(short){
+        const ink = nd.c === 2 && nd.t !== "CARD" ? "#2A1B00" : "#FFFFFF";
+        const sil = f => '<rect x="'+n1(p.x-22*s)+'" y="'+n1(p.y-6.5*s)+'" width="'+n1(44*s)+
+          '" height="'+n1(13*s)+'" rx="'+n1(6.5*s)+'" fill="'+f+'"/>';
+        node = halo + stand(sil, col, 8*s)+
+          '<rect x="'+n1(p.x-22*s)+'" y="'+n1(p.y-6.5*s)+'" width="'+n1(44*s)+'" height="'+n1(13*s)+
+          '" rx="'+n1(6.5*s)+'" fill="'+(isLit?col:"var(--surface)")+'" stroke="'+col+
+          '" stroke-width="'+n1((isLit?1.8:1.3)*s)+'"/>'+
+          '<text x="'+n1(p.x)+'" y="'+n1(p.y + 3.4*s)+'" text-anchor="middle" font-family="Assistant,sans-serif" '+
+          'font-size="'+n1(9.6*s)+'" font-weight="800" fill="'+(isLit?ink:col)+'">'+esc(short)+'</text>';
+      } else {
+        const rx = (isLit ? 9 : 6.4) * s, ry = (isLit ? 6 : 4.2) * s;
+        const sil = f => '<ellipse cx="'+n1(p.x)+'" cy="'+n1(p.y)+'" rx="'+n1(rx)+'" ry="'+n1(ry)+'" fill="'+f+'"/>';
+        node = halo + stand(sil, isLit ? col : COLC[nd.c], 5.5*s)+
+          '<ellipse cx="'+n1(p.x)+'" cy="'+n1(p.y)+'" rx="'+n1(rx)+'" ry="'+n1(ry)+'" fill="'+
+          (isLit?col:"var(--rule)")+(isLit?'" stroke="var(--surface)" stroke-width="'+n1(2*s):'')+'"/>';
+      }
+      put(depth(nd.r, nd.c), (isLit && o.pick)
+        ? '<g data-go="'+nd.r+','+nd.c+'" style="cursor:pointer">'+node+
+          '<rect x="'+n1(p.x-28*s)+'" y="'+n1(p.y-16*s)+'" width="'+n1(56*s)+'" height="'+n1(32*s)+
+          '" fill="transparent"/></g>'
+        : faded(node));
+    });
+
+    /* the start line: a peg, not a square, because nobody chooses to be on it */
+    const s0 = at(0,1);
+    put(1.5, stand(f => '<ellipse cx="'+n1(s0.x)+'" cy="'+n1(s0.y)+'" rx="'+n1(8*s0.s)+
+        '" ry="'+n1(5.2*s0.s)+'" fill="'+f+'"/>', "var(--faint)", 5.5*s0.s)+
+      '<ellipse cx="'+n1(s0.x)+'" cy="'+n1(s0.y)+'" rx="'+n1(8*s0.s)+'" ry="'+n1(5.2*s0.s)+
+      '" fill="var(--sunk)" stroke="var(--rule)" stroke-width="'+n1(1.5*s0.s)+'"/>');
+
+    const e0 = at(rows+1,1), es = e0.s, endLit = !!lit[(rows+1)+",1"];
+    const endSil = f => '<ellipse cx="'+n1(e0.x)+'" cy="'+n1(e0.y)+'" rx="'+n1(17*es)+
+      '" ry="'+n1(11*es)+'" fill="'+f+'"/>';
+    const endNode = (endLit ? '<ellipse cx="'+n1(e0.x)+'" cy="'+n1(e0.y)+'" rx="'+n1(25*es)+
+        '" ry="'+n1(16*es)+'" fill="var(--good)" opacity="0.2"/>' : '')+
+      stand(endSil, endLit ? "var(--good)" : "var(--ink)", 11*es)+
+      endSil(endLit ? "var(--good)" : "var(--ink)")+
+      '<text x="'+n1(e0.x)+'" y="'+n1(e0.y + 3.6*es)+'" text-anchor="middle" font-family="Assistant,sans-serif" '+
+      'font-size="'+n1(10.5*es)+'" font-weight="800" fill="#FFFFFF">'+esc(o.endText || "END")+'</text>';
+    put(1.5, (endLit && o.pick)
+      ? '<g data-go="'+(rows+1)+',1" style="cursor:pointer">'+endNode+
+        '<rect x="'+n1(e0.x-28*es)+'" y="'+n1(e0.y-30*es)+'" width="'+n1(56*es)+'" height="'+n1(56*es)+
+        '" fill="transparent"/></g>'
+      : faded(endNode));
+
+    /* the pins, half a lane in front of the squares they stand on, so they
+       clear the ground behind them and nothing in front of them */
+    const byKey = {};
+    (o.units||[]).forEach(u => { const k = u.pos.r+","+u.pos.c; (byKey[k] = byKey[k] || []).push(u); });
+    Object.keys(byKey).forEach(k => {
+      const rc = k.split(",").map(Number), list = byKey[k], p0 = at(rc[0], rc[1]);
+      /* a crowded square draws its pins a size down rather than hiding them
+         behind each other */
+      const R = 15 * p0.s * (list.length > 2 ? 0.84 : 1);
+      list.forEach((u,j) => {
+        const x = p0.x + (j - (list.length-1)/2) * 23 * p0.s;
+        const sh = pinShape(x, p0.y, R);
+        const pin = u.face ? facePin(u.face, x, p0.y, R)
+          : pinBase(sh.d, x, p0.y, R)+'<path d="'+sh.d+'" fill="'+(u.color||"#2C6BFF")+'"/>'+
+            '<text x="'+n1(x)+'" y="'+n1(sh.cy + R*0.34)+'" text-anchor="middle" '+
+            'font-family="Assistant,sans-serif" font-size="'+n1(R*0.9)+'" font-weight="800" '+
+            'fill="#FFFFFF">'+esc(initials(u.name))+'</text>';
+        put(depth(rc[0], rc[1]) + 0.45,
+          '<g class="'+((o.moved && o.moved(u)) ? "tok" : "")+'">'+pin+'</g>');
+      });
+    });
+
+    items.sort((a,z) => a.d - z.d).forEach(it => { out += it.s; });
+
+    if(o.picked){
+      const p = at(o.picked.r, o.picked.c), s = p.s;
+      out += o.picked.r > rows
+        ? '<ellipse cx="'+n1(p.x)+'" cy="'+n1(p.y)+'" rx="'+n1(23*s)+'" ry="'+n1(15*s)+
+          '" fill="none" stroke="var(--ink)" stroke-width="'+n1(2.2*s)+'"/>'
+        : '<rect x="'+n1(p.x-25*s)+'" y="'+n1(p.y-9.5*s)+'" width="'+n1(50*s)+'" height="'+n1(19*s)+
+          '" rx="'+n1(9.5*s)+'" fill="none" stroke="var(--ink)" stroke-width="'+n1(2.2*s)+'"/>';
+    }
+    return '<svg class="board tipped" viewBox="0 0 '+ISO.w+' '+ISO.h+'" role="img">'+out+'</svg>';
+  }
+
   /* o.board   {rows, nodes, themeId} — the layout, fixed when the game starts
      o.units   the tokens, in the order they should stack on a shared square
      o.label   (node) -> the short word inside a square, "" for a bare dot
@@ -118,8 +310,10 @@ window.asimonBoard = (function(){
      o.spots   the squares to light up, o.picked the one already chosen
      o.moved   (unit) -> true when it should land rather than appear
      o.pick    true when a lit square is something to tap
-     o.window  a crop from windowFor, when only part of the board is wanted   */
+     o.window  a crop from windowFor, when only part of the board is wanted
+     o.tipped  the wall's third shape: the same board, tipped back            */
   function draw(o){
+    if(o.tipped) return drawTilted(o);
     const b = o.board, rows = b.rows, lit = {};
     const COLC = lanes(b.themeId);
     const label = o.label || (() => "");
@@ -225,5 +419,5 @@ window.asimonBoard = (function(){
     return '<svg class="board'+(win ? " cropped" : "")+'" viewBox="'+vb+'" role="img">'+out+'</svg>';
   }
 
-  return { draw, lanes, nodeXY, windowFor, BOX };
+  return { draw, lanes, nodeXY, windowFor, BOX, ISO };
 })();

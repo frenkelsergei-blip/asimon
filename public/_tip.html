@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="he" dir="rtl"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>lab</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700;800&family=Rubik:wght@800&family=Suez+One&display=swap">
+<link rel="stylesheet" href="/style.css"><link rel="stylesheet" href="/board.css">
+<style>body{margin:0;padding:14px;background:#EFEAE2;font-family:Assistant,sans-serif}
+h3{font:700 13px Assistant;color:#6B6A78;margin:14px 0 6px}
+.pane{background:#fff;border:1px solid #E7E4F0;border-radius:14px;padding:10px}
+.pane svg{width:100%;height:auto;display:block}</style>
+</head><body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <clipPath id="lsface"><circle cx="20" cy="20" r="20"/></clipPath></defs></svg>
+<div id="out"></div>
+<script src="/art.js"></script><script src="/boardart.js"></script>
+<script>
+const BOARD = {"rows": 16, "cols": 4, "mapId": "classic", "themeId": "classic", "nodes": [{"r": 1, "c": 0, "t": "S"}, {"r": 1, "c": 1, "t": "S"}, {"r": 1, "c": 2, "t": "O"}, {"r": 1, "c": 3, "t": "B"}, {"r": 2, "c": 0, "t": "U"}, {"r": 2, "c": 1, "t": "F"}, {"r": 2, "c": 2, "t": "G"}, {"r": 2, "c": 3, "t": "M"}, {"r": 3, "c": 0, "t": "W"}, {"r": 3, "c": 1, "t": "CARD"}, {"r": 3, "c": 2, "t": "L"}, {"r": 3, "c": 3, "t": "G"}, {"r": 4, "c": 0, "t": "F"}, {"r": 4, "c": 1, "t": "W"}, {"r": 4, "c": 2, "t": "T"}, {"r": 4, "c": 3, "t": "L"}, {"r": 5, "c": 0, "t": "T"}, {"r": 5, "c": 1, "t": "U"}, {"r": 5, "c": 2, "t": "G"}, {"r": 5, "c": 3, "t": "WILD"}, {"r": 6, "c": 0, "t": "U"}, {"r": 6, "c": 1, "t": "CARD"}, {"r": 6, "c": 2, "t": "O"}, {"r": 6, "c": 3, "t": "B"}, {"r": 7, "c": 0, "t": "S"}, {"r": 7, "c": 1, "t": "S"}, {"r": 7, "c": 2, "t": "O"}, {"r": 7, "c": 3, "t": "B"}, {"r": 8, "c": 0, "t": "U"}, {"r": 8, "c": 1, "t": "F"}, {"r": 8, "c": 2, "t": "G"}, {"r": 8, "c": 3, "t": "M"}, {"r": 9, "c": 0, "t": "W"}, {"r": 9, "c": 1, "t": "CARD"}, {"r": 9, "c": 2, "t": "L"}, {"r": 9, "c": 3, "t": "G"}, {"r": 10, "c": 0, "t": "F"}, {"r": 10, "c": 1, "t": "W"}, {"r": 10, "c": 2, "t": "T"}, {"r": 10, "c": 3, "t": "WILD"}, {"r": 11, "c": 0, "t": "T"}, {"r": 11, "c": 1, "t": "U"}, {"r": 11, "c": 2, "t": "G"}, {"r": 11, "c": 3, "t": "M"}, {"r": 12, "c": 0, "t": "U"}, {"r": 12, "c": 1, "t": "CARD"}, {"r": 12, "c": 2, "t": "O"}, {"r": 12, "c": 3, "t": "B"}, {"r": 13, "c": 0, "t": "S"}, {"r": 13, "c": 1, "t": "S"}, {"r": 13, "c": 2, "t": "O"}, {"r": 13, "c": 3, "t": "B"}, {"r": 14, "c": 0, "t": "U"}, {"r": 14, "c": 1, "t": "F"}, {"r": 14, "c": 2, "t": "G"}, {"r": 14, "c": 3, "t": "M"}, {"r": 15, "c": 0, "t": "W"}, {"r": 15, "c": 1, "t": "CARD"}, {"r": 15, "c": 2, "t": "L"}, {"r": 15, "c": 3, "t": "WILD"}, {"r": 16, "c": 0, "t": "F"}, {"r": 16, "c": 1, "t": "W"}, {"r": 16, "c": 2, "t": "T"}, {"r": 16, "c": 3, "t": "L"}]};
+const MODS = {S:"",F:"\u05de\u05d4\u05d9\u05e8",O:"\u05de\u05d9\u05dc\u05d4",M:"\u05de\u05d7\u05d6\u05d4",B:"\u05e2\u05d9\u05d5\u05d5\u05e8",G:"\u05d4\u05d9\u05de\u05d5\u05e8",T:"\u05d6\u05d5\u05d2",U:"\u05e7\u05e8\u05d1",W:"\u05e9\u05ea\u05d9\u05d9\u05dd",L:"\u05e7\u05d9\u05e9\u05d5\u05e8"};
+const label = n => n.t==="CARD" ? "\u05e7\u05dc\u05e3" : n.t==="WILD" ? "" : (MODS[n.t]||"");
+const UNITS = [
+  {id:"a",name:"\u05e1\u05d1\u05ea\u05d0",face:"grandma",pos:{r:11,c:2}},
+  {id:"b",name:"\u05d0\u05d9\u05dc\u05df",face:"beard",pos:{r:9,c:0}},
+  {id:"c",name:"\u05d9\u05d5\u05e0\u05ea",face:"curly",pos:{r:6,c:3}},
+  {id:"d",name:"\u05d6\u05d5\u05d4\u05e8",face:"panda",pos:{r:14,c:3}},
+  {id:"e",name:"\u05e0\u05d3\u05d1",face:"boy",pos:{r:4,c:1}},
+  {id:"f",name:"\u05d2\u05d9\u05dc",face:"beanie",pos:{r:4,c:1}},
+  {id:"g",name:"\u05e8\u05d5\u05ea",face:"girl",pos:{r:0,c:1}},
+  {id:"h",name:"\u05d0\u05d5\u05e8\u05d9",color:"#0891B2",pos:{r:16,c:1}}
+];
+const base = { board:BOARD, units:UNITS, label, endText:"\u05e1\u05d5\u05e3" };
+const spots = [{r:12,c:1},{r:12,c:2},{r:13,c:2},{r:13,c:3}];
+const o = document.getElementById("out");
+const pane = (t,svg) => "<h3>"+t+"</h3><div class=pane>"+svg+"</div>";
+o.innerHTML =
+  pane("tipped \u2014 rtl", asimonBoard.draw(Object.assign({tipped:true, across:true, rtl:true}, base)))+
+  pane("tipped \u2014 ltr", asimonBoard.draw(Object.assign({tipped:true, across:true}, base)))+
+  pane("tipped \u2014 a move being chosen", asimonBoard.draw(Object.assign({tipped:true, across:true, rtl:true, spots}, base)))+
+  pane("flat across, for comparison", asimonBoard.draw(Object.assign({across:true, rtl:true}, base)));
+</script></body></html>

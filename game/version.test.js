@@ -1,7 +1,8 @@
 /* The version surface. A phone that lives on a home screen has no address bar
    to pull down, so everything here is what stands between a table and a build
    from three weeks ago: the page says which build it is, the server says which
-   build it serves, and the two are compared over the wire.
+   build it serves, the two are compared over the wire, and the list of what
+   changed in between hangs off the same line.
 
    node game/version.test.js                                                 */
 "use strict";
@@ -38,6 +39,23 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
     ok(/^[0-9a-f]{10}$/.test(String(v.build)), "the build is not a hash: " + v.build);
     ok(vr.headers.get("cache-control") === "no-store",
        "the version answer may be cached — a stale phone would keep hearing its own build back");
+
+    /* ---- and what it says has changed since ---- */
+    const cr = await fetch(BASE + "/api/changelog?lang=he");
+    const cg = await cr.json();
+    ok(cr.ok, "/api/changelog did not answer");
+    ok(cr.headers.get("cache-control") === "no-store",
+       "the changelog may be cached — a phone would keep reading an old one back");
+    ok(Array.isArray(cg.releases) && cg.releases.length > 0, "the changelog came back empty");
+    ok(cg.releases[0].v === v.version,
+       "the newest release (" + (cg.releases[0] || {}).v + ") is not the version being served (" +
+       v.version + ") — run `npm run release`");
+    ok(cg.releases[0].lines.length > 0, "the newest release says nothing changed");
+    /* the language asked for is the language handed back, or a Hebrew table
+       reads its release notes in English */
+    const en = await (await fetch(BASE + "/api/changelog?lang=en")).json();
+    ok(en.releases[0].lines[0].text !== cg.releases[0].lines[0].text,
+       "the changelog came back in the same language for he and en");
 
     const hz = await (await fetch(BASE + "/healthz")).json();
     ok(hz.build === v.build, "/healthz and /api/version disagree about the build");

@@ -1,0 +1,113 @@
+# The feature inventory
+
+Everything the game currently does, where it is written, and what holds it up.
+If a feature is not on this list it does not exist yet — and if you add one, it
+belongs here in the same commit.
+
+---
+
+## Play
+
+| feature | where | held by |
+|---|---|---|
+| The round: four words, one sentence, said once | `engine.js` `newRound()` | `engine.test.js`, `round.test.js` |
+| Timing bands — landing late pays most | `engine.js` `scoreRound()` | `engine.test.js` |
+| Three challenges: topic / open / cold | `engine.js` `CHALLENGES`, `dealTopic()` | `engine.test.js` |
+| The aim — a secret bet on who gets it | `engine.js` `shotBonus()` | `round.test.js` |
+| Buzzing, judging, and being locked out | `play.js` `buzz`, `judge` | `round.test.js` |
+| Nobody got it | `play.js` `nobody`, clock expiry | `round.test.js` |
+| Ten square types (mods) | `engine.js` `EN_MODS` / `HE_MODS` | `engine.test.js`, playtest sweep |
+| Duel — named out loud, one shout ends it | `engine.js` mod `U` | `round.test.js` |
+| Two words — two words, one sentence | `engine.js` mod `W`, `scoreRound()` | `round.test.js` |
+| The link — three of six, guessed at once | `engine.js` mod `L`, `dealLink()` | `round.test.js` |
+| Blind — the giver guesses | `engine.js` mod `B`, `play.js` `blindShow` | `screen.test.js`, `round.test.js` |
+| Gamble — the only square you can lose on | `engine.js` mod `G` | `engine.test.js` |
+| Partners — a drawn, public partner | `engine.js` mod `T` | `round.test.js` |
+
+## The board
+
+| feature | where | held by |
+|---|---|---|
+| Four columns, three ways on from any square | `engine.js` `nextFrom()`, `reachable()` | `engine.test.js` |
+| Points as steps you spend, stopping early allowed | `play.js` `movepick`, `moveconfirm` | `round.test.js` |
+| Board length by unit count and crowd | `engine.js` `boardRows()` | playtest sweep |
+| Five maps, each with its own pattern | `engine.js` `MAPS` | `engine.test.js` |
+| Rerolling the map from the lobby | `play.js` `reroll_map` | `server.test.js` |
+| Card squares — three offered, one kept | `engine.js` `isCardNode()`, `play.js` `take` | `cards.test.js` |
+| The wildcard square — six outcomes | `engine.js` `isWildNode()`, `WILD_ODDS` | `engine.test.js` |
+| Seven cards | `engine.js` `EN_CARDS`, `play.js` `playcard` | `cards.test.js` |
+| Four game modes, incl. Challenge's score target | `engine.js` `MODES`, `winnerUnit()` | `engine.test.js` |
+
+## The table
+
+| feature | where | held by |
+|---|---|---|
+| 3–8 phones in a room | `play.js` `MIN_PLAYERS`, `server.js` `MAX_PLAYERS` | `server.test.js` |
+| Solo, pairs, groups | `play.js` `SEATINGS`, `startGame()` | `groups.test.js` |
+| Up to 5 people on one phone, 30 in a room | `play.js` `MAX_GROUP`, `MAX_PEOPLE` | `groups.test.js` |
+| A play order everybody taps into before round one | `play.js` `order_ok` | `round.test.js` |
+| Faces — 15 hand-drawn, one each | `server.js` `FACE_POOL`, `public/art.js` | `server.test.js` |
+| Host: language, mode, seating, map, play again | `server.js`, `play.js` | `server.test.js` |
+| Taking a break — 30s a press, 2 each, 5 min ceiling | `play.js` `pause`/`resume` | `stall.test.js` |
+| Getting up mid-round | `play.js` `leave()` | `leave.test.js` |
+| Skipping whoever the room is stuck on | `play.js` `skip`, `IDLE_MS` | `stall.test.js` |
+| Dropping and coming back | `server.js` `OFFLINE_GRACE_MS`, the stream | `reconnect.test.js` |
+| A host who leaves hands the room on | `server.js` | `reconnect.test.js` |
+
+## The screen in the room
+
+| feature | where | held by |
+|---|---|---|
+| Watching a room by its code alone, no seat | `server.js` `/api/board` | `screen.test.js` |
+| Never shows the four words, ever | `play.js` `boardView()` | `screen.test.js` |
+| Four layouts: wide, tall, phone, map-only | `public/board.css`, `board.js` | — |
+| The map turned sideways on a landscape screen | `public/boardart.js` `across` | — |
+| The board drawn once for phone and screen alike | `public/boardart.js` | — |
+| Up to 8 screens per room | `server.js` `MAX_SCREENS` | `server.test.js` |
+
+## The phone
+
+| feature | where | held by |
+|---|---|---|
+| Every screen of the game | `public/app.js` | — |
+| Faces and the token, hand-written SVG | `public/art.js` | — |
+| Sounds, synthesised — no audio files | `public/sfx.js` | — |
+| One scale dial, `--k`, driving every size | `public/style.css`, `kpx()` | — |
+| A tablet laid out for a tablet, either way up | `public/style.css` `.pane` | — |
+| Installable to a home screen | `public/manifest.webmanifest`, `icon.svg` | — |
+| The update bar, never mid-round | `public/app.js`, `/api/version` | `version.test.js` |
+| **What's new** at the foot of the first screen | `/api/changelog` | `changelog.test.js` |
+| Bilingual, Hebrew and English, everywhere | `engine.js` `EN_*`/`HE_*`, `uiPack()` | `copy.test.js` |
+
+## Around the game
+
+| feature | where | held by |
+|---|---|---|
+| The version falls out of the changelog | `game/changelog.js`, `release.js` | `changelog.test.js`, `version.test.js` |
+| The build hash — a phone knows it is stale | `server.js` `currentBuild()` | `version.test.js` |
+| Caps and guards for a public host | `server.js` | `server.test.js` |
+| `/healthz` | `server.js` | — |
+| The bot sweep and its report | `game/playtest.js`, `playtest-report.js` | `npm run playtest` |
+| The playtest harness page | `public/watch.html`, the `/playtest` skill | — |
+| The rulebook, both languages, print-ready | `design/rules/build.js` | — |
+| The poster and the how-to-play sheet | `design/poster/build.js` | — |
+| The painted poster that actually ships | `design/kit/export/poster_asimon.jpg` | — |
+| The logo, the screen and the card canvases | `design/logo/`, `design/screen/`, `design/cards/` | — |
+| The public site, trailer and PDFs | `docs/index.html`, `docs/assets/` | — |
+
+---
+
+## Not built
+
+Written down so a session does not have to rediscover that they are absent.
+
+- No accounts, no persistence, no database. A room is gone 90 minutes after the
+  last tap and that is deliberate.
+- No spectator chat, no reactions, no emoji.
+- No sound on the screen in the room — the sounds are the phone's.
+- No reconnect across a server restart. Rooms are in memory; a redeploy ends
+  every game in progress.
+- No horizontal scaling. **Run exactly one instance.**
+- No third language. The bilingual rule is structural — `copy.test.js` fails on
+  a key that answers in only one — and a third would be a real piece of work,
+  not a file of strings.

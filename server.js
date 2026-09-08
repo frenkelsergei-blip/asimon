@@ -34,6 +34,7 @@ const LAN_URL = "http://" + lanAddress() + ":" + PORT;
    touched mtime — none of those should tell a table mid-game to reload. Only a
    real change to the version or to a file the phone loads does.               */
 const VERSION = require("./package.json").version;
+const changelog = require("./game/changelog");
 const ASSETS = ["index.html","app.js","art.js","boardart.js","sfx.js","style.css","gestures.css",
                 "board.html","board.js","board.css"];
 
@@ -397,6 +398,15 @@ const server = http.createServer(async (req, res) => {
     /* ---- which build is being served? asked by a phone that may be stale ---- */
     if(p === "/api/version"){
       return sendJSON(res, 200, { version: VERSION, build: currentBuild() });
+    }
+
+    /* ---- what changed, and when. Asked only when somebody opens the sheet,
+       so it is never on the path of a round. The phone sends the language it
+       is drawing in; the list comes back already in it. ---- */
+    if(p === "/api/changelog"){
+      const lang = String(url.searchParams.get("lang") || "en");
+      return sendJSON(res, 200, { version: VERSION,
+                                  releases: changelog.forLang(lang, 20) });
     }
 
     /* ---- what a room looks like from outside, for the join screen ---- */

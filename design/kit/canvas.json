@@ -1,0 +1,43 @@
+{
+  "artboards": [
+    {
+      "file": "Main.dc.html",
+      "x": 0,
+      "y": 0,
+      "w": 794,
+      "h": 1123,
+      "title": "א · הצבעים",
+      "print": "fixed"
+    },
+    {
+      "file": "Faces.dc.html",
+      "x": 914,
+      "y": 0,
+      "w": 794,
+      "h": 1123,
+      "title": "ב · הדמויות",
+      "print": "fixed"
+    },
+    {
+      "file": "Marks.dc.html",
+      "x": 1828,
+      "y": 0,
+      "w": 794,
+      "h": 1123,
+      "title": "ג · הציורים",
+      "print": "fixed"
+    }
+  ],
+  "annotations": [
+    {
+      "id": "what",
+      "x": 0,
+      "y": -150,
+      "w": 560,
+      "text": "הערכה: מה קיים ואיך קוראים לו בקוד.\nהכול נקרא מ־public/style.css ומ־public/art.js בזמן הבנייה, כך ששינוי בקוד משנה את הדף הזה ולא להפך."
+    }
+  ],
+  "launch": {
+    "view": "canvas"
+  }
+}

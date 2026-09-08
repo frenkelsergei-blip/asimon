@@ -192,7 +192,7 @@ game, and one address. The sheet next to it is the one that explains.
 
 ```bash
 node design/poster/build.js            # the artboards
-node design/poster/build.js --print d  # those, plus print-ready HTML in d/
+node design/poster/build.js --print    # those, plus print HTML in design/poster/print/
 ```
 
 The token and the palette are lifted out of `public/art.js` and
@@ -217,7 +217,7 @@ own flat shapes and stays the layout of record &mdash; it is where the wording,
 the steps and the foot strip are decided. What ships is that same layout
 *painted*: `design/kit/export/poster_asimon.jpg`, wrapped full bleed at A4
 (`object-fit: cover`; the art is 0.3% wide of A4, so about a pixel a side goes).
-Rendering `d/Main.html` over `asimon-poster-A4.pdf` would quietly put the vector
+Rendering `design/poster/print/Main.html` over `asimon-poster-A4.pdf` would quietly put the vector
 version back.
 
 That is the trade the painting makes: it is 1728&times;2436, so roughly 210dpi

@@ -144,6 +144,9 @@ const L = {
     ver:"גרסה {0}", ver_tap:"לבדוק עדכון", ver_checking:"בודקים…",
     ver_fresh:"זו הגרסה העדכנית.", ver_failed:"אין חיבור לשרת.",
     upd_t:"יש גרסה חדשה", upd_d:"טוענים אותה מחדש — ייקח רגע.", upd_go:"לעדכן",
+    cl_k:"מה חדש", cl_close:"סגירה", cl_now:"הגרסה שלכם",
+    cl_new:"חדש", cl_rules:"כללים", cl_change:"השתנה", cl_fix:"תוקן",
+    cl_loading:"טוענים…", cl_failed:"אין חיבור לשרת.", cl_retry:"לנסות שוב",
     e_dummy:"" },
   en:{ title:"Asimon", tag:"one sentence · one shot",
     yourname:"What is your name?", nameph:"Your name", create:"Open a new room",
@@ -275,6 +278,9 @@ const L = {
     ver:"Version {0}", ver_tap:"Check for an update", ver_checking:"Checking…",
     ver_fresh:"This is the latest.", ver_failed:"Could not reach the server.",
     upd_t:"A new version is out", upd_d:"Loading it again takes a moment.", upd_go:"Update",
+    cl_k:"What's new", cl_close:"Close", cl_now:"You are on this one",
+    cl_new:"New", cl_rules:"Rules", cl_change:"Changed", cl_fix:"Fixed",
+    cl_loading:"Loading…", cl_failed:"Could not reach the server.", cl_retry:"Try again",
     e_dummy:"" }
 };
 
@@ -351,8 +357,9 @@ let movePickLocal = null, showHand = false;
 /* The move screen opens on the squares you may actually stand on rather than
    on all seventeen rows; this is the way back out, and back in. */
 let boardZoom = true;
-/* the help sheet: null | "rules" | "legend". sheetSeen stops it sliding in again
-   every time the room pushes new state while it is open */
+/* the help sheet: null | "rules" | "legend" | "modes" | "whatsnew". sheetSeen
+   stops it sliding in again every time the room pushes new state while it is
+   open */
 let sheet = null, sheetSeen = false;
 
 function t(k, a, b){
@@ -422,6 +429,12 @@ const metaTag = n => { const m = document.querySelector('meta[name="'+n+'"]'); r
 const VERSION = metaTag("asimon-version") || "0";
 const BUILD   = metaTag("asimon-build");
 let newBuild = "", verBusy = false, verNote = "", verAt = 0;
+/* What changed, and in which version. The list lives on the server — one file,
+   both languages, the same one CHANGELOG.md is written from — so a phone that
+   has sat on a home screen for a month can read what it has been missing
+   before it decides to reload. Asked for only when the sheet is opened, and
+   then kept for the rest of the session. */
+let clRel = null, clLang = "", clBusy = false, clErr = false;
 
 async function checkUpdate(manual){
   if(verBusy || newBuild) return;
@@ -441,6 +454,23 @@ async function checkUpdate(manual){
   /* a quiet check that found nothing repaints nothing — it can land in the
      middle of a round, and a repaint there is a flicker for no reason */
   if(manual || newBuild + "|" + verNote !== was) render();
+}
+
+/* Called every time the sheet is drawn rather than only when it is opened, so
+   it is written to do nothing at all once the list is in hand — and to ask
+   again by itself if the language moved out from under it. */
+async function loadChangelog(){
+  const want = lang;
+  if(clBusy || (clRel && clLang === want)) return;
+  clBusy = true; clErr = false; render();
+  try{
+    const r = await fetch("/api/changelog?lang=" + encodeURIComponent(want), { cache:"no-store" });
+    const d = await r.json();
+    clRel = (d && Array.isArray(d.releases)) ? d.releases : [];
+    clLang = want;
+  }catch(e){ clErr = true; }
+  clBusy = false;
+  render();
 }
 
 /* Drop anything that could hand back the old files — there is no service
@@ -620,20 +650,24 @@ function updBox(){
          '<span>'+t("upd_d")+'</span></span>'+
          '<button id="updgo">'+t("upd_go")+'</button></div>';
 }
-/* the line at the foot of the first screen: which build this phone is, and a
-   way to ask without waiting for the next check */
+/* the line at the foot of the first screen: which build this phone is, what
+   arrived in it, and a way to ask for a newer one without waiting for the next
+   check. Three plain words on one line — none of this is a task, so none of it
+   wears a button. */
 function verBox(){
   const note = verBusy ? t("ver_checking")
              : verNote === "fresh"  ? t("ver_fresh")
              : verNote === "failed" ? t("ver_failed")
              : t("ver_tap");
-  return '<button class="verline" id="vertap">'+
+  return '<div class="verline">'+
          '<span class="num">'+t("ver", esc(VERSION))+'</span>'+
-         '<span class="vn">'+esc(note)+'</span></button>';
+         '<button class="vn" id="verwhat">'+t("cl_k")+'</button>'+
+         '<button class="vn" id="vertap">'+esc(note)+'</button></div>';
 }
 function wireVersion(){
   on("updgo", applyUpdate);
   on("vertap", () => checkUpdate(true));
+  on("verwhat", () => openSheet("whatsnew"));
 }
 let handUp = null, awardUp = null, dealtFor = "";
 /* the order reveal runs on a clock of its own: when this phone first saw it,
@@ -1866,13 +1900,44 @@ function modesBody(){
     '<span class="mt"><b>'+esc(copy[id].n)+'</b><span>'+esc(copy[id].d)+'</span></span></div>').join("");
   return '<p class="lead">'+t("gm_teaser")+'</p><div class="modelist">'+cards+'</div>';
 }
+/* What's new: every release the server still lists, newest first, in this
+   phone's language. The release this phone is actually running is marked —
+   which is the whole reason the list is reachable from the version line and
+   not from the rules. */
+function clDate(iso){
+  const d = new Date(String(iso) + "T00:00:00");
+  if(isNaN(d.getTime())) return String(iso);
+  try{ return d.toLocaleDateString(lang === "he" ? "he-IL" : "en-GB",
+        { day:"numeric", month:"short", year:"numeric" }); }
+  catch(e){ return String(iso); }
+}
+function whatsNewBody(){
+  const held = (clRel && clLang === lang) ? clRel : null;
+  if(clBusy && !held) return '<p class="note">'+t("cl_loading")+'</p>';
+  if(clErr && !held)
+    return '<p class="note">'+t("cl_failed")+'</p>'+
+           '<button class="ghost" id="clretry">'+t("cl_retry")+'</button>';
+  const rel = held || [];
+  if(!rel.length) return '<p class="note">'+t("cl_failed")+'</p>';
+  return rel.map(r => {
+    const rows = (r.lines || []).map(l =>
+      '<div class="keyrow"><span class="kn k_'+esc(l.kind)+'">'+t("cl_" + l.kind)+'</span>'+
+      '<span class="kd">'+esc(l.text)+'</span></div>').join("");
+    return '<div class="clrel"><span class="cv">'+esc(r.v)+'</span>'+
+      '<span class="cd">'+esc(clDate(r.date))+'</span>'+
+      (r.v === VERSION ? '<span class="cnow">'+t("cl_now")+'</span>' : '')+
+      '</div><div class="keylist">'+rows+'</div>';
+  }).join("");
+}
 const SHEETS = {
-  rules:  { title:"hw_k", close:"hw_got", body:rulesBody },
-  legend: { title:"lg_k", close:"lg_close", body:legendBody },
-  modes:  { title:"gm_title", close:"gm_close", body:modesBody }
+  rules:    { title:"hw_k", close:"hw_got", body:rulesBody },
+  legend:   { title:"lg_k", close:"lg_close", body:legendBody },
+  modes:    { title:"gm_title", close:"gm_close", body:modesBody },
+  whatsnew: { title:"cl_k", close:"cl_close", body:whatsNewBody }
 };
 function paintSheet(){
   const cfg = SHEETS[sheet] || SHEETS.rules;
+  if(sheet === "whatsnew") loadChangelog();
   const html = '<div class="sheet'+(sheetSeen ? " still" : "")+'" id="sheet">'+
     '<div class="sheetcard" role="dialog" aria-modal="true" aria-label="'+t(cfg.title)+'">'+
       '<div class="sheethead"><h2>'+t(cfg.title)+'</h2>'+
@@ -1889,6 +1954,7 @@ function paintSheet(){
   const close = () => { sheet = null; render(); };
   on("sheetx", close);
   on("sheetdone", close);
+  on("clretry", () => { clErr = false; loadChangelog(); });
   const sh = document.getElementById("sheet");
   if(sh) sh.addEventListener("click", e => { if(e.target === sh) close(); });
 }

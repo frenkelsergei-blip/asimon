@@ -192,9 +192,10 @@ input.code{font-family:var(--display);font-weight:400;font-size:calc(34px * var(
 .verline{display:flex;align-items:baseline;justify-content:center;gap:8px;flex-wrap:wrap;
   background:transparent;box-shadow:none;padding:10px 4px 0;font-size:calc(12px * var(--k));font-weight:700;
   color:var(--faint);letter-spacing:.02em}
-.verline .vn{font-weight:700;color:var(--muted);text-decoration:underline;text-underline-offset:3px;
-  text-decoration-color:var(--rule)}
-.verline:active{transform:none}
+.verline .vn{width:auto;flex:0 0 auto;padding:0;background:transparent;box-shadow:none;
+  font-size:inherit;font-weight:700;color:var(--muted);text-decoration:underline;text-underline-offset:3px;
+  text-decoration-color:var(--rule);letter-spacing:inherit}
+.verline .vn:active{transform:none}
 
 /* ---- the break, and getting up ----
    The same ink receipt the room code is printed on, holding a countdown
@@ -574,6 +575,27 @@ button.quiet.warn{color:var(--guilty-ink)}
 .lgtag{display:inline-grid;place-items:center;min-width:calc(42px * var(--k));height:calc(19px * var(--k));padding:0 8px;
   border:1.4px solid;border-radius:9.5px;background:var(--surface);
   font-size:calc(10.5px * var(--k));font-weight:800;line-height:1;margin-top:2px}
+/* what's new: one header per release, then the lines under it in the same
+   label/meaning list the rules and the legend are built from. The version is
+   set in the display face and forced left-to-right, because 0.4.0 reads
+   backwards in a right-to-left sheet. */
+.clrel{display:flex;align-items:baseline;flex-wrap:wrap;gap:5px 9px;padding:6px 2px 0}
+.clrel:not(:first-child){margin-top:8px}
+.clrel .cv{font-family:var(--display);font-weight:400;font-size:calc(20px * var(--k));
+  line-height:1.1;direction:ltr;unicode-bidi:isolate}
+.clrel .cd{font-size:calc(11px * var(--k));font-weight:700;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--faint)}
+.clrel .cnow{margin-inline-start:auto;padding:2px 9px;border-radius:9px;
+  background:var(--accent-soft);color:var(--accent-ink);
+  font-size:calc(10.5px * var(--k));font-weight:800;letter-spacing:.02em;white-space:nowrap}
+/* new / rules / changed / fixed — told apart by ink alone. The first two are
+   the ones that cost a minor, and they are the two that carry a colour of
+   their own; changed and fixed sit back. */
+.keyrow .kn.k_new{color:var(--accent-ink)}
+.keyrow .kn.k_rules{color:var(--violet)}
+.keyrow .kn.k_change{color:var(--second)}
+.keyrow .kn.k_fix{color:var(--good-ink)}
+
 /* an SVG flex item with no height collapses — pin the ratio */
 .lgdiag{display:block;flex:none;width:min(100%,232px);aspect-ratio:220/104;height:auto;margin:0 auto}
 

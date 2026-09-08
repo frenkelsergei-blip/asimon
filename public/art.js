@@ -457,6 +457,45 @@ function faceToken(id, x, y, r){
          '<circle cx="'+x+'" cy="'+y+'" r="'+r+'" fill="none" stroke="var(--surface)" stroke-width="'+(2.5/k*k).toFixed(2)+'"/>';
 }
 
+/* The pin: the shape a token takes on the wall's tilted map. A token lying
+   flat on a tipped board is a coin seen edge-on, so it stands up instead —
+   the head is the same face at the same size, held above its square, with a
+   drop of shadow under it saying which square that is.
+
+   The tail leaves the head where a line from the tip touches it, so the two
+   are one silhouette and not a circle with a spike behind it.
+
+   Handed out as a path rather than drawn, because the board also has to put
+   initials on one when a player has not picked a face, and it knows how to
+   escape a name where this file does not. */
+function pinShape(x, y, r){
+  const n = v => Math.round(v*10)/10, H = r * 3, cy = y - H;
+  const b = Math.acos(Math.max(-1, Math.min(1, r / H)));
+  const px = r * Math.sin(b), py = cy + r * Math.cos(b), q = (y - py) * 0.55;
+  return { cy, d:'M'+n(x)+' '+n(y)+
+    'Q'+n(x - px*0.62)+' '+n(y - q)+' '+n(x - px)+' '+n(py)+
+    'A'+n(r)+' '+n(r)+' 0 1 1 '+n(x + px)+' '+n(py)+
+    'Q'+n(x + px*0.62)+' '+n(y - q)+' '+n(x)+' '+n(y)+'Z' };
+}
+/* the drop on the square and the white halo that lifts the pin off whatever
+   is behind it — every pin wears both, whatever is printed on its head */
+function pinBase(d, x, y, r){
+  const n = v => Math.round(v*10)/10;
+  return '<ellipse cx="'+n(x)+'" cy="'+n(y)+'" rx="'+n(r*0.82)+'" ry="'+n(r*0.3)+'" fill="var(--ink)" opacity="0.22"/>'+
+    '<path d="'+d+'" fill="var(--surface)" stroke="var(--surface)" stroke-width="'+n(r*0.34)+'" stroke-linejoin="round"/>';
+}
+/* a face on a pin: the tail takes the face's own colour, so a pin still reads
+   as whose it is from the far end of the room when the head is half hidden */
+function facePin(id, x, y, r){
+  const f = faceOf(id), s = pinShape(x, y, r), hr = r * 0.84, k = hr / 20;
+  const n = v => Math.round(v*10)/10;
+  return pinBase(s.d, x, y, r)+
+    '<path d="'+s.d+'" fill="'+f.bg+'"/>'+
+    '<g transform="translate('+n(x - hr)+','+n(s.cy - hr)+') scale('+k.toFixed(4)+')">'+
+      '<circle cx="20" cy="20" r="20" fill="'+f.bg+'"/>'+
+      '<g clip-path="url(#lsface)">'+f.art+'</g></g>';
+}
+
 /* ============================================================
    The twelve topics and the seven round twists. Same 40x40 box,
    same disc, so they drop in anywhere a face already goes.
@@ -553,7 +592,48 @@ const MOD_ART = {
     '<path d="M15.6 38.6c0-7.4 5.4-11 12.6-11s12.6 3.6 12.6 11Z" fill="#2C6BFF"/>'+
     '<circle cx="28.2" cy="18" r="9.6" fill="#2C6BFF"/>'+
     '<path d="M17.4 38.6c0-6.2 4.8-9.2 10.8-9.2s10.8 3 10.8 9.2Z" fill="#FFFFFF"/>'+
-    '<circle cx="28.2" cy="18" r="7.8" fill="#FFFFFF"/>' }
+    '<circle cx="28.2" cy="18" r="7.8" fill="#FFFFFF"/>' },
+
+  /* A die, and the only object in the set that comes from outside this game
+     -- nothing drawn from a token or a speech bubble says "a bet" at 23px.
+     It is tilted because it is mid-throw: this is the one square where the
+     throw can go against you. */
+  G: { bg:"#D8351C", art:
+    '<g transform="rotate(-13 20 20)">'+
+      '<rect x="6.8" y="6.8" width="26.4" height="26.4" rx="6.4" fill="#FFFFFF"/>'+
+      '<circle cx="13.4" cy="13.4" r="2.8" fill="#17161C"/>'+
+      '<circle cx="26.6" cy="13.4" r="2.8" fill="#17161C"/>'+
+      '<circle cx="20" cy="20" r="2.8" fill="#17161C"/>'+
+      '<circle cx="13.4" cy="26.6" r="2.8" fill="#17161C"/>'+
+      '<circle cx="26.6" cy="26.6" r="2.8" fill="#17161C"/>'+
+    '</g>' },
+
+  /* The aim, made public. Every round has one and it is a secret; this is
+     the square where it is said out loud and nobody else may answer, so the
+     target is the drawing. Deliberately NOT two people -- Partners is two
+     people, and at 23px a second pair of heads would be the same emblem. */
+  U: { bg:"#DB2777", art:
+    '<circle cx="20" cy="20" r="16.6" fill="#FFFFFF"/>'+
+    '<circle cx="20" cy="20" r="10.6" fill="#DB2777"/>'+
+    '<circle cx="20" cy="20" r="4.8" fill="#FFFFFF"/>' },
+
+  /* One sentence, two words: One word's own bubble with two marks in it
+     instead of one, so the pair reads as a pair. The marks are thin, low and
+     of unequal length on purpose -- two equal ovals halfway up a round white
+     shape are a pair of eyes, and the emblem turned into a face at 23px. */
+  W: { bg:"#D97706", art:
+    '<path d="M7 5.6h26a5 5 0 0 1 5 5v13.2a5 5 0 0 1-5 5H18.6l-8.4 6.8 1.5-6.8H7a5 5 0 0 1-5-5V10.6a5 5 0 0 1 5-5Z" fill="#FFFFFF"/>'+
+    '<rect x="8.6" y="16" width="12.6" height="4.4" rx="2.2" fill="#D97706"/>'+
+    '<rect x="23.4" y="16" width="8.2" height="4.4" rx="2.2" fill="#D97706"/>' },
+
+  /* Three things and what runs between them, which is the whole round. The
+     nodes keep a hole in the middle so three of them stay countable once the
+     bars have joined them into one shape. */
+  L: { bg:"#0891B2", art:
+    '<path d="M20 10 10 29M20 10l10 19M10 29h20" stroke="#FFFFFF" stroke-width="3.6" stroke-linecap="round" fill="none"/>'+
+    '<circle cx="20" cy="10" r="6.8" fill="#FFFFFF"/><circle cx="20" cy="10" r="2.6" fill="#0891B2"/>'+
+    '<circle cx="10" cy="29" r="6.8" fill="#FFFFFF"/><circle cx="10" cy="29" r="2.6" fill="#0891B2"/>'+
+    '<circle cx="30" cy="29" r="6.8" fill="#FFFFFF"/><circle cx="30" cy="29" r="2.6" fill="#0891B2"/>' }
 };
 
 const CHOICE_ART = {
