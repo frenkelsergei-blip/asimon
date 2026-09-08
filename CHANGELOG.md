@@ -5,6 +5,12 @@ game itself shows under the version at the foot of the first screen.
 
 Generated from `game/changelog.js` by `npm run release` — edit that file, not this one.
 
+## 0.8.2 — 2026-09-08
+
+### Fixed
+
+- The screen kept drawing the place while a mover was choosing a square — a ring it meant to draw round the chosen square had gone missing and stopped the whole map.
+
 ## 0.8.1 — 2026-09-08
 
 ### Changed

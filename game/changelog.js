@@ -36,6 +36,12 @@ const RANK = { patch:0, minor:1, major:2 };
 
 const RELEASES = [
 
+  { v:"0.8.2", date:"2026-09-08", lines:[
+    { kind:"fix",
+      en:"The screen kept drawing the place while a mover was choosing a square — a ring it meant to draw round the chosen square had gone missing and stopped the whole map.",
+      he:"המסך ממשיך לצייר את המקום בזמן שמישהו בוחר משבצת — טבעת שהיה אמור לצייר סביב המשבצת שנבחרה נעלמה ועצרה את כל המפה." }
+  ]},
+
   { v:"0.8.1", date:"2026-09-08", lines:[
     { kind:"fix",
       en:"What is this board? now describes the board you are actually on — its own colours, the kinds of round it deals, and on Crossroads how a step down a road really works — instead of the classic four lanes every time.",

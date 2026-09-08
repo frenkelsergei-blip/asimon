@@ -788,6 +788,14 @@ window.asimonWorld = (function(){
     return '<g transform="translate(' + n1(x) + ' ' + n1(y) + ') scale(1 0.58) translate(' + n1(-x) + ' ' + n1(-y) + ')">' + badge(key, x, y, r) + "</g>";
   }
 
+  /* The square a mover has chosen and not yet confirmed: a ring of light in
+     the square's own colour, breathing, rather than a line drawn round it */
+  function chosen(x, y, col){
+    return el("ellipse", { cx:x, cy:y, rx:33, ry:20, fill:"none", stroke:col, "stroke-width":7, opacity:0.55, filter:"url(#soft)", class:"glow" }) +
+      el("ellipse", { cx:x, cy:y, rx:30, ry:18, fill:"none", stroke:"#FFFFFF", "stroke-width":2.6, opacity:0.95 }) +
+      el("ellipse", { cx:x, cy:y, rx:30, ry:18, fill:col, opacity:0.14, class:"glow" });
+  }
+
   /* ---------------- one of the cast, standing on the map ----------------
      The phone shows a face on a disc; here the same drawing stands up. A
      person is drawn as the bust the art already is — head and shoulders, the
