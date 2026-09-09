@@ -24,6 +24,9 @@ const L = {
     group_of:"{0} בקבוצה",
     share:"שאר הטלפונים נכנסים לכתובת הזאת, על אותו ה־Wi‑Fi:", hostwait:"המארח/ת מתחיל/ה את המשחק.",
     bigscreen:"יש טלוויזיה או טאבלט? פתחו שם את הכתובת הזאת — מסך שרק מראה את הלוח ואת המצב:",
+    qr_tap:"להראות ריבוע לסריקה", qr_close:"סגור",
+    qr_join_k:"לסרוק ולהצטרף", qr_join_d:"כוונו את המצלמה של הטלפון השני לריבוע. הוא ייפתח על החדר הזה, עם הקוד כבר בפנים.",
+    qr_board_k:"לסרוק ולפתוח את המסך", qr_board_d:"כוונו את המצלמה של הטלוויזיה או הטאבלט לריבוע — או פתחו שם את הכתובת ידנית.",
     offline:"מנותק — מנסים להתחבר מחדש…",
     picking:"{0} בוחר/ת מילה", picking_d:"רגע אחד. אל תסתכלו לו/ה בטלפון.",
     lookaway:"{0} — תסתובבו", lookaway_d:"כל השאר בוחרים לכם מילה בטלפון שלהם.",
@@ -163,6 +166,9 @@ const L = {
     group_of:"{0} in the group",
     share:"The other phones open this address, on the same Wi‑Fi:", hostwait:"The host starts the game.",
     bigscreen:"A television or a tablet in the room? Open this on it — a screen that only shows the board and where everyone stands:",
+    qr_tap:"show a square to scan", qr_close:"Close",
+    qr_join_k:"Scan to join", qr_join_d:"Point the other phone's camera at the square. It opens on this room, with the code already in it.",
+    qr_board_k:"Scan to open the screen", qr_board_d:"Point the television's or the tablet's camera at the square — or type the address there yourself.",
     offline:"Disconnected — reconnecting…",
     picking:"{0} is choosing a word", picking_d:"Give them a moment. No peeking at their phone.",
     lookaway:"{0} — look away", lookaway_d:"Everyone else is choosing your word on their own phone.",
@@ -876,9 +882,8 @@ function vLobby(){
       '<div><p class="kicker">'+t("room_k")+'</p><div class="roomcode">'+esc(s.code)+'</div></div>'+
       '<span class="av" style="background:rgba(255,255,255,.16);width:44px;height:44px;flex:0 0 44px;font-size:15px">'+
       list.length+'</span></div><div class="perf"></div></div>'+
-    '<p class="note">'+t("share")+'</p><div class="link">'+esc(s.lanUrl||location.origin)+'</div>'+
-    '<p class="note">'+t("bigscreen")+'</p><div class="link">'+
-      esc((s.lanUrl||location.origin)+'/board?room='+s.code)+'</div>'+
+    '<p class="note">'+t("share")+'</p>'+scanBtn("qrjoin", s.lanUrl||location.origin)+
+    '<p class="note">'+t("bigscreen")+'</p>'+scanBtn("qrboard", boardUrl(s))+
     '<p class="kicker">'+t("players_k")+'</p><div class="plist">'+rows+'</div>'+
     (s.seating === "groups" ? groupBox(s) : '')+
     (pickingFace
@@ -1865,10 +1870,36 @@ function learnBtn(id, label, teaser){
     '<span class="lt"><b>'+label+'</b><span>'+teaser+'</span></span>'+
     '<span class="lc" aria-hidden="true">›</span></button>';
 }
+/* An address is read off one phone and typed into another, which is the
+   slowest minute of the evening. The address stays — somebody always has a
+   camera that will not open a link — but tapping it hands over the same thing
+   as a square, and the square carries the room code the typing would have
+   had to carry by hand. */
+function scanBtn(id, shown){
+  return '<button class="link scan" id="'+id+'"><span class="ad">'+esc(shown)+'</span>'+
+    '<span class="qm" aria-hidden="true">'+
+    '<svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor">'+
+    '<path d="M3 3h8v8H3V3zm2 2v4h4V5H5zM13 3h8v8h-8V3zm2 2v4h4V5h-4zM3 13h8v8H3v-8zm2 2v4h4v-4H5z"/>'+
+    '<path d="M13 13h3v3h-3v-3zm5 0h3v3h-3v-3zm-5 5h3v3h-3v-3zm5 0h3v3h-3v-3z"/></svg>'+
+    '</span><span class="sr">'+t("qr_tap")+'</span></button>';
+}
+const joinUrl  = s => (s && s.lanUrl || location.origin) + "/?room=" + ((s && s.code) || "");
+const boardUrl = s => (s && s.lanUrl || location.origin) + "/board?room=" + ((s && s.code) || "");
+/* Drawn as large as the sheet allows, because it is read across a table, and
+   with the address under it for the phone whose camera does not oblige. */
+function qrBody(url, hint){
+  let art = "";
+  try{ art = QR.svg(url, { label:url }); }catch(e){ art = ""; }
+  return '<p class="lead">'+t(hint)+'</p>'+
+    (art ? '<div class="qrplate">'+art+'</div>' : '')+
+    '<div class="link">'+esc(url)+'</div>';
+}
 function wireLearn(){
   on("howto", () => { openSheet("rules"); });
   on("boardhelp", () => { openSheet("legend"); });
   on("modeinfo", () => { openSheet("modes"); });
+  on("qrjoin", () => { openSheet("qrjoin"); });
+  on("qrboard", () => { openSheet("qrboard"); });
 }
 function openSheet(which){ sheet = which; sheetSeen = false; render(); }
 
@@ -1995,6 +2026,8 @@ function whatsNewBody(){
 }
 const SHEETS = {
   rules:    { title:"hw_k", close:"hw_got", body:rulesBody },
+  qrjoin:   { title:"qr_join_k",  close:"qr_close", body:() => qrBody(joinUrl(state), "qr_join_d") },
+  qrboard:  { title:"qr_board_k", close:"qr_close", body:() => qrBody(boardUrl(state), "qr_board_d") },
   legend:   { title:"lg_k", close:"lg_close", body:legendBody },
   modes:    { title:"gm_title", close:"gm_close", body:modesBody },
   whatsnew: { title:"cl_k", close:"cl_close", body:whatsNewBody }
@@ -2088,8 +2121,31 @@ if(new URLSearchParams(location.search).has("u")){
   }catch(e){}
 }
 
+/* ?room=CODE is what a scanned square arrives as: the join screen, already
+   holding the code, so all that is left is a name. The address is tidied
+   afterwards so a reload does not drag a stale room back. */
+const SCANNED = (new URLSearchParams(location.search).get("room") || "")
+  .toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 4);
+
 try{ me = JSON.parse(localStorage.getItem(K_ROOM) || "null"); }catch(e){ me = null; }
 try{ myFace = localStorage.getItem(K_FACE) || null; }catch(e){}
 if(!myFace) myFace = FACES[Math.floor(Math.random() * FACES.length)].id;
-if(me && me.pid && me.code){ connect(); render(); }
+if(SCANNED.length === 4 && !(me && me.pid && me.code === SCANNED)){
+  draftCode = SCANNED;
+  me = (me && me.name) ? { name:me.name } : null;
+  screen = "join";
+  try{
+    const u = new URL(location.href);
+    u.searchParams.delete("room");
+    history.replaceState(null, "", u.pathname + (u.search || "") + u.hash);
+  }catch(e){}
+  render();
+  fetch("/api/room?code=" + SCANNED).then(r => r.ok ? r.json() : null).then(info => {
+    if(!info) return;
+    taken = info.taken || [];
+    if(taken.indexOf(myFace) >= 0) myFace = defaultFace(taken);
+    render();
+  }).catch(() => {});
+}
+else if(me && me.pid && me.code){ connect(); render(); }
 else { if(me && me.name) me = { name:me.name }; render(); }

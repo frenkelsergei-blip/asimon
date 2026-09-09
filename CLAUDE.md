@@ -134,7 +134,7 @@ tells the person holding it *what they are missing*.
 npm test
 ```
 
-Thirteen suites and no network. `npm run playtest` runs the bot sweep and writes
+Fourteen suites and no network. `npm run playtest` runs the bot sweep and writes
 a report when a rules change needs to be looked at over many games.
 
 ## Voice

@@ -17,7 +17,7 @@ or three, or whether a screen on the wall is allowed to know the word.
 | [architecture.md](architecture.md) | server, engine, round, phone — who owns what state and who may see it |
 | [protocol.md](protocol.md) | the HTTP surface, the event stream, and every action a phone can send |
 | [content.md](content.md) | the words, topics, links, cards and copy — and the bilingual rule |
-| [testing.md](testing.md) | the thirteen suites, the bot sweep, and what each of them is actually claiming |
+| [testing.md](testing.md) | the fourteen suites, the bot sweep, and what each of them is actually claiming |
 | [conventions.md](conventions.md) | how to add something here without breaking the parts nobody is looking at |
 
 ## These are descriptive, not aspirational

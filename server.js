@@ -35,7 +35,7 @@ const LAN_URL = "http://" + lanAddress() + ":" + PORT;
    real change to the version or to a file the phone loads does.               */
 const VERSION = require("./package.json").version;
 const changelog = require("./game/changelog");
-const ASSETS = ["index.html","app.js","art.js","boardart.js","sfx.js","style.css","gestures.css",
+const ASSETS = ["index.html","app.js","art.js","boardart.js","qr.js","sfx.js","style.css","gestures.css",
                 "board.html","board.js","board.css","worldart.js"];
 
 let BUILD = "", assetStamp = null;

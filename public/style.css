@@ -211,6 +211,17 @@ input.code{font-family:var(--display);font-weight:400;font-size:calc(34px * var(
 .err{background:var(--guilty-soft);color:var(--guilty-ink);border-radius:10px;padding:11px 14px;font-size:calc(14px * var(--k));font-weight:700}
 .link{background:var(--sunk);border-radius:10px;padding:11px 14px;font-size:calc(13px * var(--k));color:var(--muted);
   word-break:break-all;direction:ltr;text-align:center}
+/* the address, tappable, because behind it is the same address as a square */
+button.link.scan{display:flex;align-items:center;gap:10px;width:100%;box-shadow:none;font-weight:700;
+  border:1px solid var(--rule);text-align:start}
+button.link.scan .ad{flex:1;min-width:0;word-break:break-all}
+button.link.scan .qm{flex:0 0 auto;display:grid;place-items:center;color:var(--accent-ink);
+  width:calc(30px * var(--k));height:calc(30px * var(--k));border-radius:9px;background:var(--accent-soft)}
+button.link.scan .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+/* on the sheet the square is the whole point, so it is given the width */
+.qrplate{background:#fff;border:1px solid var(--rule);border-radius:16px;padding:12px;
+  width:min(78%, 320px);margin:2px auto 6px}
+.qrplate .qr{display:block;width:100%;height:auto}
 
 /* a new build is being served — offered only between games, never mid-round */
 .upd{display:flex;align-items:center;gap:12px;background:var(--accent-soft);border:1px solid var(--accent);

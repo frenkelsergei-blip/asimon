@@ -23,7 +23,7 @@ const L = {
     sc_gone:"אין חדר עם הקוד הזה.", sc_toomany:"יותר מדי מסכים על החדר הזה.",
     sc_net:"אין חיבור לשרת.", sc_off:"מנותק — מתחברים מחדש…",
     sc_room_k:"חדר", sc_round_k:"סבב", sc_board_k:"הלוח", sc_speed_k:"קצב",
-    sc_join_k:"להצטרף מהטלפון",
+    sc_join_k:"להצטרף מהטלפון", sc_scan_k:"או לסרוק ולהצטרף",
     sc_lobby:"מחכים שהמשחק יתחיל", sc_lobby_d:"המארח/ת מתחיל/ה כשכולם בפנים.",
     sc_players_k:"מי בפנים", sc_need:"צריך לפחות {0} טלפונים",
     sc_order_k:"לפני שמתחילים", sc_order:"זה הסדר", sc_order_d:"עוד {0} לאשר",
@@ -69,7 +69,7 @@ const L = {
     sc_gone:"No room with that code.", sc_toomany:"Too many screens on that room.",
     sc_net:"No connection to the server.", sc_off:"Off the air — reconnecting…",
     sc_room_k:"Room", sc_round_k:"Round", sc_board_k:"Board", sc_speed_k:"Speed",
-    sc_join_k:"Join from a phone",
+    sc_join_k:"Join from a phone", sc_scan_k:"or scan to join",
     sc_lobby:"Waiting for the game to start", sc_lobby_d:"The host starts it once everyone is in.",
     sc_players_k:"Who is in", sc_need:"Needs at least {0} phones",
     sc_order_k:"Before we start", sc_order:"This is the order", sc_order_d:"{0} still to tap in",
@@ -308,10 +308,12 @@ function vLobby(s){
   h(shead(s)+
     '<div class="lobbypane">'+
       '<div class="joinbox">'+
-        '<p class="kicker">'+t("sc_room_k")+'</p>'+
-        '<div class="bigcode">'+esc(s.code)+'</div>'+
-        '<p class="kicker">'+t("sc_join_k")+'</p>'+
-        '<div class="where">'+esc(s.lanUrl || location.origin)+'</div>'+
+        '<div class="jtext">'+
+          '<p class="kicker">'+t("sc_room_k")+'</p>'+
+          '<div class="bigcode">'+esc(s.code)+'</div>'+
+          '<p class="kicker">'+t("sc_join_k")+'</p>'+
+          '<div class="where">'+esc(s.lanUrl || location.origin)+'</div>'+
+        '</div>'+ scanPanel(s)+
       '</div>'+
       '<div class="side">'+
         receipt({ tone:"ink", kick:t("sc_players_k"), head:t("sc_lobby"),
@@ -324,6 +326,17 @@ function vLobby(s){
         '<div class="standings">'+rows+'</div>'+
       '</div>'+
     '</div>'+ corner());
+}
+
+/* The wall is the one surface everybody in the room is already looking at,
+   so the square belongs here more than anywhere: point a phone at the
+   television and the join screen opens with the code in it. The letters stay
+   beside it, because a phone with no camera to spare still has fingers. */
+function scanPanel(s){
+  const url = (s.lanUrl || location.origin) + "/?room=" + s.code;
+  let art = "";
+  try{ art = QR.svg(url, { label:url }); }catch(e){ return ""; }
+  return '<div class="jscan">'+art+'<p class="kicker">'+t("sc_scan_k")+'</p></div>';
 }
 
 /* ---------------- the game ---------------- */

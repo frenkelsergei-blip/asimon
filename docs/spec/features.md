@@ -54,6 +54,7 @@ belongs here in the same commit.
 | Getting up mid-round | `play.js` `leave()` | `leave.test.js` |
 | Skipping whoever the room is stuck on | `play.js` `skip`, `IDLE_MS` | `stall.test.js` |
 | Dropping and coming back | `server.js` `OFFLINE_GRACE_MS`, the stream | `reconnect.test.js` |
+| Joining by scanning a square — the lobby's two addresses each open one, and a scanned link lands on the join screen with the code already in it | `public/qr.js`, `app.js` `scanBtn()`, `qrBody()`, `?room=` at boot | `qr.test.js` |
 | A host who leaves hands the room on | `server.js` | `reconnect.test.js` |
 
 ## The screen in the room
@@ -75,6 +76,7 @@ belongs here in the same commit.
 | Every square wears its twist's print, the finish a chequered one; a Legend sheet on the wall reads them | `worldart.js` `badge()`, `FINISH`, `board.js` `showLegend()` | — |
 | The flat board, drawn once for the phone and as the screen's fallback | `public/boardart.js` | — |
 | A lit square's word written in the ink its own lane colour asks for, per map | `style.css` `--map-*-ink`, `boardart.js` `inks()` | — |
+| The room code as a square beside the room code in letters, so a phone joins by camera | `board.js` `scanPanel()`, `public/qr.js` | `qr.test.js` |
 | Up to 8 screens per room | `server.js` `MAX_SCREENS` | `server.test.js` |
 
 ## The phone
@@ -84,6 +86,7 @@ belongs here in the same commit.
 | Every screen of the game | `public/app.js` | — |
 | Faces and the token, hand-written SVG | `public/art.js` | — |
 | Sounds, synthesised — no audio files | `public/sfx.js` | — |
+| QR codes, drawn here — eight-bit mode, versions 1–10, the mask scored the way the standard says | `public/qr.js` | `qr.test.js` |
 | One scale dial, `--k`, driving every size | `public/style.css`, `kpx()` | — |
 | A tablet laid out for a tablet, either way up | `public/style.css` `.pane` | — |
 | Installable to a home screen | `public/manifest.webmanifest`, `icon.svg` | — |

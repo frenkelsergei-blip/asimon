@@ -157,6 +157,14 @@ body{ margin:0 }
   letter-spacing:.1em; direction:ltr }
 .joinbox .where{ font-size:1.5em; font-weight:700; direction:ltr; overflow-wrap:anywhere;
   background:rgba(255,255,255,.12); border-radius:.42em; padding:.58em .75em }
+/* the code in letters and the same code as a square, side by side: whichever
+   the person across the room reaches for first */
+.joinbox{ flex-direction:row; align-items:center; gap:1.75em }
+.joinbox .jtext{ flex:1; min-width:0; display:flex; flex-direction:column; gap:.875em }
+.joinbox .jscan{ flex:0 0 auto; width:min(34%, 15em); display:flex; flex-direction:column;
+  align-items:center; gap:.5em }
+.joinbox .jscan .qr{ width:100%; height:auto; border-radius:.42em; display:block }
+.joinbox .jscan .kicker{ text-align:center }
 .dot{ width:.625em; height:.625em; border-radius:50%; background:var(--good) }
 .dot.off{ background:var(--zero) }
 
@@ -226,8 +234,9 @@ body{ margin:0 }
   .rbox h2.word{ font-size:2.6em }
   .clock{ font-size:3.6em }
   .lobbypane{ grid-template-columns:minmax(0,1fr); grid-template-rows:auto minmax(0,1fr) }
-  .joinbox{ padding:1.4em 1.6em }
+  .joinbox{ padding:1.4em 1.6em; gap:1.1em }
   .joinbox .bigcode{ font-size:4em }
+  .joinbox .jscan{ width:min(38%, 11em) }
   /* the map on its own still fills exactly one screen, and does not scroll */
   #screen.maponly{ height:100%; overflow:hidden }
 }

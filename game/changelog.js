@@ -36,6 +36,12 @@ const RANK = { patch:0, minor:1, major:2 };
 
 const RELEASES = [
 
+  { v:"0.12.0", date:"2026-09-09", lines:[
+    { kind:"new",
+      en:"Joining by camera: the screen in the room shows the code as a square beside the letters, and on the host's phone each address opens one to point a camera at. A scanned square lands on the join screen with the code already in it.",
+      he:"להצטרף עם המצלמה: המסך בחדר מראה את הקוד גם כריבוע לצד האותיות, ובטלפון של המארח כל כתובת פותחת ריבוע לכוון אליו מצלמה. סריקה נוחתת ישר על מסך ההצטרפות, עם הקוד כבר בפנים." }
+  ]},
+
   { v:"0.11.0", date:"2026-09-08", lines:[
     { kind:"new",
       en:"The word banks are seven times bigger — twelve hundred words in each language, three hundred at every level, so a long evening stops handing you the same word twice.",

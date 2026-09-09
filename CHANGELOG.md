@@ -5,6 +5,12 @@ game itself shows under the version at the foot of the first screen.
 
 Generated from `game/changelog.js` by `npm run release` — edit that file, not this one.
 
+## 0.12.0 — 2026-09-09
+
+### Added
+
+- Joining by camera: the screen in the room shows the code as a square beside the letters, and on the host's phone each address opens one to point a camera at. A scanned square lands on the join screen with the code already in it.
+
 ## 0.11.0 — 2026-09-08
 
 ### Added

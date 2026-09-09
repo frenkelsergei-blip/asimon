@@ -197,7 +197,12 @@ the board looks like. On the screen it is the fallback: `public/worldart.js`
 draws the same board state as a place — one scene per map, the cast standing
 on it as little figures, a move as a hop — and is loaded on the wall's page
 only. The phone never sees it. `public/sfx.js` synthesises the sounds — no audio files,
-the way there are no images.
+the way there are no images. `public/qr.js` draws a QR the same way — the
+encoder is written out rather than fetched, because the rule against
+dependencies does not bend for a square — and both pages load it: the phone for
+the two addresses in its lobby, the wall for the room code beside the letters.
+It carries nothing the room does not already show: the address and the four
+letters, which are on the wall anyway.
 
 `public/style.css` hangs everything off one number, `--k` at the head of the
 file. A phone leaves it at 1. A tablet turns it up to 1.2, or 1.34 on a large
