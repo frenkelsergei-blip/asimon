@@ -5,6 +5,17 @@ game itself shows under the version at the foot of the first screen.
 
 Generated from `game/changelog.js` by `npm run release` — edit that file, not this one.
 
+## 0.12.1 — 2026-09-09
+
+### Changed
+
+- Tap a card in your fan to lift and enlarge it for reading, and see points, available steps and board positions more clearly in the round results.
+- The maps on the shared screen have clearer connections and player pieces, start spaces made from each map's own material, and more visible finish flags.
+
+### Fixed
+
+- Scenery stays clear of the playing lanes, and players sharing a square spread out so their faces are easier to see.
+
 ## 0.12.0 — 2026-09-09
 
 ### Added

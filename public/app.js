@@ -55,6 +55,8 @@ const L = {
     winner:"{0} מנצח/ת", wins_p:"{0} מנצחים", playagain:"עוד משחק",
     waitmove:"{0} זז/ה על הלוח.", waitmove_p:"{0} זזים על הלוח.",
     hand_k:"הקלפים שלכם", playcard:"להפעיל קלף", closehand:"סגירה",
+    round_points_k:"הניקוד בסבב הזה", earned_step:"אפשר לזוז צעד אחד", earned_steps:"אפשר לזוז עד {0} צעדים",
+    positions_before:"המיקום לפני שזזים", positions_now:"המיקום על הלוח",
     nocards:"אין לכם קלפים.", cardsq:"משבצת קלף", takeone:"{0} — קחו קלף",
     waitcard:"{0} בוחר/ת קלף.", waitcard_p:"{0} בוחרים קלף.",
     swap_wait:"{0} מחליף/ה מילה…", swap_pick:"בחרו מילה אחרת",
@@ -195,6 +197,8 @@ const L = {
     winner:"{0} wins", wins_p:"{0} win", playagain:"Play again",
     waitmove:"{0} is moving on the board.", waitmove_p:"{0} are moving on the board.",
     hand_k:"Your cards", playcard:"Play a card", closehand:"Close",
+    round_points_k:"Points this round", earned_step:"Move up to 1 step", earned_steps:"Move up to {0} steps",
+    positions_before:"Positions before moving", positions_now:"Board positions",
     nocards:"You have no cards.", cardsq:"Card square", takeone:"{0} — take a card",
     waitcard:"{0} is choosing a card.", waitcard_p:"{0} are choosing a card.",
     swap_wait:"{0} is switching words…", swap_pick:"Pick a different word",
@@ -647,7 +651,26 @@ function showNote(bold, sub){
 
 /* ---------------- shell ---------------- */
 function h(html){
+  const hand = app.querySelector('.fan');
+  const poses = new Map(hand ? Array.from(hand.querySelectorAll('[data-hand]'), b =>
+    [b.dataset.hand, { target:b.style.transform, current:getComputedStyle(b).transform }]) : []);
+  const handFocus = document.activeElement && document.activeElement.dataset.hand;
   app.innerHTML = html;
+  const nextHand = app.querySelector('.fan');
+  if(nextHand){
+    // A room update replaces the DOM; carry the card's pose across that redraw.
+    nextHand.querySelectorAll('[data-hand]').forEach(b => {
+      const prev = poses.get(b.dataset.hand);
+      if(prev && prev.target !== b.style.transform && !REDUCED && b.animate){
+        b.animate([{ transform:prev.current }, { transform:b.style.transform }],
+          { duration:260, easing:'cubic-bezier(.2,.8,.3,1)' });
+      }
+    });
+    if(handFocus !== undefined){
+      const selected = nextHand.querySelector('[data-hand="'+handFocus+'"]');
+      if(selected) selected.focus({ preventScroll:true });
+    }
+  }
   app.classList.remove("enter"); void app.offsetWidth; app.classList.add("enter");
 }
 const TONE = { giver:"secret", blind:"secret", reveal:"scored", over:"scored" };
@@ -1208,9 +1231,8 @@ function vTable(s){
   });
   startTicker(s);
 }
-/* The hand you are holding. Shut, it is a few backs peeking out of the button.
-   Open, it is a fan — and tapping a card lifts it clear of the others so you
-   can read what it does before you commit to throwing it down.             */
+/* The whole hand stays in view. A tapped card lifts, straightens and grows
+   just enough to read, while the rest keep the shape of a held fan. */
 function handBlock(s){
   const hand = s.hand || [];
   if(!hand.length) return "";
@@ -1225,18 +1247,22 @@ function handBlock(s){
   }
   const w = kpx(n <= 3 ? 98 : (n <= 5 ? 86 : 74));
   const mid = (n - 1) / 2, lean = Math.min(9, 26 / n);
+  const spread = Math.min(w * .6, Math.max(0, app.clientWidth - kpx(64) - w) / Math.max(1, n - 1));
   const up = (handUp !== null && hand[handUp]) ? hand[handUp] : null;
   const cards = hand.map((c, i) => {
     const d = i - mid, isUp = handUp === i;
-    const dx = Math.round(d * w * 0.6);
-    const dy = isUp ? -Math.round(w * 0.16) : Math.round(Math.abs(d) * w * 0.07);
-    return '<button class="pcbtn'+(isUp ? " up" : "")+'" data-hand="'+i+'" '+
+    const scale = isUp ? Math.max(1.12, kpx(98) / w) : 1;
+    const limit = Math.max(0, (app.clientWidth - kpx(44) - w * scale) / 2);
+    const dx = isUp ? Math.max(-limit, Math.min(limit, d * spread)) : d * spread;
+    const dy = isUp ? -kpx(18) : Math.round(Math.abs(d) * w * .07);
+    return '<button class="pcbtn'+(isUp ? " up" : "")+'" data-hand="'+i+'" aria-pressed="'+isUp+'" '+
       'style="z-index:'+(isUp ? 20 : 10 - Math.round(Math.abs(d)))+';'+
-      'transform:translateX(-50%) translateX('+dx+'px) rotate('+(isUp ? 0 : d * lean).toFixed(1)+'deg) '+
-      'translateY('+dy+'px)">'+cardFace(c.key, esc(c.n), w)+'</button>';
+      'transform:translateX(-50%) translateX('+Math.round(dx)+'px) translateY('+dy+'px) '+
+      'rotate('+(isUp ? 0 : d * lean).toFixed(1)+'deg) scale('+scale.toFixed(3)+')">'+
+      cardFace(c.key, esc(c.n), w, { hand:true })+'</button>';
   }).join("");
-  return '<div class="fanwrap"><p class="kicker">'+t("hand_k")+'</p>'+
-    '<div class="fan" style="height:'+(Math.round(w * 1.4) + Math.round(w * 0.3))+'px">'+cards+'</div>'+
+  return '<div class="fanwrap"><p class="kicker">'+t("hand_k")+' · '+n+'</p>'+
+    '<div class="fan" style="height:'+(Math.round(w * 1.7))+'px">'+cards+'</div>'+
     (up ? '<div class="raised"><span class="rn">'+up.n+'</span><span class="rd">'+up.d+'</span></div>'+
           '<button id="playnow">'+t("play_it")+'</button>'
         : '<p class="note" style="text-align:center">'+t("pick_card")+'</p>')+
@@ -1257,7 +1283,9 @@ function vAward(s){
   const stamp = s.round + ":" + a.unitId;
   const run = dealtFor !== stamp;
   if(run){ dealtFor = stamp; awardUp = null; }
-  const n = a.offers.length, w = kpx(n <= 2 ? 118 : (n === 3 ? 100 : 84)), ch = Math.round(w * 7 / 5);
+  const n = a.offers.length;
+  const w = Math.min(kpx(n <= 2 ? 118 : (n === 3 ? 100 : 84)), Math.floor((app.clientWidth - kpx(50)) / n));
+  const ch = Math.round(w * 7 / 5);
   const mid = (n - 1) / 2;
   const up = (awardUp !== null && a.offers[awardUp]) ? a.offers[awardUp] : null;
   /* the three that came off the deck, and — once one is turned up — what it
@@ -1266,7 +1294,7 @@ function vAward(s){
     '<p class="kicker" style="color:var(--good-ink)">'+t("card_won")+'</p>'+
     '<h2>'+t("takeone", esc(a.unitName))+'</h2>'+
     '<div class="deal'+(run ? " run" : "")+'">'+a.offers.map((c, i) =>
-      '<button class="pcbtn'+(awardUp !== null && awardUp !== i ? " dim" : "")+'" data-up="'+i+'" '+
+      '<button class="pcbtn'+(awardUp !== null && awardUp !== i ? " dim" : "")+'" data-up="'+i+'" aria-pressed="'+(awardUp === i)+'" '+
       'style="--i:'+i+';--dx:'+Math.round((i - mid) * -34)+'px;--dr:'+((i - mid) * -8).toFixed(0)+'deg">'+
       '<span class="slide" style="display:block;width:'+w+'px;height:'+ch+'px">'+
         '<span class="flip" style="width:'+w+'px;height:'+ch+'px">'+
@@ -1421,19 +1449,22 @@ function vReveal(s){
     '<div class="band">'+[0,1,2].map(i =>
       '<div class="'+(bandIdx===i?"hit "+quality[i]:"")+'">'+bandGlyph(i)+
       '<span>'+t(keys[i])+'</span></div>').join("")+'</div>'+
+    '<section class="round-scores" aria-label="'+t("round_points_k")+'"><p class="kicker">'+t("round_points_k")+'</p>'+
     '<div class="scores">'+rows.map(row => {
       const u = s.units.find(x => x.id === row.id) || {};
       const won = row.id === winnerUnit;
       const role = won ? '<em class="role got">'+t("got_tag")+'</em>'
                  : (row.giver ? '<em class="role gav">'+t("giver_tag")+'</em>' : '');
+      const steps = (s.steps || {})[row.id] || 0;
       return '<div class="resrow'+(row.pts?"":" quiet")+'">'+uav(u)+
         '<span class="who"><span class="nm">'+esc(row.name)+role+'</span>'+
-        (row.why.length ? '<span class="dt">'+row.why.join(" · ")+'</span>' : '')+'</span>'+
+        (row.why.length ? '<span class="dt">'+row.why.join(" · ")+'</span>' : '')+
+        (steps > 0 && !s.winner ? '<span class="earned-steps">'+(steps === 1 ? t("earned_step") : t("earned_steps", steps))+'</span>' : '')+'</span>'+
         '<span class="pt '+(row.pts>0?"":(row.pts<0?"neg":"zero"))+'">'+
         (row.pts>0?"+"+row.pts:String(row.pts))+'</span></div>';
-    }).join("")+'</div>'+
-    '<p class="kicker">'+(moves ? t("standings_k") : t("board_k", s.rows+1))+'</p>'+
-    trackBlock(s, s.steps)+errBox()+'<div class="grow"></div>'+
+    }).join("")+'</div></section>'+
+    '<section class="result-positions"><p class="kicker">'+(moves && !s.winner ? t("positions_before") : t("positions_now"))+'</p>'+
+    trackBlock(s)+'</section>'+errBox()+'<div class="grow"></div>'+
     ((s.isGiver || s.isHost)
       ? '<button id="next">'+(s.winner ? t("see_won") : (moves ? t("go_move") : t("next_round")))+'</button>'
       : '<p class="note">'+t("waitjudge")+'</p>')+
@@ -2097,7 +2128,7 @@ function onTurn(){
   clearTimeout(turnTimer);
   turnTimer = setTimeout(() => {
     const k = kScale();
-    if(k === lastK) return;
+    if(k === lastK && !showHand && (!state || state.phase !== "award")) return;
     lastK = k;
     render();
   }, 120);

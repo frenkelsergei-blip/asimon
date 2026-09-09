@@ -127,12 +127,14 @@ window.asimonWorld = (function(){
   const shadow = (b, rx, ry, o) => el("ellipse", { cx:b.x, cy:b.y, rx, ry, fill:"#1A1030", opacity:o || 0.16 });
 
   function tree(u, v, s, col){
-    const b = pt(u, v), k = s * S, c = col || "#4CAF50";
+    const b = pt(u, v), k = s * S, c = col || "#4CAF50", g = gid(c);
     return shadow(b, k*0.5, k*0.17) + "<g>" + sway(b.x, b.y, 5.5, 1.6, u + v) +
       el("rect", { x:b.x - k*0.09, y:b.y - k*0.6, width:k*0.18, height:k*0.64, rx:k*0.06, fill:"#7A5233" }) +
       el("circle", { cx:b.x + k*0.06, cy:b.y - k*0.86, r:k*0.46, fill:dark(c) }) +
-      el("circle", { cx:b.x - k*0.05, cy:b.y - k*0.96, r:k*0.42, fill:c }) +
-      el("circle", { cx:b.x - k*0.2, cy:b.y - k*1.12, r:k*0.15, fill:light(c), opacity:0.75 }) + "</g>";
+      el("circle", { cx:b.x - k*0.05, cy:b.y - k*0.96, r:k*0.42, fill:"url(#topS" + g + ")" }) +
+      el("circle", { cx:b.x - k*0.24, cy:b.y - k*0.83, r:k*0.23, fill:c, opacity:0.65 }) +
+      el("path", { d:"M" + n1(b.x - k*0.28) + " " + n1(b.y - k*1.12) + "q" + n1(k*0.12) + " " + n1(-k*0.12) + " " + n1(k*0.28) + " " + n1(-k*0.08),
+        stroke:light(c, 0.65), "stroke-width":k*0.035, "stroke-linecap":"round", fill:"none", opacity:0.55 }) + "</g>";
   }
   function pine(u, v, s, col){
     const b = pt(u, v), k = s * S, c = col || "#2E8B57";
@@ -171,10 +173,12 @@ window.asimonWorld = (function(){
       el("polygon", { points:pts([[x + k*0.08, y - k*0.58], [x + k*0.5, y - k*0.2], [x + k*0.44, y], [x + k*0.04, y]]), fill:dark(c) });
   }
   function pond(u, v, s, col, o){
-    const b = pt(u, v), k = s * S, c = col || "#5FB4F0", rim = o && o.rim;
+    const b = pt(u, v), k = s * S, c = col || "#5FB4F0", rim = o && o.rim, g = gid(c);
     return (rim ? el("ellipse", { cx:b.x, cy:b.y, rx:k*1.02, ry:k*0.46, fill:rim }) : "") +
       el("ellipse", { cx:b.x, cy:b.y, rx:k*0.95, ry:k*0.4, fill:dark(c, 0.14) }) +
-      el("ellipse", { cx:b.x - k*0.06, cy:b.y - k*0.05, rx:k*0.8, ry:k*0.3, fill:c }) +
+      el("ellipse", { cx:b.x - k*0.06, cy:b.y - k*0.05, rx:k*0.8, ry:k*0.3, fill:"url(#topS" + g + ")" }) +
+      el("path", { d:"M" + n1(b.x - k*0.7) + " " + n1(b.y - k*0.04) + "q" + n1(k*0.6) + " " + n1(k*0.34) + " " + n1(k*1.3) + " " + n1(k*0.04),
+        stroke:light(c, 0.7), "stroke-width":1.5, fill:"none", opacity:0.55 }) +
       el("ellipse", { cx:b.x - k*0.3, cy:b.y - k*0.12, rx:k*0.26, ry:k*0.07, fill:light(c, 0.5), class:"glow", style:"--d:" + n1(-u % 2.4) + "s" });
   }
   /* a box with its lid and its left side, the shape barns and towers start from */
@@ -397,7 +401,11 @@ window.asimonWorld = (function(){
   }
   function flag(u, v, s){
     const b = pt(u, v), k = s * S, x = b.x, y = b.y;
-    let out = el("rect", { x:x - k*0.03, y:y - k*1.15, width:k*0.06, height:k*1.15, fill:INK });
+    let out = shadow(b, k*0.2, k*0.075) +
+      el("rect", { x:x - k*0.035, y:y - k*1.2, width:k*0.07, height:k*1.2, rx:1.5, fill:INK }) +
+      el("line", { x1:x - k*0.012, y1:y - k*1.15, x2:x - k*0.012, y2:y, stroke:"#FFEDC2", "stroke-width":1.1 }) +
+      el("circle", { cx:x, cy:y - k*1.22, r:k*0.065, fill:"#F7C65B" }) +
+      el("rect", { x:x + k*0.03, y:y - k*1.15, width:k*0.56, height:k*0.42, fill:"#FFFFFF", stroke:"#F7C65B", "stroke-width":3 });
     for(let i = 0; i < 4; i++) for(let j = 0; j < 3; j++)
       out += el("rect", { x:x + k*0.03 + i*k*0.14, y:y - k*1.15 + j*k*0.14, width:k*0.14, height:k*0.14, fill:(i + j) % 2 ? INK : "#FFFFFF" });
     return out;
@@ -524,7 +532,14 @@ window.asimonWorld = (function(){
       const q = p.slice(), v = p[2];
       if(v < 0) return q;
       if(v <= 4.5){ q[2] = v * 0.74; return q; }
-      q[2] = 13.75 + (v - 13.3) * 0.7; q[3] = (p[3] || 1) * 0.85; return q;
+      q[2] = 14.25 + (v - 13.3) * 0.45;
+      /* A palm's crown is much taller than a bush. Fit its whole silhouette
+         below the nearest road, including the small amount it sways. */
+      const height = { palm:1.85, pine:1.65, tree:1.35, cactus:1.5, dino:1.85 }[p[0]] || 0;
+      q[3] = (p[3] || 1) * 0.8;
+      if(p[0] === "palm") q[1] = p[1] < WORLD.w/2 ? 0.4 : WORLD.w - 1.2;
+      else if(height) q[3] = Math.min(q[3], ((q[2] - (BOARD.v0 + 3*BOARD.dv))*FS - 0.42) / height);
+      return q;
     });
   }
   function tallProps(list){
@@ -539,7 +554,8 @@ window.asimonWorld = (function(){
     });
     sides.forEach((p, i) => {
       const q = p.slice(), left = i % 2 === 0, k = Math.floor(i / 2);
-      q[1] = left ? 1.6 + (k % 3) * 0.9 : WORLD.w - 1.6 - (k % 3) * 0.9;
+      q[1] = left ? 1.5 + (k % 3) * 0.55 : WORLD.w - 1.5 - (k % 3) * 0.55;
+      q[3] = Math.min(p[3] || 1, 1.05);
       q[2] = 6.5 + k * 2.6 + (left ? 0 : 1.3);
       if(q[2] < WORLD.d - 4.5) out.push(q);
     });
@@ -563,8 +579,10 @@ window.asimonWorld = (function(){
     if(kind === "path"){
       /* the sandy path of a level map: a dark worn edge, a pale trodden middle,
          pebbles and tufts of grass where the grass gave up */
-      out += band(w + 6, dark(sc.road, 0.3), { stroke:dark(sc.road, 0.3), "stroke-width":4 }) + band(w, sc.road, { stroke:sc.road, "stroke-width":2 }) +
-        band(w * 0.5, light(sc.road, 0.3), { opacity:0.55, filter:"url(#soft)" });
+      const track = (width, col, opacity) => el("line", { x1:A.x, y1:A.y, x2:B.x, y2:B.y,
+        stroke:col, "stroke-width":width, "stroke-linecap":"round", opacity });
+      out += track(w + 8, dark(sc.ground, 0.22), 0.25) + track(w + 3, dark(sc.road, 0.18), 1) +
+        track(w, sc.road, 1) + track(w*0.57, light(sc.road, 0.28), 0.55);
       for(let t = 12, i = 0; t < len - 8; t += 23, i++){
         const p = along(t), side = i % 2 ? 1 : -1, o = side * (w/2 - 3 + seeded(i) * 4);
         if(i % 3 === 2) out += tuft({ x:p.x + nx*o*1.25, y:p.y + ny*o*1.25 }, dark(sc.ground, 0.25));
@@ -864,15 +882,17 @@ window.asimonWorld = (function(){
     return (o.noShadow ? "" : '<g class="' + (o.from ? "hopshadow" : "") + '"' + hop + '>' +
         el("ellipse", { cx:x, cy:y, rx:s*0.4, ry:s*0.17, fill:INK, opacity:0.3, filter:"url(#soft)" }) + '</g>') +
       '<g class="' + (o.from ? "hop" : "") + '"' + hop + '><g class="idle' + kind + '" style="--d:' + n1(-(o.seed || 0) * 0.7) + 's">' +
+      el("ellipse", { cx:x, cy:y + 2, rx:s*0.31, ry:s*0.115, fill:u.color || "#2C6BFF", stroke:"#FFF9EB", "stroke-width":2.2 }) +
       '<g transform="translate(' + n1(x) + ' ' + n1(y) + ') translate(' + n1(-s/2) + ' ' + n1(-s + 3) + ') scale(' + k.toFixed(4) + ')">' +
-      body + '</g></g></g>';
+      '<g filter="url(#figure-edge)">' + body + '</g></g></g></g>';
   }
 
   /* the defs every drawing carries: the face clip, the soft shadow, the two
      sheens, and whatever gradients the coins have asked for so far */
   const defs = () => '<defs><clipPath id="lsface"><circle cx="20" cy="20" r="20"/></clipPath>' +
     '<filter id="soft" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="2.6"/></filter>' +
-    '<radialGradient id="sheen" cx="0.36" cy="0.3" r="0.78"><stop offset="0" stop-color="#FFFFFF" stop-opacity="0.5"/><stop offset="0.45" stop-color="#FFFFFF" stop-opacity="0"/><stop offset="1" stop-color="#1A1030" stop-opacity="0.3"/></radialGradient>' +
+    '<filter id="figure-edge" x="-25%" y="-25%" width="150%" height="160%"><feMorphology in="SourceAlpha" operator="dilate" radius="0.75" result="edge"/><feFlood flood-color="#FFF9EB" flood-opacity="0.9"/><feComposite in2="edge" operator="in"/><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge></filter>' +
+    '<radialGradient id="sheen" cx="0.36" cy="0.3" r="0.78"><stop offset="0" stop-color="#FFFFFF" stop-opacity="0.32"/><stop offset="0.45" stop-color="#FFFFFF" stop-opacity="0"/><stop offset="1" stop-color="#1A1030" stop-opacity="0.18"/></radialGradient>' +
     '<linearGradient id="bodysheen" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFFFFF" stop-opacity="0.3"/><stop offset="1" stop-color="#1A1030" stop-opacity="0.3"/></linearGradient>' +
     gradDefs() + '</defs>';
 
@@ -916,6 +936,42 @@ window.asimonWorld = (function(){
     return d + "Z";
   }
 
+  /* The original palette and horizon are part of each map's character.
+     Surface detail stays on the island, outside the playing routes. */
+  function landscape(sc){
+    const night = sc.id === "chaos", desert = sc.id === "sprint", sea = !!sc.sea, ground = sc.ground;
+    const isl = dy => coast(sc, dy);
+    let out = el("rect", { x:0, y:0, width:PAGE.w, height:PAGE.h, fill:sc.sky });
+    if(sc.sea) out += el("rect", { x:0, y:ORG.y - 22, width:PAGE.w, height:PAGE.h, fill:sc.sea });
+    else out += el("rect", { x:0, y:ORG.y - 72, width:PAGE.w, height:90, fill:sc.mist, opacity:0.55 });
+    if(sc.sunAt) out += sun(sc.sunAt[0] * PAGE.w / 1280, sc.sunAt[1], TALL ? 28 : 34, sc.sunAt[2]);
+    const nearY = pt(0, WORLD.d).y;
+    out += el("ellipse", { cx:PAGE.w / 2, cy:nearY + 68, rx:PAGE.w * 0.47, ry:26, fill:INK, opacity:0.18 }) +
+      el("path", { d:isl(46), fill:sc.cliff }) + el("path", { d:isl(46), fill:INK, opacity:0.18 }) +
+      el("path", { d:isl(0), fill:sc.ground }) +
+      el("path", { d:isl(0), fill:light(sc.ground, 0.16), transform:"translate(0 -2)", opacity:0.6 });
+
+    out += '<defs>' + el("clipPath", { id:"world-land" }, el("path", { d:coast(sc, 0) })) + '</defs>';
+    /* Fixed marks stay put through every state update. Little plants and
+       cracks stay outside the routes, so they cannot be mistaken for links. */
+    const rnd = i => { const v = Math.sin(i*127.1 + 311.7)*43758.5453; return v - Math.floor(v); };
+    let texture = "";
+    for(let i = 0; i < 110; i++){
+      const u = 0.6 + rnd(i + 211)*(WORLD.w - 1.2), v = 0.6 + rnd(i + 433)*(WORLD.d - 1.2);
+      if(TALL ? (u > 3.3 && u < 16.7 && v > 4.5 && v < WORLD.d - 1.5) : (v > 3 && v < 13.5)) continue;
+      const p = pt(u, v), size = 2 + rnd(i + 731)*3;
+      if(desert || night || sea){
+        texture += el("path", { d:"M" + n1(p.x - size*2) + " " + n1(p.y) + "q" + n1(size*2) + " " + n1(size) + " " + n1(size*4) + " -1",
+          stroke:night ? "#C48274" : dark(ground, 0.25), "stroke-width":1, fill:"none", opacity:0.28 });
+      } else {
+        texture += el("path", { d:"M" + n1(p.x - size) + " " + n1(p.y) + "l-2 -3m" + n1(size + 2) + " 3v-5m2 5l2 -3",
+          stroke:dark(ground, 0.3), "stroke-width":1.2, "stroke-linecap":"round", opacity:0.3 });
+        if(i%5 === 0) texture += el("circle", { cx:p.x + 3, cy:p.y - 4, r:1.8, fill:"#FFF2BA", opacity:0.8 });
+      }
+    }
+    return out + el("g", { "clip-path":"url(#world-land)" }, texture);
+  }
+
   /* ---------------- the place, with the board on it ----------------
      o.board   {rows, nodes, themeId} — the layout, as boardart.js takes it
      o.units   the racers; each {id, pos, face, name, color}
@@ -938,21 +994,12 @@ window.asimonWorld = (function(){
     /* the ground: a slab with a thickness, floating on the sky, and each
        place with a coast of its own — the wobble of the edge, and whether it
        is drawn soft or sharp, is the whole of what tells a meadow from a rock */
-    const isl = dy => coast(sc, dy);
-    let bg = el("rect", { x:0, y:0, width:PAGE.w, height:PAGE.h, fill:sc.sky });
-    if(sc.sea) bg += el("rect", { x:0, y:ORG.y - 22, width:PAGE.w, height:PAGE.h, fill:sc.sea });
-    else bg += el("rect", { x:0, y:ORG.y - 72, width:PAGE.w, height:90, fill:sc.mist, opacity:0.55 });
-    if(sc.sunAt) bg += sun(sc.sunAt[0] * PAGE.w / 1280, sc.sunAt[1], TALL ? 28 : 34, sc.sunAt[2]);
-    const nearY = pt(0, WORLD.d).y;
-    bg += el("ellipse", { cx:PAGE.w / 2, cy:nearY + 68, rx:PAGE.w * 0.47, ry:26, fill:INK, opacity:0.18 }) +
-      el("path", { d:isl(46), fill:sc.cliff }) + el("path", { d:isl(46), fill:INK, opacity:0.18 }) +
-      el("path", { d:isl(0), fill:sc.ground }) +
-      el("path", { d:isl(0), fill:light(sc.ground, 0.16), transform:"translate(0 -2)", opacity:0.6 });
+    const bg = landscape(sc);
 
     /* the scenery */
     (TALL ? tallProps(sc.props) : wideProps(sc.props)).forEach(p => {
       const fn = PROPS[p[0]]; if(!fn) return;
-      put(p[2], fn.apply(null, p.slice(1)));
+      put(p[2], el("g", { opacity:dim ? 0.65 : 1 }, fn.apply(null, p.slice(1))));
     });
 
     /* who is standing where, so a square knows whether it is held */
@@ -960,9 +1007,9 @@ window.asimonWorld = (function(){
     (o.units || []).forEach((u, i) => { const k = u.pos.r + "," + u.pos.c; (byKey[k] = byKey[k] || []).push({ u, i }); });
 
     /* The roads. A lattice board has four of them, one per lane, running the
-       whole way — and every lane change is a trail of footprints between two
-       of them, which on that board is every square to every neighbour and
-       comes to a hundred identical paths saying a rule that never varies.
+       whole way. Each dotted connection is one legal lane-changing step.
+       These remain visible during a move: the player needs to trace the
+       routes and count steps as well as see the highlighted destinations.
 
        A road map sends its own ways instead, and each one is a piece of real
        road laid between two squares. There are half as many and every one of
@@ -993,7 +1040,8 @@ window.asimonWorld = (function(){
             if(p.r >= 1 && p.r <= rows && q.r <= rows && q.c === p.c) return;
             const A = L.at(p.r, p.c), B = L.at(q.r, q.c);
             put(Math.min(L.depth(p.r, p.c), L.depth(q.r, q.c)) - 0.5,
-              el("line", { x1:A.x, y1:A.y, x2:B.x, y2:B.y, stroke:sc.dash, "stroke-width":3, "stroke-dasharray":"1 8", "stroke-linecap":"round", opacity:0.5 }));
+              el("line", { class:"step-link", x1:A.x, y1:A.y, x2:B.x, y2:B.y, stroke:sc.dash, "stroke-width":3,
+                "stroke-dasharray":"1 8", "stroke-linecap":"round", opacity:0.5 }));
           });
         });
       }
@@ -1020,25 +1068,31 @@ window.asimonWorld = (function(){
       if(nd.t === "WILD") put(L.depth(nd.r, nd.c) + 0.02,
         '<g opacity="' + (dim && !isLit ? 0.4 : 1) + '">' + wildSign(p.x, p.y - th * NS, { lit:isLit, held }) + "</g>");
     });
-    /* the start: a stone; the finish: the place's own square, in ink, wearing
-       the chequered print, with a flag beside it */
+    /* The start is a blank piece of the map's own material: timber, stone,
+       clay or obsidian. Its incoming paths and the finish flag orient the race. */
     const s0 = L.at(0, 1), e0 = L.at(rows + 1, 1);
-    put(L.depth(0, 1) - 0.01, '<g opacity="' + (dim ? 0.4 : 1) + '">' + el("ellipse", { cx:s0.x, cy:s0.y + 3, rx:22, ry:13, fill:INK, opacity:0.16 }) +
-      el("ellipse", { cx:s0.x, cy:s0.y + 4, rx:20, ry:11, fill:dark(sc.ground, 0.35) }) +
-      el("ellipse", { cx:s0.x, cy:s0.y, rx:20, ry:11, fill:light(sc.ground, 0.45) }) + "</g>");
+    const startCol = { classic:"#CDB88F", twist:"#92A98C", storm:"#9AA5B2", sprint:"#D7B684", chaos:"#A094A8" }[sc.id];
+    put(L.depth(0, 1) - 0.01, node(sc, s0.x, s0.y, startCol, { held:true }));
     const endKey = (rows + 1) + ",1", endLit = !!lit[endKey], endHeld = !!byKey[endKey];
     const endPick = o.picked && o.picked.r > rows;
     put(L.depth(rows + 1, 1), node(sc, e0.x, e0.y, INK, { lit:endLit, raise:endLit, held:true, dimmed:dim && !endLit, inner:
       (endHeld ? "" : print("END", e0.x, e0.y - thOf(endLit), 14)) +
       (endPick ? chosen(e0.x, e0.y - thOf(endLit), GOOD) : "") }) +
-      flag(L.flag.u, L.flag.v, 1.0));
+      flag(L.flag.u, L.flag.v, 1.28) +
+      el("text", { x:e0.x, y:e0.y + 30, "text-anchor":"middle", "font-family":"Assistant,Arial,sans-serif", "font-size":13,
+        "font-weight":800, fill:sc.id === "chaos" ? "#FFF2D6" : INK }, esc(o.endText || "")));
 
     /* the cast: everybody who is standing on a square, and beside the last of
        them the twist's own badge, so the rule they stand on stays on the map */
     Object.keys(byKey).forEach(k => {
       const [rr, cc] = k.split(",").map(Number), list = byKey[k], p0 = L.at(rr, cc), top = thOf(false) + 1;
       list.forEach((e, j) => {
-        const x = p0.x + (j - (list.length - 1) / 2) * 26, y = p0.y - top;
+        /* Four abreast is the most a start/finish margin can hold. A second
+           staggered row keeps eight players on one square inside the island. */
+        const cols = Math.min(4, list.length), row = Math.floor(j/4), count = Math.min(4, list.length - row*4);
+        const x = p0.x + (j%4 - (count - 1)/2)*32 + (row ? 8 : 0);
+        const y = p0.y - top + row*28 - (list.length > cols ? 14 : 0);
+        const size = list.length > 4 ? 1.15 : list.length > 1 ? 1.28 : 1.48;
         const was = o.from ? o.from(e.u) : null;
         let from = null;
         if(was && was !== k){
@@ -1053,12 +1107,12 @@ window.asimonWorld = (function(){
           const px = from.x + (x - from.x) * pose, py = from.y + (y - from.y) * pose - Math.sin(pose * Math.PI) * 70;
           put(L.depth(rr, cc) + 4,
             el("ellipse", { cx:px, cy:from.y + (y - from.y) * pose, rx:22 * (1 - 0.45 * Math.sin(pose * Math.PI)), ry:9 * (1 - 0.45 * Math.sin(pose * Math.PI)), fill:INK, opacity:0.3, filter:"url(#soft)" }) +
-            figure(e.u, px, py, 1.35, { seed:e.i, noShadow:true }));
+            figure(e.u, px, py, size, { seed:e.i, noShadow:true }));
           return;
         }
         put(L.depth(rr, cc) + 0.05 + (from ? 4 : 0),
-          figure(e.u, x, y, 1.35, { from, seed:e.i }) +
-          (nd && j === list.length - 1 ? badge(nd.t, x + 26, y - 44, 11) : ""));
+          figure(e.u, x, y, size, { from, seed:e.i }) +
+          (nd && j === list.length - 1 ? badge(nd.t, x + 28, y - 46, 11) : ""));
       });
     });
 
@@ -1066,13 +1120,19 @@ window.asimonWorld = (function(){
     return bg + layers.map(l => l.svg).join("");
   }
 
+  let drawing = 0;
   function draw(o){
     /* --t is how far into every ambient motion this drawing is, so a redraw
        a second later does not send the clouds back to where they started */
     T0 = o.still ? 0 : (Date.now() / 1000) % 3600;
     const body = scene(o);
-    return '<svg class="board world' + (TALL ? " tall" : "") + '" viewBox="0 0 ' + PAGE.w + ' ' + PAGE.h +
+    /* A design sheet can show several worlds at once. Their clips, light and
+       face filters must resolve inside their own drawing. */
+    const prefix = "world" + (++drawing) + "-";
+    const svg = '<svg class="board world' + (TALL ? " tall" : "") + '" viewBox="0 0 ' + PAGE.w + ' ' + PAGE.h +
       '" role="img" style="--t:' + (-T0).toFixed(2) + 's">' + defs() + body + "</svg>";
+    return svg.replace(/id="([^"]+)"/g, (m, id) => 'id="' + prefix + id + '"')
+      .replace(/url\(#([^)]+)\)/g, (m, id) => 'url(#' + prefix + id + ')');
   }
 
   /* ---------------- what a place sounds like ----------------

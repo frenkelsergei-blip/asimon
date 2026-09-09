@@ -167,11 +167,11 @@ function cardFace(key, name, w, opts){
     ' style="width:'+w+'px;height:'+h+'px;border-radius:'+Math.round(w*.1)+'px;background:'+t.deep+';'+
     'padding:'+pad+'px'+(o.style ? ";" + o.style : "")+'">'+
     '<span class="pcf" style="border-radius:'+Math.round(w*.062)+'px;background:'+t.soft+';'+
-      'gap:'+Math.round(w*.06)+'px">'+
+      'gap:'+Math.round(w*.055)+'px">'+
       pip('inset-inline-start:'+Math.round(w*.055)+'px;top:'+Math.round(w*.055)+'px')+
       pip('inset-inline-end:'+Math.round(w*.055)+'px;bottom:'+Math.round(w*.055)+'px;transform:rotate(180deg)')+
-      cardEmblem(key, Math.round(w * .44))+
-      '<span class="pcn" style="font-size:'+Math.max(11, Math.round(w * .118))+'px;color:'+t.ink+'">'+
+      cardEmblem(key, Math.round(w * (o.hand ? .46 : .53)))+
+      '<span class="pcn" style="font-size:'+(o.hand ? Math.max(11, Math.round(w * .118)) : Math.max(13, Math.round(w * .14)))+'px;color:'+t.ink+'">'+
         name+'</span>'+
     '</span></span>';
 }

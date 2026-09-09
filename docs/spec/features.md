@@ -66,6 +66,9 @@ belongs here in the same commit.
 | Four layouts: wide, tall, phone, map-only | `public/board.css`, `board.js` | — |
 | The board drawn as a place — one scene per map, with the players standing on it | `public/worldart.js` `draw()` | — |
 | Five places: farm, jungle, storm coast, desert, volcano — each with its own squares, roads and coast | `worldart.js` `SCENES`, `NODES`, `road()`, `coast()` | — |
+| Original scene backgrounds with fixed surface details outside the routes that stay put on redraw | `worldart.js` `landscape()` | — |
+| Scenery kept clear of the lanes, visible lane-change trails even during moves, outlined player pieces with coloured bases, and start spaces in the map's own material with larger finish flags | `worldart.js` `wideProps()`, `tallProps()`, `scene()`, `figure()` | — |
+| Players sharing a square spread into rows of up to four, keeping crowded starts within the map | `worldart.js` `scene()` | — |
 | A map laid as roads drawn in its own place, one piece of road per way it sends | `worldart.js` `scene()` on `board.ways` | — |
 | A move is a hop from square to square; the scenery moves on its own | `worldart.js` `figure()`, `board.css` `w-hop` | — |
 | Every figure stands as a bust — a person as drawn, a creature's disc made a head with its ears on shoulders | `worldart.js` `figure()`, `CREATURES` | — |
@@ -85,6 +88,8 @@ belongs here in the same commit.
 |---|---|---|
 | Every screen of the game | `public/app.js` | — |
 | Faces and the token, hand-written SVG | `public/art.js` | — |
+| A fanned card hand with corner symbols and a tapped card that animates upward, straightens and enlarges for reading; awards fit narrow phones | `art.js` `cardFace()`, `app.js` `handBlock()` / `vAward()` / `h()`, `style.css` | — |
+| Round results separate points and available steps from current board positions, with larger scoring explanations | `app.js` `vReveal()`, `style.css` | — |
 | Sounds, synthesised — no audio files | `public/sfx.js` | — |
 | QR codes, drawn here — eight-bit mode, versions 1–10, the mask scored the way the standard says | `public/qr.js` | `qr.test.js` |
 | One scale dial, `--k`, driving every size | `public/style.css`, `kpx()` | — |

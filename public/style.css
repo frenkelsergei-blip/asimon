@@ -190,8 +190,13 @@ input.code{font-family:var(--display);font-weight:400;font-size:calc(34px * var(
 .prow:last-child,.resrow:last-child{border-bottom:0}
 .pname{font-size:calc(16px * var(--k));font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .resrow .who{min-width:0}
-.resrow .nm{font-size:calc(16px * var(--k));font-weight:800}
-.resrow .dt{font-size:calc(12.5px * var(--k));color:var(--muted);display:block;margin-top:2px}
+.resrow .nm{font-size:calc(17px * var(--k));font-weight:800;overflow-wrap:anywhere}
+.resrow .dt{font-size:calc(14px * var(--k));line-height:1.4;color:#595660;display:block;margin-top:3px}
+.resrow .earned-steps{display:block;margin-top:5px;font-size:calc(13px * var(--k));font-weight:700;color:var(--accent-ink)}
+.round-scores{background:var(--surface);border:1px solid var(--rule);border-radius:16px;padding:calc(14px * var(--k))}
+.round-scores>.kicker{margin-bottom:2px}
+.round-scores .pt{min-width:calc(44px * var(--k));text-align:center;unicode-bidi:isolate}
+.result-positions{display:flex;flex-direction:column;gap:10px}
 .resrow .pt{font-size:calc(26px * var(--k));font-weight:800;color:var(--good-ink);font-variant-numeric:tabular-nums;direction:ltr}
 .resrow .pt.zero{color:var(--zero);font-weight:600;font-size:calc(20px * var(--k))}
 .resrow .pt.neg{color:var(--guilty-ink)}
@@ -655,8 +660,8 @@ button.quiet.warn{color:var(--guilty-ink)}
   box-shadow:var(--shadow)}
 .pcard .pcf,.pcard .pcb{position:relative;width:100%;height:100%;overflow:hidden;
   display:flex;flex-direction:column;align-items:center;justify-content:center}
-.pcard .pcn{font-family:var(--display);font-weight:400;line-height:1.1;text-align:center;
-  max-width:84%;overflow-wrap:anywhere}
+.pcard .pcn{font-family:var(--display);font-weight:400;line-height:1.15;text-align:center;
+  max-width:94%;overflow-wrap:anywhere}
 .pcard .pcx{position:absolute;line-height:0}
 /* the back: the token struck on a milled field, one for every card */
 .pcard .pcb{background-color:#1F1D26;
@@ -675,16 +680,16 @@ button.quiet.warn{color:var(--guilty-ink)}
   cursor:pointer;-webkit-tap-highlight-color:transparent}
 
 /* ---- the hand, held in a fan ---- */
-.fan{position:relative;width:100%;margin-top:6px}
-.fan .pcbtn{position:absolute;left:50%;top:0;transform-origin:50% 128%;
-  transition:transform .22s cubic-bezier(.2,.8,.3,1)}
-.fan .pcbtn.up .pcard{box-shadow:0 1px 2px rgba(23,22,28,.06),0 26px 40px -18px rgba(23,22,28,.6)}
+.deal .pcbtn[aria-pressed="true"] .pcard{outline:2px solid var(--accent);outline-offset:3px}
 .fanwrap{display:flex;flex-direction:column;gap:10px}
+.fan{position:relative;width:100%;margin-top:calc(48px * var(--k))}
+.fan .pcbtn{position:absolute;left:50%;top:0;transform-origin:50% 100%}
+.fan .pcbtn.up .pcard{box-shadow:0 1px 2px rgba(23,22,28,.06),0 22px 32px -16px rgba(23,22,28,.5)}
 /* the card standing clear of the others, with what it does and a way to play it */
 .raised{background:var(--surface);border:1px solid var(--rule);border-radius:14px;
   padding:12px 15px 13px;display:flex;flex-direction:column;gap:3px}
 .raised .rn{font-size:calc(16px * var(--k));font-weight:800}
-.raised .rd{font-size:calc(13px * var(--k));line-height:1.5;color:var(--muted)}
+.raised .rd{font-size:calc(14px * var(--k));line-height:1.5;color:#595660}
 
 /* ---- winning a card: three off the deck, turned over one after another ---- */
 .deal{display:flex;gap:9px;justify-content:center;align-items:flex-start;padding:4px 0 2px}

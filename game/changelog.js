@@ -36,6 +36,18 @@ const RANK = { patch:0, minor:1, major:2 };
 
 const RELEASES = [
 
+  { v:"0.12.1", date:"2026-09-09", lines:[
+    { kind:"change",
+      en:"Tap a card in your fan to lift and enlarge it for reading, and see points, available steps and board positions more clearly in the round results.",
+      he:"נוגעים בקלף במניפה והוא מתרומם וגדל כדי שיהיה נוח לקרוא אותו, ובתוצאות הסבב קל יותר לקרוא את הניקוד, הצעדים הזמינים והמיקום על הלוח." },
+    { kind:"change",
+      en:"The maps on the shared screen have clearer connections and player pieces, start spaces made from each map's own material, and more visible finish flags.",
+      he:"המפות במסך המשותף קיבלו חיבורים ודמויות ברורים יותר, משבצות התחלה מהחומר של כל מפה ודגלי סיום בולטים יותר." },
+    { kind:"fix",
+      en:"Scenery stays clear of the playing lanes, and players sharing a square spread out so their faces are easier to see.",
+      he:"התפאורה כבר לא מסתירה את נתיבי המשחק, ושחקנים שעומדים על אותה משבצת מתפזרים כך שקל יותר לראות את הפנים שלהם." }
+  ]},
+
   { v:"0.12.0", date:"2026-09-09", lines:[
     { kind:"new",
       en:"Joining by camera: the screen in the room shows the code as a square beside the letters, and on the host's phone each address opens one to point a camera at. A scanned square lands on the join screen with the code already in it.",

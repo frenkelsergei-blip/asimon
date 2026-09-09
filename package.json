@@ -1,6 +1,6 @@
 {
   "name": "asimon",
-  "version": "0.12.0",
+  "version": "0.12.1",
   "private": true,
   "description": "Asimon — a game for the whole family, played across phones on one Wi-Fi. No dependencies.",
   "main": "server.js",
