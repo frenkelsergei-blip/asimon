@@ -14,8 +14,11 @@ the correct number and private ranges when the server reveals them.
   The three half-widths are set per question. Ranges start at zero or higher.
   A narrow hit pays 3, a medium hit 2 and a broad hit 1. A miss or missing guess
   pays zero. More than one player can earn the same score.
-- The topic chooser earns one extra point if their base score equals the highest
-  positive score on that question. This includes a shared top score.
+- Guessing the exact number adds 1 point at any tier. The topic chooser earns
+  another point if their tier points plus any exact-guess point match the highest
+  positive score before the chooser bonus. This includes a shared lead.
+- The round goes to whoever earns the most points including both bonuses. Ties
+  are shared. If all players miss, the round has no winner.
 - In round five, a hint lets a player with a medium or broad range tighten by
   one tier without moving the center. Round eight offers a room-memory question
   about the sum of points earned in the first five rounds.

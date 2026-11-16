@@ -105,9 +105,10 @@ async function main() {
       assert.equal(before.entry, undefined);
       assert.equal(before.answer, undefined);
       assert.equal(before.results, undefined);
+      assert.equal(before.roundWinners, undefined);
       assert.equal(JSON.stringify(before).includes(host.token), false);
 
-      await Promise.all(seats.slice(1).map((seat, i) => act(seat, "guess", { number: answer, tier: i % 2 ? 2 : 1 })));
+      await Promise.all(seats.slice(1).map((seat, i) => act(seat, "guess", { number: answer + Number(i === 1), tier: i % 2 ? 2 : 1 })));
       let after = await call(route);
       if (number === 5) {
         assert.equal(after.phase, "tighten");
@@ -120,10 +121,15 @@ async function main() {
       assert.equal(after.answer, answer);
       assert.equal(after.results.length, 8);
       assert.deepEqual(after.results.map(row => row.points), [3, number === 5 ? 3 : 2, 1, 2, 1, 2, 1, 2]);
+      assert.deepEqual(after.results.map(row => row.exactBonus), [1, 1, 0, 1, 1, 1, 1, 1]);
+      for (const row of after.results) assert.equal(row.total, row.points + row.exactBonus + row.bonus);
       if (number === 5) assert.equal(after.results[1].bonus, lobby.chooser === after.results[1].id ? 1 : 0);
       const hostRow = after.results.find(row => row.id === hostId);
       assert.equal(hostRow.bonus, lobby.chooser === hostId ? 1 : 0);
-      if (number <= 5) firstFive += after.results.reduce((sum, row) => sum + row.points + row.bonus, 0);
+      const expectedWinners = number !== 5 || hostRow.bonus ? [hostId]
+        : after.results[1].bonus ? [after.results[1].id] : [hostId, after.results[1].id];
+      assert.deepEqual(after.roundWinners, expectedWinners);
+      if (number <= 5) firstFive += after.results.reduce((sum, row) => sum + row.total, 0);
       lobby = await act(host, "next");
     }
     assert.equal(new Set(choosers.slice(0, 8)).size, 8);

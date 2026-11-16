@@ -107,8 +107,10 @@ function pickQuestion(room, topic, bank, now) {
     };
   } else {
     const unused = bank.filter(q => q.topic === topic && !room.used.includes(q.id));
-    const withHint = room.round === 5 ? unused.filter(q => q.hint) : [];
-    const pool = withHint.length ? withHint : unused;
+    const hinted = room.round === 5 ? unused.filter(q => q.hint) : [];
+    const candidates = hinted.length ? hinted : unused;
+    const sourced = candidates.filter(q => q.source);
+    const pool = sourced.length ? sourced : candidates;
     room.question = pool[randomInt(pool.length)];
   }
   room.used.push(room.question.id);
@@ -126,15 +128,17 @@ function reveal(room, now) {
     const entry = player.entry;
     const range = entry ? bounds(entry.number, widths[entry.tier]) : null;
     const hit = range && answer >= range[0] && answer <= range[1];
-    return { id: player.id, range, tier: entry?.tier ?? null, points: hit ? points[entry.tier] : 0, bonus: 0 };
+    return { id: player.id, range, tier: entry?.tier ?? null, points: hit ? points[entry.tier] : 0,
+      exactBonus: entry?.number === answer ? 1 : 0, bonus: 0 };
   });
-  const top = Math.max(0, ...room.results.map(row => row.points));
+  const top = Math.max(0, ...room.results.map(row => row.points + row.exactBonus));
   const chooser = room.results.find(row => row.id === room.chooser);
-  if (top && chooser?.points === top) chooser.bonus = 1;
+  if (top && chooser && chooser.points + chooser.exactBonus === top) chooser.bonus = 1;
   for (const row of room.results) {
-    room.players.find(player => player.id === row.id).score += row.points + row.bonus;
+    row.total = row.points + row.exactBonus + row.bonus;
+    room.players.find(player => player.id === row.id).score += row.total;
   }
-  room.history.push({ points: room.results.reduce((total, row) => total + row.points + row.bonus, 0) });
+  room.history.push({ points: room.results.reduce((total, row) => total + row.total, 0) });
   room.phase = "reveal";
   room.deadline = now + 24_000;
 }
@@ -237,6 +241,9 @@ function view(room, player, now) {
       state.answer = answer;
       state.note = note;
       state.results = room.results;
+      const present = room.results.filter(row => room.players.some(player => player.id === row.id));
+      const highest = Math.max(0, ...present.map(row => row.total));
+      state.roundWinners = highest ? present.filter(row => row.total === highest).map(row => row.id) : [];
     }
   }
   if (player?.entry) state.entry = player.entry;

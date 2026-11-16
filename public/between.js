@@ -24,6 +24,9 @@
   const faces = ["fox", "astro", "grandpa", "grandma", "boy", "girl", "hippy", "beard", "curly", "beanie", "robot", "cat", "owl", "frog", "panda"];
   const tiers = ["צר", "בינוני", "רחב"];
   const scoreByTier = [3, 2, 1];
+  const corner = ["narrow", "medium", "wide"];
+  const topicArt = { israel: "town", food: "food", nature: "beast", space: "world",
+    sports: "sport", culture: "music", inventions: "now", room: "folk" };
   const errors = {
     no_room: "החדר לא נמצא. כדאי לבדוק את הקוד.", no_seat: "המקום בחדר פג.",
     room_full: "החדר מלא. אפשר לצפות במשחק במסך המשותף.", already_started: "המשחק כבר התחיל.",
@@ -58,6 +61,12 @@
   const notice = () => error ? `<p class="notice" role="alert">${esc(error)}</p>` : "";
   const range = (guess, width) => [Math.max(0, guess - width), Number(guess) + width];
   const prettyRange = interval => interval ? interval.join("–") : "—";
+  const inkRays = () => '<img class="ink-rays" src="/between-ink-rays.png" alt="">';
+  const tierArt = index => `<img class="card-corner ${corner[index]}" src="/between-corner-${corner[index]}.png" alt="">
+    <img class="card-spark" src="/between-card-star.png" alt="">`;
+  const celebratingFace = player => `<span class="celebrating-face facetile" data-face="${esc(player.face)}">${photo(player.face, 128)}</span>`;
+  const confetti = () => `<span class="confetti" aria-hidden="true">${Array.from({ length: 16 }, (_, i) =>
+    `<i style="--x:${10 + i * 5};--dx:${(i % 5 - 2) * 17}px;--dy:${26 + (i * 13 % 105)}px;--i:${i}"></i>`).join("")}</span>`;
 
   function withHeader(content, { theme = "lilac", header = "blue", footer = "", back = false, layout = "" } = {}) {
     return `<section class="phone ${theme} ${layout}">
@@ -90,8 +99,17 @@
 
   function facePicker(selected) {
     return `<div class="face-picker" aria-label="בחירת דמות">${faces.map(face =>
-      `<button type="button" class="face-choice" data-face="${face}" aria-label="${face}" aria-pressed="${selected === face}">${photo(face, 37)}</button>`
+      `<button type="button" class="face-choice facetile${selected === face ? " on" : ""}" data-face="${face}" aria-label="${face}" aria-pressed="${selected === face}">${photo(face, 37)}</button>`
     ).join("")}</div>`;
+  }
+
+  function codeInput() {
+    return `<label for="room-code">קוד חדר</label><div class="code-entry" dir="ltr">
+      <div class="code-slots" aria-hidden="true">${Array.from({ length: 4 }, (_, i) =>
+        `<span class="code-slot">${roomCode[i] || ""}</span>`).join("")}</div>
+      <input id="room-code" class="code-field" minlength="4" maxlength="4" value="${roomCode}"
+        spellcheck="false" autocomplete="off" autocapitalize="characters" required>
+    </div>`;
   }
 
   function joinForm() {
@@ -99,8 +117,7 @@
     const account = guest ? null : session.profile;
     return withHeader(`<form id="seat-form">
       <h1>${create ? "פותחים חדר" : "מצטרפים לחדר"}</h1>
-      ${create ? "" : `<label for="room-code">קוד חדר</label><input id="room-code" class="code-field" maxlength="4"
-        value="${roomCode}" placeholder="ABCD" spellcheck="false" autocomplete="off" autocapitalize="characters" required>`}
+      ${create ? "" : codeInput()}
       <label for="nickname">איך קוראים לכם?</label>
       <input id="nickname" maxlength="18" value="${esc(draft.name)}" placeholder="כינוי אקראי" autocomplete="nickname">
       <p class="field-label">בחרו דמות</p>${facePicker(draft.face)}
@@ -115,8 +132,9 @@
   function joinTicket(state) {
     let qr = "";
     try { qr = QR.svg(joinURL(state.code), { label: "קוד QR להצטרפות" }); } catch { /* the room code still works */ }
-    return `<div class="ticket card"><div class="qr-box">${qr}<small>סריקה להצטרפות</small></div>
-      <div class="ticket-code"><small>קוד החדר</small>${numberHTML(state.code)}</div></div>`;
+    return `<div class="ticket"><img src="/between-ticket.png" class="ticket-paper" alt="">
+      <div class="qr-box">${qr}<small>סריקה להצטרפות</small></div>
+      <div class="ticket-code" aria-label="קוד החדר">${numberHTML(state.code)}</div></div>`;
   }
 
   function roster(state, status = false) {
@@ -128,7 +146,7 @@
 
   function lobby(state) {
     const host = state.players.find(player => player.id === state.host);
-    return withHeader(`<h1 class="title-tag">החדר של ${esc(host?.name)}</h1>
+    return withHeader(`<div class="lobby-title">${inkRays()}<h1 class="title-tag">החדר של ${esc(host?.name)}</h1>${inkRays()}</div>
       ${joinTicket(state)}<p class="pill">${state.players.length === 1 ? "שחקן אחד בחדר" : `${state.players.length} שחקנים בחדר`}</p>${roster(state)}
       <div class="room-links">
         ${button("copy-join", "שיתוף קישור למשחק", "light")}
@@ -147,15 +165,23 @@
       ${clock && state.deadline ? '<span class="clock" data-clock dir="ltr"></span>' : ""}</div>`;
   }
 
+  function liveStandings(state) {
+    return `<details class="live-standings"><summary>טבלת המשחק</summary>${standings(state)}</details>`;
+  }
+
   function category(state) {
     const chooser = state.players.find(player => player.id === state.chooser);
     const choosing = state.me === state.chooser && !!state.me;
-    return withHeader(`${roundHeader(state)}${choosing ? `<h1>התור שלך לבחור נושא</h1>
+    return withHeader(`${roundHeader(state)}${liveStandings(state)}${choosing ? `<div class="topic-heading">${photo(chooser?.face || "fox", 62)}<h1>התור שלך לבחור נושא</h1></div>
       <div class="category-cards">${state.choices.map((choice, i) => `<button type="button" class="card topic"
-        style="--i:${i}" data-topic="${esc(choice.key)}" aria-pressed="${draft.topic === choice.key}"><span>${esc(choice.name)}</span>${token("pick-token")}</button>`).join("")}</div>`
-      : `<h1>בחירת נושא · ${esc(chooser?.name || "המארח")}</h1><div class="waiting-card card">
-      ${photo(chooser?.face || "fox", 128)}<strong>השאלה תופיע כאן</strong></div>`}`,
-    { theme: choosing ? "yellow" : "lilac", footer: choosing ? `<button type="button" class="button" id="pick-topic" ${draft.topic ? "" : "disabled"}>בוחרים</button>` : "" });
+        style="--i:${i}" data-topic="${esc(choice.key)}" aria-pressed="${draft.topic === choice.key}">${token("pick-token")}
+        <span class="topic-art">${topicSvg(topicArt[choice.key] || "folk", 65)}</span><span>${esc(choice.name)}</span></button>`).join("")}</div>`
+      : `<h1>בחירת נושא · ${esc(chooser?.name || "המארח")}</h1><div class="waiting-card">
+        <img class="waiting-paper" src="/between-card-stack.png" alt="">
+        <div class="waiting-avatar">${photo(chooser?.face || "fox", 128)}</div><strong>השאלה<br>תופיע כאן</strong></div>`}`,
+    { theme: choosing ? "yellow" : "lilac", header: choosing ? "blue" : "plain-head",
+      layout: choosing ? "category-screen choosing" : "category-screen waiting", footer: choosing
+        ? `<button type="button" class="button" id="pick-topic" ${draft.topic ? "" : "disabled"}>בוחרים</button>` : "" });
   }
 
   function rangeScale(interval, limits, correct) {
@@ -185,66 +211,78 @@
     const editing = state.phase === "guess" && !entry;
     let content;
     if (editing) {
-      content = `<div class="guess-control card"><label for="guess-number" class="guess-label">הניחוש שלך</label>
+      content = `<div class="guess-control card">${inkRays()}<label for="guess-number" class="guess-label">הניחוש שלך</label>
         <button type="button" class="step" id="minus" aria-label="הפחתת אחד מהניחוש">−</button>
-        <input id="guess-number" type="text" pattern="[0-9]*" inputmode="numeric" autocomplete="off" value="${esc(draft.guess)}" placeholder="?" maxlength="10" aria-describedby="guess-unit">
+        <input id="guess-number" type="text" pattern="[0-9]*" inputmode="numeric" autocomplete="off" value="${esc(draft.guess)}" style="--guess-length:${draft.guess.length || 2}" placeholder="הקלידו מספר" maxlength="10" aria-describedby="guess-unit">
         <button type="button" class="step" id="plus" aria-label="הוספת אחד לניחוש">+</button>
         <small id="guess-unit">${esc(question.unit)}</small></div>
         <div class="ranges" aria-label="בחירת רוחב הטווח">${tiers.map((tier, i) =>
           `<button type="button" class="card range-card" style="--i:${i}" data-tier="${i}" aria-pressed="${draft.tier === i}">
-          ${token("pick-token")}<strong>${tier}</strong><bdi dir="ltr" class="range-value">${attempt === null ? "—" : prettyRange(range(attempt, question.widths[i]))}</bdi>
-          <small>${scoreByTier[i]} נק׳ בפגיעה</small></button>`).join("")}</div>
+          ${tierArt(i)}${token("pick-token")}<strong>${tier}</strong><bdi dir="ltr" class="range-value" ${attempt === null ? "hidden" : ""}>${attempt === null ? "" : prettyRange(range(attempt, question.widths[i]))}</bdi>
+          <small>${scoreByTier[i]} נק׳</small></button>`).join("")}</div>
         <div id="selected-scale">${selectedScale(attempt, draft.tier, question.widths)}</div>`;
     } else if (entry) {
-      content = `<div class="card locked" role="status"><span>טווח ${tiers[entry.tier]}</span>
-        <strong>${numberHTML(prettyRange(range(entry.number, question.widths[entry.tier])))}</strong>${token("lock-token")}</div>`;
+      content = `<div class="locked-stack" role="status"><div class="lock-heading">${inkRays()}<strong>הטווח ננעל</strong>${inkRays()}</div>
+        <div class="card locked tier-${entry.tier}">${tierArt(entry.tier)}<span>${tiers[entry.tier]}</span>
+          <strong>${numberHTML(prettyRange(range(entry.number, question.widths[entry.tier])))}</strong></div></div>`;
     } else {
       content = '<p class="status-line">הזמן לניחוש הסתיים</p>';
     }
     if (state.phase === "tighten") content = `<p class="hint card"><strong>רמז</strong> ${esc(state.hint)}</p>${content}`;
     if (!editing) content += `${roster(state, true)}<p class="status-line">${canTighten ? "אפשר לצמצם את הטווח בדרגה אחת" : "מחכים לכולם"}</p>`;
-    return withHeader(`${roundHeader(state, question.topic)}<h1 class="question">${esc(question.prompt)}</h1>${content}`, {
-      header: "plain-head", layout: "guess-screen",
+    return withHeader(`${roundHeader(state, question.topic)}${liveStandings(state)}<h1 class="question">${esc(question.prompt)}</h1>${content}`, {
+      header: "blue", layout: "guess-screen",
       footer: editing ? `<button type="button" id="lock" class="button" ${attempt === null || draft.tier === null ? "disabled" : ""}>נעלתי</button>`
         : canTighten ? `${button("tighten", `מצמצמים ל־${numberHTML(prettyRange(range(entry.number, question.widths[entry.tier - 1])))}`)}${button("keep", "נשארים עם הטווח", "light")}` : ""
     });
   }
 
   function answerCard(state, onStage = false) {
-    return `<div class="answer-wrap" style="--digits:${String(state.answer).length}">${onStage ? '<img class="reveal-rays" src="/between-rays.png" alt="">' : ""}
+    return `<div class="answer-wrap" style="--digits:${String(state.answer).length}">${onStage ? '<img class="reveal-rays" src="/between-rays.png" alt="">' : inkRays()}
       ${token("drop-token")}<div class="answer card">
       <strong>${numberHTML(state.answer)}</strong><span>${esc(state.question.unit)}</span>
     </div></div>`;
   }
 
+  function roundWinner(state) {
+    const leaders = state.players.filter(player => state.roundWinners?.includes(player.id));
+    if (!leaders.length) return '<p class="round-winner nobody">אף אחד לא פגע בסיבוב</p>';
+    const label = leaders.length === 1 ? "ניצחון בסיבוב" : "ניצחון משותף בסיבוב";
+    return `<div class="round-winner">${confetti()}<div class="winner-faces">${leaders.slice(0, 3).map(celebratingFace).join("")}</div>
+      <div><small>${label}</small><strong>${esc(leaders.map(player => player.name).join(" · "))}</strong></div></div>`;
+  }
+
   function resultRows(state, big = false) {
-    const limits = state.results.reduce(([min, max], row) => row.range
-      ? [Math.min(min, row.range[0]), Math.max(max, row.range[1])] : [min, max], [state.answer, state.answer]);
-    return `<div class="result-grid ${big ? "stage-results" : ""}" data-count="${state.players.length}">${state.results.flatMap((row, i) => {
+    const rows = big ? state.results : [...state.results].sort((a, b) => b.total - a.total);
+    return `<div class="result-grid ${big ? "stage-results" : "round-results card"}" data-count="${state.players.length}">${rows.flatMap((row, i) => {
       const player = state.players.find(candidate => candidate.id === row.id);
       if (!player) return [];
-      return [`<div class="card result ${row.points ? "hit" : "miss"} ${row.bonus ? "bonus" : ""}" style="--i:${i}">
-        <div class="result-avatar">${photo(player.face, big ? 118 : 54)}</div>
+      const wins = state.roundWinners?.includes(player.id);
+      const tally = [`${row.points} טווח`, row.exactBonus && "1 בול", row.bonus && "1 בחירת נושא"].filter(Boolean).join(" · ");
+      return [`<div class="${big ? "card " : ""}result ${row.points ? "hit" : "miss"} ${wins ? "leader" : ""} points-${row.points}" style="--i:${i}">
+        <div class="result-avatar">${wins && big ? celebratingFace(player) : photo(player.face, big ? 118 : 54)}</div>
         <div class="result-copy"><strong>${esc(player.name)}</strong>
+          ${big ? "" : `<span class="hit-label">${row.exactBonus ? "בול" : row.points ? "פגיעה" : row.range ? "פספוס" : "לא ננעל"}</span>`}
           <span class="result-range">${numberHTML(prettyRange(row.range))}</span>
-          <span class="earned">${numberHTML(`+${row.points}`)}</span>
-          ${row.bonus ? '<small class="bonus-note">+1 על בחירת הנושא</small>' : ""}
-        </div>${!big && row.range ? rangeScale(row.range, limits, state.answer) : ""}
+          <span class="earned">${numberHTML(`+${row.total}`)}</span>
+          ${row.exactBonus || row.bonus ? `<small class="bonus-note">${tally}</small>` : ""}
+        </div>
       </div>`];
     }).join("")}</div>`;
   }
 
   function reveal(state) {
-    return withHeader(`${roundHeader(state, null, false)}${answerCard(state)}
-      ${state.note ? `<p class="fact">${esc(state.note)}</p>` : ""}${resultRows(state)}`,
+    return withHeader(`${roundHeader(state, null, false)}${answerCard(state)}${roundWinner(state)}
+      ${state.note ? `<p class="fact">${esc(state.note)}</p>` : ""}${resultRows(state)}
+      <section class="score-section"><h2>טבלה מצטברת</h2>${standings(state)}</section>`,
     { theme: "yellow", header: "plain-head", layout: "reveal-screen", footer: state.me === state.host
       ? button("next", state.round === state.roundCount ? "לסיכום המשחק" : "לסיבוב הבא") : "" });
   }
 
   function standings(state) {
     const sorted = [...state.players].sort((a, b) => b.score - a.score);
-    return `<ol class="standings card">${sorted.map(player => `<li>${photo(player.face, 43)}<strong>${esc(player.name)}</strong>
-      <span class="earned">${numberHTML(player.score)}</span></li>`).join("")}</ol>`;
+    return `<ol class="standings card">${sorted.map(player => `<li><span class="place">${sorted.findIndex(item => item.score === player.score) + 1}</span>
+      ${photo(player.face, 38)}<strong>${esc(player.name)}</strong><b class="earned">${numberHTML(player.score)} נק׳</b></li>`).join("")}</ol>`;
   }
 
   function endTitle(state) {
@@ -255,9 +293,13 @@
 
   function podium(state) {
     const winners = state.players.filter(player => state.winners.includes(player.id));
-    return withHeader(`<h1 class="title-tag">${endTitle(state)}</h1>
-      <div class="winner-card card">${winners.map(player => photo(player.face, 110)).join("")}${token("drop-token")}</div>
-      <h2>סיכום המשחק</h2>${standings(state)}`, { footer: `${state.me === state.host ? button("again", "משחק נוסף") : ""}
+    const single = winners.length === 1;
+    return withHeader(`<div class="podium-title">${inkRays()}<h1 class="title-tag">${endTitle(state)}</h1>${inkRays()}</div>
+      ${winners.length ? `<div class="winner-card ${single ? "single" : "shared card"}">
+        ${winners.slice(0, 5).map(celebratingFace).join("")}${token("drop-token")}${confetti()}
+        <strong>${single ? esc(winners[0].name) : `${winners[0].score} נק׳`}</strong></div>` : ""}
+      <section class="score-section"><h2>טבלת סיום</h2>${standings(state)}</section>`,
+      { theme: "lilac", header: "plain-head", layout: "podium-screen", footer: `${state.me === state.host ? button("again", "משחק נוסף") : ""}
         ${session.profile ? button("profile", "הפרופיל שלי", "light") : ""}${button("leave", "יציאה מהחדר", "plain")}` });
   }
 
@@ -266,7 +308,8 @@
       <li>בכל סיבוב שחקן אחר בוחר נושא מתוך שלושה קלפים.</li>
       <li>מקלידים ניחוש ובוחרים כמה מרווח להשאיר סביבו. שני הקצוות כלולים בטווח.</li>
       <li>כשפוגעים, טווח צר שווה 3 נקודות, בינוני 2 ורחב 1. פספוס שווה אפס.</li>
-      <li>מי שבחר נושא מקבל עוד נקודה אם ניקוד הטווח שלו הוא הגבוה בסיבוב ויש לו פגיעה, גם בשוויון.</li>
+      <li>ניחוש בול במספר הנכון מזכה בעוד נקודה.</li>
+      <li>מי שבחר נושא מקבל עוד נקודה אם קיבל את הניקוד הגבוה בסיבוב לפני בונוס הנושא, גם בשוויון.</li>
       <li>אחרי עשר שאלות, הניקוד המצטבר הגבוה ביותר מנצח.</li></ol>`, { back: true });
   }
 
@@ -305,8 +348,7 @@
     let content;
     if (!state || state.phase === "lobby") {
       content = `<div class="stage-lobby"><h1>בין לבין</h1>${state ? `${joinTicket(state)}${roster(state)}`
-        : `<form id="tv-form"><label for="room-code">קוד החדר</label><input id="room-code" maxlength="4"
-          class="code-field" value="${roomCode}" placeholder="ABCD" required><button class="button" type="submit">צפייה במשחק</button></form>`}</div>`;
+        : `<form id="tv-form">${codeInput()}<button class="button" type="submit">צפייה במשחק</button></form>`}</div>`;
     } else if (state.phase === "reveal") {
       content = `${roundHeader(state, null, false)}${answerCard(state, true)}${resultRows(state, true)}`;
     } else if (state.phase === "over") {
@@ -325,7 +367,7 @@
 
   function render({ replay = false } = {}) {
     const focus = document.activeElement?.id;
-    const tvMenuOpen = app.querySelector(".tv-menu")?.open;
+    const openMenus = Array.from(app.querySelectorAll("details[open]"), menu => menu.className);
     let markup;
     if (tv) markup = stage(model);
     else if (screen === "home") markup = home();
@@ -342,8 +384,12 @@
     else markup = podium(model);
     app.classList.toggle("animated", replay);
     app.innerHTML = markup;
-    const tvMenu = app.querySelector(".tv-menu");
-    if (tvMenu && tvMenuOpen) tvMenu.open = true;
+    for (const menu of app.querySelectorAll("details")) menu.open = openMenus.includes(menu.className);
+    if (replay) {
+      for (const face of app.querySelectorAll(".celebrating-face")) {
+        setTimeout(() => { if (face.isConnected) face.classList.add("on"); }, 390);
+      }
+    }
     if (focus === "guess-number" || focus === "nickname" || focus === "room-code") {
       const input = document.getElementById(focus);
       input?.focus({ preventScroll: true });
@@ -380,7 +426,8 @@
     const before = model;
     model = state;
     clockOffset = (state.now || Date.now()) - Date.now();
-    const key = `${state.phase}:${state.round}:${!!state.entry}:${state.entry?.tier ?? ""}`;
+    const rosterKey = state.phase === "lobby" ? state.players.map(player => player.id).join(",") : "";
+    const key = `${state.phase}:${state.round}:${!!state.entry}:${state.entry?.tier ?? ""}:${rosterKey}`;
     if (before?.round !== state.round || before?.phase === "lobby") {
       Object.assign(draft, { guess: "", tier: null, topic: "" });
     }
@@ -389,7 +436,17 @@
     const justWaiting = before?.phase === "guess" && state.phase === "guess" && before.round === state.round && !state.entry && !tv;
     if (serialized !== version && (!justWaiting || error)) {
       const replay = key !== replayKey;
-      if (replay && state.phase === "reveal") window.SFX?.play("land");
+      if (replay && before) {
+        if (state.phase === "lobby" && state.players.length > before.players.length) window.SFX?.play("join");
+        if (state.phase === "topic") window.SFX?.play(before.phase === "lobby" ? "start" : "deal");
+        if (state.phase === "guess") window.SFX?.play(state.entry ? "aim" : "go");
+        if (state.phase === "reveal") {
+          window.SFX?.play("land");
+          const sound = state.roundWinners?.length ? "correct" : "nobody";
+          setTimeout(() => { if (model?.phase === "reveal" && model.round === state.round) window.SFX?.play(sound); }, 450);
+        }
+        if (state.phase === "over") window.SFX?.play("win");
+      }
       render({ replay });
       replayKey = key;
     }
@@ -447,7 +504,7 @@
       draft.name = guest ? "" : session.profile?.name || "";
       draft.face = guest ? "" : session.profile?.face || "";
     }
-    render();
+    render({ replay: true });
   }
 
   async function openData(target) {
@@ -463,14 +520,26 @@
   }
 
   function markChoice(attribute, value) {
-    app.querySelectorAll(`[data-${attribute}]`).forEach(button =>
-      button.setAttribute("aria-pressed", button.dataset[attribute] === String(value)));
+    app.querySelectorAll(`button[data-${attribute}]`).forEach(button => {
+      const selected = button.dataset[attribute] === String(value);
+      button.setAttribute("aria-pressed", selected);
+      if (attribute === "face") {
+        if (selected && button.classList.contains("on")) {
+          button.classList.remove("on");
+          void button.offsetWidth;
+        }
+        button.classList.toggle("on", selected);
+      }
+    });
   }
 
   function refreshGuess() {
+    document.getElementById("guess-number").style.setProperty("--guess-length", draft.guess.length || 2);
     app.querySelectorAll("[data-tier]").forEach(button => {
       const width = model.question.widths[Number(button.dataset.tier)];
-      button.querySelector(".range-value").textContent = draft.guess === "" ? "—" : prettyRange(range(Number(draft.guess), width));
+      const value = button.querySelector(".range-value");
+      value.hidden = draft.guess === "";
+      value.textContent = value.hidden ? "" : prettyRange(range(Number(draft.guess), width));
     });
     document.getElementById("lock").disabled = draft.guess === "" || draft.tier === null || Number(draft.guess) > 1_000_000_000;
     document.getElementById("selected-scale").innerHTML = selectedScale(
@@ -536,6 +605,13 @@
   app.addEventListener("input", event => {
     if (event.target.id === "room-code") {
       roomCode = codeOf(event.target.value); event.target.value = roomCode;
+      app.querySelectorAll(".code-slot").forEach((slot, i) => {
+        const value = roomCode[i] || "";
+        if (slot.textContent === value) return;
+        slot.classList.remove("stamped");
+        slot.textContent = value;
+        if (value) { void slot.offsetWidth; slot.classList.add("stamped"); }
+      });
     } else if (event.target.id === "nickname") {
       draft.name = event.target.value;
     } else if (event.target.id === "guess-number") {

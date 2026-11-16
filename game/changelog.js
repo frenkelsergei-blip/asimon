@@ -36,6 +36,15 @@ const RANK = { patch:0, minor:1, major:2 };
 
 const RELEASES = [
 
+  { v:"0.15.0", date:"2026-11-16", lines:[
+    { kind:"rules",
+      en:"A bullseye in Between adds a point. See the round winner and running standings after every question.",
+      he:"בין לבין מעניק עוד נקודה על ניחוש בול ומציג את מנצחי הסיבוב ואת הטבלה המצטברת אחרי כל שאלה." },
+    { kind:"change",
+      en:"Between has illustrated lobby, question and result screens, character animations and new trivia questions.",
+      he:"בין לבין קיבל לובי, מסכי שאלות ותוצאות מאוירים, אנימציות לדמויות ושאלות טריוויה חדשות." },
+  ]},
+
   { v:"0.14.0", date:"2026-11-16", lines:[
     { kind:"new",
       en:"Start a Between room with two players.",

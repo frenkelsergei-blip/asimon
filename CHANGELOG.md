@@ -5,6 +5,16 @@ game itself shows under the version at the foot of the first screen.
 
 Generated from `game/changelog.js` by `npm run release` — edit that file, not this one.
 
+## 0.15.0 — 2026-11-16
+
+### Rules
+
+- A bullseye in Between adds a point. See the round winner and running standings after every question.
+
+### Changed
+
+- Between has illustrated lobby, question and result screens, character animations and new trivia questions.
+
 ## 0.14.0 — 2026-11-16
 
 ### Added

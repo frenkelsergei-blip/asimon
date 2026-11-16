@@ -42,7 +42,10 @@ const ASSETS = ["index.html","app.js","art.js","boardart.js","qr.js","sfx.js","s
                 "board.html","board.js","board.css","worldart.js", "between.html", "between.js",
                 "between.css", "between-hero.png", "between-stage.jpg", "between-token.png", "between-google.png",
                 "between-logo.png", "between-logo-light.png", "between-paper.png", "between-title.png",
-                "between-reveal-plate.png", "between-rays.png"];
+                "between-reveal-plate.png", "between-rays.png", "between-ink-rays.png",
+                "between-card-star.png", "between-corner-wide.png", "between-corner-medium.png",
+                "between-corner-narrow.png", "between-card-stack.png", "between-ticket.png",
+                "between-result-paper.png", "between-winner-paper.png"];
 
 let BUILD = "", assetStamp = null;
 function currentBuild(){
