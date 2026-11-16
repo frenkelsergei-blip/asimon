@@ -1,7 +1,8 @@
 # Architecture
 
-No dependencies, no build step, no database. `node server.js` and the game is
-up. Node 18 or later (`engines` in `package.json`).
+The classic word game has no build step or database. `node server.js` starts
+both modes on Node 18 or later. The separate [Between](between.md) mode can
+connect to PostgreSQL for questions, accounts and completed games.
 
 ```
         phone            phone            phone         screen on the wall

@@ -5,6 +5,12 @@ game itself shows under the version at the foot of the first screen.
 
 Generated from `game/changelog.js` by `npm run release` — edit that file, not this one.
 
+## 0.13.0 — 2026-11-16
+
+### Added
+
+- Play Between, the number trivia game with rotating topics, three ranges and a new living-room screen.
+
 ## 0.12.1 — 2026-09-09
 
 ### Changed

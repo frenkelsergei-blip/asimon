@@ -1,15 +1,20 @@
 {
   "name": "asimon",
-  "version": "0.12.1",
+  "version": "0.13.0",
   "private": true,
-  "description": "Asimon — a game for the whole family, played across phones on one Wi-Fi. No dependencies.",
+  "description": "Asimon — two party games for phones and an optional shared screen",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
     "build:engine": "node game/build-engine.js",
     "release": "node game/release.js",
-    "test": "node game/engine.test.js && node game/cards.test.js && node game/stall.test.js && node game/copy.test.js && node game/qr.test.js && node game/content.test.js && node game/round.test.js && node game/server.test.js && node game/reconnect.test.js && node game/groups.test.js && node game/leave.test.js && node game/screen.test.js && node game/changelog.test.js && node game/version.test.js",
+    "test": "node game/engine.test.js && node game/cards.test.js && node game/stall.test.js && node game/copy.test.js && node game/qr.test.js && node game/content.test.js && node game/round.test.js && node game/server.test.js && node game/reconnect.test.js && node game/groups.test.js && node game/leave.test.js && node game/screen.test.js && node game/changelog.test.js && node game/version.test.js && node game/between.test.js",
     "playtest": "node game/playtest.js"
   },
-  "engines": { "node": ">=18" }
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "pg": "^8.23.1"
+  }
 }

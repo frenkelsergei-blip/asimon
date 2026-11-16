@@ -8,7 +8,10 @@ const fs   = require("fs");
 const path = require("path");
 const os   = require("os");
 const crypto = require("crypto");
+const { Readable } = require("node:stream");
 const play = require("./game/play");
+const { createApi, memoryRooms } = require("./game/between-api");
+const { fileStore, postgresStore } = require("./game/between-store");
 
 const PORT = Number(process.env.PORT || 3000);
 const PUBLIC = path.join(__dirname, "public");
@@ -36,7 +39,9 @@ const LAN_URL = "http://" + lanAddress() + ":" + PORT;
 const VERSION = require("./package.json").version;
 const changelog = require("./game/changelog");
 const ASSETS = ["index.html","app.js","art.js","boardart.js","qr.js","sfx.js","style.css","gestures.css",
-                "board.html","board.js","board.css","worldart.js"];
+                "board.html","board.js","board.css","worldart.js", "between.html", "between.js",
+                "between.css", "between-hero.png", "between-stage.jpg", "between-token.png", "between-google.png",
+                "between-logo.png", "between-logo-light.png", "between-paper.png"];
 
 let BUILD = "", assetStamp = null;
 function currentBuild(){
@@ -206,6 +211,7 @@ function ctxFor(room){
 /* ---------------- http ---------------- */
 const TYPES = { ".html":"text/html; charset=utf-8", ".js":"text/javascript; charset=utf-8",
                 ".css":"text/css; charset=utf-8", ".svg":"image/svg+xml", ".ico":"image/x-icon",
+                ".jpg":"image/jpeg", ".png":"image/png",
                 ".webmanifest":"application/manifest+json; charset=utf-8", ".json":"application/json; charset=utf-8" };
 
 function sendJSON(res, code, obj){
@@ -251,11 +257,35 @@ function cleanName(s){
     .slice(0, 14);
 }
 
+const betweenStore = process.env.DATABASE_URL ? postgresStore(process.env.DATABASE_URL)
+  : fileStore(process.env.BETWEEN_DATA_FILE || path.join(__dirname, ".data", "between.json"));
+const betweenOrigin = process.env.PUBLIC_ORIGIN || process.env.RENDER_EXTERNAL_URL;
+const betweenEnv = { ...process.env, PUBLIC_ORIGIN: betweenOrigin };
+if (process.env.RENDER && !process.env.DATABASE_URL && !process.env.BETWEEN_DATA_FILE) betweenEnv.SESSION_SECRET = undefined;
+const betweenApi = createApi(betweenEnv, betweenStore, memoryRooms(betweenStore, request =>
+  !tooManyCreates(request.headers.get("x-forwarded-for")?.split(",")[0].trim() || "between-local"), MAX_ROOMS));
+
+async function serveBetween(req, res) {
+  const origin = originOf(req) || `http://${req.headers.host || `localhost:${PORT}`}`;
+  const request = new Request(new URL(req.url, origin), {
+    method: req.method, headers: { ...req.headers, "x-asimon-share-origin": betweenOrigin || originOf(req) || LAN_URL },
+    ...(req.method === "POST" ? { body: Readable.toWeb(req), duplex: "half" } : {})
+  });
+  const response = await betweenApi(request);
+  const headers = Object.fromEntries(response.headers);
+  if (headers["set-cookie"]) {
+    headers["set-cookie"] = response.headers.getSetCookie?.() || headers["set-cookie"].split(/, (?=asimon_between)/);
+  }
+  res.writeHead(response.status, headers);
+  res.end(Buffer.from(await response.arrayBuffer()));
+}
+
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, "http://" + (req.headers.host || "localhost"));
   const p = url.pathname;
 
   try {
+    if(p.startsWith("/api/between/")) return await serveBetween(req, res);
     /* ---- create a room ---- */
     if(p === "/api/create" && req.method === "POST"){
       const body = await readBody(req);
@@ -548,6 +578,7 @@ const server = http.createServer(async (req, res) => {
        phone, /board for whatever is going to stand on the sideboard */
     let file = p === "/" ? "/index.html"
              : (p === "/board" || p === "/board/") ? "/board.html"
+             : ["/between", "/between/", "/between/tv", "/between/tv/"].includes(p) ? "/between.html"
              : p;
     file = path.normalize(file).replace(/^(\.\.[/\\])+/, "");
     const full = path.join(PUBLIC, file);

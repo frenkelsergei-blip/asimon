@@ -743,6 +743,7 @@ const offBox = () => online ? '' : '<div class="err">'+t("offline")+'</div>';
 function vName(){
   h('<div class="stack grow">'+updBox()+
     '<div><p class="kicker">'+t("tag")+'</p><h1>'+wordmark(lang)+'</h1></div>'+
+    '<a href="/between" class="between-link">'+(lang === "he" ? "בין לבין · טריוויה של טווחים" : "Between · Range trivia")+'</a>'+
     learnBtn("howto", t("howto"), t("hw_teaser"))+
     '<p class="kicker">'+t("lang_k")+'</p>'+
     '<div class="langsw"><button id="lhe" class="'+(lang==="he"?"on":"")+'">עברית</button>'+

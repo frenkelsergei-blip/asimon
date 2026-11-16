@@ -36,6 +36,12 @@ const RANK = { patch:0, minor:1, major:2 };
 
 const RELEASES = [
 
+  { v:"0.13.0", date:"2026-11-16", lines:[
+    { kind:"new",
+      en:"Play Between, the number trivia game with rotating topics, three ranges and a new living-room screen.",
+      he:"מגיע ׳בין לבין׳, משחק טריוויה של מספרים, בחירת נושא בתורות, שלושה טווחים ומסך חדש לסלון." },
+  ]},
+
   { v:"0.12.1", date:"2026-09-09", lines:[
     { kind:"change",
       en:"Tap a card in your fan to lift and enlarge it for reading, and see points, available steps and board positions more clearly in the round results.",

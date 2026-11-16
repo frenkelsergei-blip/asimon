@@ -352,3 +352,13 @@ you restart it.
   minutes, 64 KB per request.
 - No accounts and no personal data — a room is a four-letter code, a first
   name and a chosen face, all of it gone when the room expires.
+## Between / בין לבין
+
+The original word game and Between share the same server. To play Between, open
+`/between` on each phone. Its lobby has a room code, join QR, and a link to the
+optional TV view at `/between/tv?room=ABCD`. The TV view takes no seat.
+
+Between supports 3–8 phones, ten questions, rotating topic selection, and three
+private range choices worth 3, 2 or 1 point on a hit. A topic chooser earns one
+extra point when they tie or lead the round's positive base score. See
+[the Between spec](docs/spec/between.md) for the rules and Render configuration.

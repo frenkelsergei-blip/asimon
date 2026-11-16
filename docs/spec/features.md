@@ -1,5 +1,8 @@
 # The feature inventory
 
+For the separate numeric trivia mode on the same server, see [Between](between.md).
+The table below covers the classic word game.
+
 Everything the game currently does, where it is written, and what holds it up.
 If a feature is not on this list it does not exist yet — and if you add one, it
 belongs here in the same commit.

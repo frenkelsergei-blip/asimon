@@ -1015,3 +1015,8 @@ button.quiet.warn{color:var(--guilty-ink)}
   #app .facegrid{ grid-template-columns:repeat(8,minmax(0,1fr)) }
   #app .topicgrid{ grid-template-columns:repeat(6,minmax(0,1fr)) }
 }
+.between-link {
+  display:block; text-align:center; text-decoration:none; color:#17161c;
+  background:#e8deff; border:1px solid #17161c; border-radius:12px;
+  padding:9px 14px; font-weight:800;
+}

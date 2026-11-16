@@ -1,7 +1,8 @@
-# Asimon — no dependencies, so this is about as small as a server gets.
+# The PostgreSQL driver is used by Between when DATABASE_URL is set.
 FROM node:20-alpine
 WORKDIR /app
-COPY package.json ./
+COPY package.json package-lock.json ./
+RUN npm ci --omit=dev
 COPY server.js ./
 COPY game ./game
 COPY public ./public
