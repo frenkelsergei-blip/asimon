@@ -247,6 +247,8 @@ input { width: 100%; min-height: 49px; border: 2px solid var(--ink); border-radi
 .standings li, .history li { display: flex; align-items: center; gap: 8px; min-height: 48px; padding: 5px 0; }
 .standings li + li, .history li + li { border-top: 1px solid #17161c30; }
 .standings li .earned, .history li b { margin-inline-start: auto; }
+.standings li strong { min-width: 0; overflow-wrap: anywhere; }
+.standings li .earned { flex-shrink: 0; }
 .history li small { opacity: .75; margin-inline-start: 5px; }
 .rule-list { padding-inline-start: 21px; display: grid; gap: 12px; }
 .profile-name { display: flex; align-items: center; gap: 16px; }
@@ -383,7 +385,7 @@ body.theatre { background: #11142d; }
 
 .lobby-title, .podium-title { width: 100%; display: flex; align-items: center; gap: 5px; justify-content: center; }
 .lobby-title .title-tag, .podium-title .title-tag { margin-inline: 0; border-radius: 30px; text-align: center; max-width: calc(100% - 46px); }
-.lobby-title .ink-rays:last-child, .podium-title .ink-rays:last-child, .lock-heading .ink-rays:last-child { transform: scaleX(-1); }
+.lobby-title .ink-rays:first-child, .lock-heading .ink-rays:first-child { transform: scaleX(-1); }
 .lobby-screen .pane { gap: 15px; padding-top: 1px; }
 .lobby-screen .title-tag { padding: 7px 13px; border: 0; box-shadow: 0 4px 0 #95602170; }
 .ticket { position: relative; display: block; width: 100%; padding: 0; container-type: inline-size; aspect-ratio: 583 / 267; text-align: center; color: var(--ink); }
@@ -413,7 +415,7 @@ body.theatre { background: #11142d; }
 .category-screen.waiting h1 { text-align: center; }
 .live-standings { position: relative; z-index: 5; align-self: flex-start; margin: -4px 0 -8px; width: 100%; }
 .live-standings summary { width: fit-content; cursor: pointer; border: 1px solid #66537a; border-radius: 12px; padding: 3px 8px; font-weight: 800; background: var(--paper); color: var(--ink); }
-.live-standings > .standings { position: absolute; inset-block-start: calc(100% + 7px); inset-inline: 0; z-index: 7; }
+.live-standings > .standings { margin-block: 7px 9px; }
 .topic-heading { display: flex; align-items: center; gap: 12px; }
 .topic-heading svg { border: 2px solid var(--paper); border-radius: 100%; width: clamp(43px, 13vw, 71px); height: auto; }
 .category-cards { gap: 13px; }
@@ -505,9 +507,24 @@ body.theatre { background: #11142d; }
 .standings .place { min-width: 21px; color: #624b75; font-weight: 900; }
 .reveal-screen .fact { padding: 4px 6px; font-size: clamp(.76rem, 3.65vw, .99rem); background: var(--paper); border-radius: 13px; line-height: 1.17; }
 .reveal-screen #next, .podium-screen #again { min-height: clamp(53px, 15vw, 69px); border-radius: 22px; box-shadow: 0 6px 0 var(--ink); font-size: clamp(1.37rem, 6.4vw, 1.93rem); }
+.reveal-screen .pane:has(#next) { padding-bottom: 0; }
+.reveal-screen .actions:has(#next) {
+  position: sticky; bottom: 0; z-index: 8;
+  margin-inline: calc(-1 * clamp(13px, 4.3vw, 24px));
+  padding: 8px clamp(13px, 4.3vw, 24px) max(13px, env(safe-area-inset-bottom));
+  background: var(--yellow) url("/between-paper.png");
+}
 
 .podium-screen .pane { padding-top: 3px; gap: 14px; }
-.podium-title .title-tag { border-width: 3px; transform: rotate(-4deg); box-shadow: 4px 6px 0 var(--ink); padding: 7px 10px; font-size: clamp(1.26rem, 7vw, 2.15rem); }
+.podium-title {
+  display: grid; direction: ltr;
+  grid-template-columns: clamp(22px, 6.8vw, 38px) minmax(0, max-content) clamp(22px, 6.8vw, 38px);
+  gap: clamp(6px, 2vw, 11px);
+}
+.podium-title .ink-rays { width: 100%; }
+.podium-title .ink-rays:first-child { transform: translateY(-26%); }
+.podium-title .ink-rays:last-child { transform: translateY(27%) rotate(180deg); }
+.podium-title .title-tag { direction: rtl; width: auto; min-width: 0; max-width: 100%; overflow-wrap: anywhere; border-width: 3px; transform: rotate(-4deg); box-shadow: 4px 6px 0 var(--ink); padding: 7px 10px; font-size: clamp(1.26rem, 7vw, 2.15rem); }
 .winner-card.single { display: block; position: relative; width: min(59%, 260px); min-height: 0; aspect-ratio: 348 / 361; padding: 0; border: 0; box-shadow: none; transform: none; background: transparent url("/between-winner-paper.png") center / 100% 100% no-repeat; }
 .winner-card.single .celebrating-face { position: absolute; left: 46%; top: 40%; transform: translate(-50%, -50%) rotate(-5deg); width: 51%; border-radius: 50%; outline: 2px solid var(--ink); }
 .winner-card.single .celebrating-face svg { width: 100%; min-width: 0; }
@@ -522,7 +539,8 @@ body.theatre { background: #11142d; }
 .podium-screen .standings { padding: 15px 11px 6px; }
 .podium-screen .standings li { min-height: 43px; font: 900 clamp(.99rem, 4.9vw, 1.32rem)/1.1 var(--heading); }
 .podium-screen .standings li svg { width: clamp(33px, 9.7vw, 43px); }
-.podium-screen .standings .earned { min-width: 52px; padding: 4px 7px; background: #f5e5ca; text-align: center; }
+.podium-screen .standings .place { order: 1; min-width: 0; margin-inline-start: auto; }
+.podium-screen .standings .earned { order: 2; margin-inline-start: 0; min-width: 52px; padding: 4px 7px; background: #f5e5ca; text-align: center; }
 
 .animated .locked-stack { animation: stamp .48s cubic-bezier(.17,.88,.35,1.2) both; }
 .animated .reveal-screen .answer { animation: flip-flat .58s cubic-bezier(.22,.73,.4,1.12) both; }
@@ -540,4 +558,13 @@ body.theatre { background: #11142d; }
   22% { opacity: 1; }
   70% { opacity: 1; transform: translate(var(--dx), calc(-1 * var(--dy))) rotate(160deg); }
   100% { opacity: 0; transform: translate(var(--dx), calc(-.42 * var(--dy))) rotate(230deg); }
+}
+
+@media (min-width: 641px) and (min-aspect-ratio: 3/2) {
+  .stage-results:is([data-count="5"], [data-count="6"], [data-count="7"], [data-count="8"]) {
+    --card-unit: calc(.59 * var(--tv));
+  }
+  .stage.phase-reveal:has(.stage-results:is([data-count="5"], [data-count="6"], [data-count="7"], [data-count="8"])) {
+    padding-bottom: calc(1.55 * var(--tv));
+  }
 }

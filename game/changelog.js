@@ -36,6 +36,12 @@ const RANK = { patch:0, minor:1, major:2 };
 
 const RELEASES = [
 
+  { v:"0.15.1", date:"2026-11-16", lines:[
+    { kind:"fix",
+      en:"Scroll through all eight players on your phone. The next-round button stays in reach, and the winner card and standings line up.",
+      he:"אפשר לגלול בין כל שמונת השחקנים בטלפון. כפתור הסיבוב הבא נשאר בהישג יד, וקישוטי הניצחון והתמונות בטבלת הסיום מיושרים." },
+  ]},
+
   { v:"0.15.0", date:"2026-11-16", lines:[
     { kind:"rules",
       en:"A bullseye in Between adds a point. See the round winner and running standings after every question.",

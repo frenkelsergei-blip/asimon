@@ -5,6 +5,12 @@ game itself shows under the version at the foot of the first screen.
 
 Generated from `game/changelog.js` by `npm run release` — edit that file, not this one.
 
+## 0.15.1 — 2026-11-16
+
+### Fixed
+
+- Scroll through all eight players on your phone. The next-round button stays in reach, and the winner card and standings line up.
+
 ## 0.15.0 — 2026-11-16
 
 ### Rules

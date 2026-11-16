@@ -365,7 +365,7 @@
       ${content}${notice()}</section>`;
   }
 
-  function render({ replay = false } = {}) {
+  function render({ replay = false, resetScroll = false } = {}) {
     const focus = document.activeElement?.id;
     const openMenus = Array.from(app.querySelectorAll("details[open]"), menu => menu.className);
     let markup;
@@ -384,7 +384,9 @@
     else markup = podium(model);
     app.classList.toggle("animated", replay);
     app.innerHTML = markup;
-    for (const menu of app.querySelectorAll("details")) menu.open = openMenus.includes(menu.className);
+    if (!resetScroll) {
+      for (const menu of app.querySelectorAll("details")) menu.open = openMenus.includes(menu.className);
+    }
     if (replay) {
       for (const face of app.querySelectorAll(".celebrating-face")) {
         setTimeout(() => { if (face.isConnected) face.classList.add("on"); }, 390);
@@ -395,6 +397,7 @@
       input?.focus({ preventScroll: true });
       input?.setSelectionRange(input.value.length, input.value.length);
     }
+    if (resetScroll) window.scrollTo(0, 0);
     updateClock();
   }
 
@@ -447,7 +450,8 @@
         }
         if (state.phase === "over") window.SFX?.play("win");
       }
-      render({ replay });
+      const resetScroll = !tv && (before?.phase !== state.phase || before?.round !== state.round || (!before?.entry && !!state.entry));
+      render({ replay, resetScroll });
       replayKey = key;
     }
     version = serialized;
@@ -486,7 +490,7 @@
     try {
       const result = await api(`/rooms/${roomCode}/action`, { type, ...fields }, seat.token);
       if (type === "leave") {
-        keepSeat(null); model = null; roomCode = ""; screen = "home"; version = ""; render();
+        keepSeat(null); model = null; roomCode = ""; screen = "home"; version = ""; render({ resetScroll: true });
       } else {
         version = "";
         accept(result);
@@ -504,7 +508,7 @@
       draft.name = guest ? "" : session.profile?.name || "";
       draft.face = guest ? "" : session.profile?.face || "";
     }
-    render({ replay: true });
+    render({ replay: true, resetScroll: true });
   }
 
   async function openData(target) {
