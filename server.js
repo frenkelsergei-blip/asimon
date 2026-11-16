@@ -41,7 +41,8 @@ const changelog = require("./game/changelog");
 const ASSETS = ["index.html","app.js","art.js","boardart.js","qr.js","sfx.js","style.css","gestures.css",
                 "board.html","board.js","board.css","worldart.js", "between.html", "between.js",
                 "between.css", "between-hero.png", "between-stage.jpg", "between-token.png", "between-google.png",
-                "between-logo.png", "between-logo-light.png", "between-paper.png"];
+                "between-logo.png", "between-logo-light.png", "between-paper.png", "between-title.png",
+                "between-reveal-plate.png", "between-rays.png"];
 
 let BUILD = "", assetStamp = null;
 function currentBuild(){

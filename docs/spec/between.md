@@ -7,7 +7,7 @@ the correct number and private ranges when the server reveals them.
 
 ## Rules
 
-- A room starts with three to eight players and runs ten questions. The first
+- A room starts with two to eight players and runs ten questions. The first
   chooser is randomized, then the turn rotates. The chooser has 16 seconds to
   select one of three topics. The first offered topic is the timeout default.
 - Each player has 35 seconds to lock a whole-number guess and an inclusive range.

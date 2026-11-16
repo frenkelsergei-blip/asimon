@@ -5,6 +5,16 @@ game itself shows under the version at the foot of the first screen.
 
 Generated from `game/changelog.js` by `npm run release` — edit that file, not this one.
 
+## 0.14.0 — 2026-11-16
+
+### Added
+
+- Start a Between room with two players.
+
+### Changed
+
+- Between has larger cards, a visible range scale, and a redesigned TV reveal and room menu.
+
 ## 0.13.0 — 2026-11-16
 
 ### Added

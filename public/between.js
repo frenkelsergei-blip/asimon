@@ -28,7 +28,7 @@
     no_room: "החדר לא נמצא. כדאי לבדוק את הקוד.", no_seat: "המקום בחדר פג.",
     room_full: "החדר מלא. אפשר לצפות במשחק במסך המשותף.", already_started: "המשחק כבר התחיל.",
     name_taken: "הכינוי כבר בשימוש בחדר הזה.", already_joined: "החשבון כבר מחובר לחדר הזה.",
-    need_3: "צריך לפחות שלושה שחקנים כדי להתחיל.", host_only: "רק מי שמארח יכול לבצע את הפעולה הזאת.",
+    need_2: "צריך לפחות שני שחקנים כדי להתחיל.", host_only: "רק מי שמארח יכול לבצע את הפעולה הזאת.",
     chooser_only: "בחירת הנושא עוברת לפי התור.", wrong_phase: "הסיבוב כבר התקדם.",
     guess_invalid: "מזינים מספר שלם ובוחרים טווח.", profile_invalid: "צריך לבחור כינוי ודמות.",
     slow_down: "אפשר לנסות לפתוח חדר נוסף בעוד כמה דקות.", sign_in: "כדי לפתוח פרופיל, מתחברים עם Google.",
@@ -59,8 +59,8 @@
   const range = (guess, width) => [Math.max(0, guess - width), Number(guess) + width];
   const prettyRange = interval => interval ? interval.join("–") : "—";
 
-  function withHeader(content, { theme = "lilac", header = "blue", footer = "", back = false } = {}) {
-    return `<section class="phone ${theme}">
+  function withHeader(content, { theme = "lilac", header = "blue", footer = "", back = false, layout = "" } = {}) {
+    return `<section class="phone ${theme} ${layout}">
       <header class="mast ${header}">${back ? '<button type="button" class="back" id="back" aria-label="חזרה">→</button>' : ""}${mark()}</header>
       <div class="pane">${content}${notice()}${footer ? `<div class="actions">${footer}</div>` : ""}</div>
     </section>`;
@@ -79,13 +79,13 @@
       ? `<div class="account row">${photo(session.profile.face, 31)}<button type="button" id="profile" class="text">${esc(session.profile.name)} · הפרופיל שלי</button></div>`
       : `<div class="account">${googleButton()}${button("guest", "המשך כאורח", "plain")}</div>`;
     return withHeader(`<div class="hello">
-      <h1 class="title-card">בין לבין</h1>
+      <h1 class="title-card"><img src="/between-title.png" alt="בין לבין"></h1>
       <img class="home-art" src="/between-hero.png" alt="">
       <p class="tagline">מנחשים מספר. בוחרים טווח.</p>
     </div><div class="home-buttons">${button("create", "פתיחת חדר")}${button("join", "הצטרפות לחדר", "light")}</div>
     ${account}<nav class="links"><button type="button" id="leaders" class="text">טבלת המובילים</button>
       <button type="button" id="rules" class="text">איך משחקים?</button><a href="/">אסימון הקלאסי</a></nav>`,
-    { header: "plain-head" });
+    { header: "plain-head", layout: "home-screen" });
   }
 
   function facePicker(selected) {
@@ -122,26 +122,29 @@
   function roster(state, status = false) {
     return `<div class="roster" data-count="${state.players.length}">${state.players.map((player, i) =>
       `<div class="person card" style="--i:${i}">${photo(player.face)}
-        <strong>${esc(player.name)}</strong>${status ? `<span class="status ${player.locked ? "ready" : ""}" title="${player.locked ? "נעלו" : "חושבים"}">${player.locked ? "✓" : "…"}</span>` : ""}
+        <strong>${esc(player.name)}</strong>${status ? `<span class="status ${player.locked ? "ready" : ""}" role="img" aria-label="${player.locked ? "נעלו" : "חושבים"}"></span>` : ""}
       </div>`).join("")}</div>`;
   }
 
   function lobby(state) {
     const host = state.players.find(player => player.id === state.host);
     return withHeader(`<h1 class="title-tag">החדר של ${esc(host?.name)}</h1>
-      ${joinTicket(state)}<p class="pill">${state.players.length} שחקנים בחדר</p>${roster(state)}
-      <div class="share"><button type="button" id="copy-join" class="text">העתקת קישור לחברים</button>
-      <button type="button" id="copy-tv" class="text">העתקת קישור לטלוויזיה</button></div>
-      <a class="tv-link" href="/between/tv?room=${state.code}" target="_blank" rel="noopener">פתיחת המסך המשותף ↗</a>
-      <p class="share-result" id="share-result" aria-live="polite"></p>`,
-      { theme: "yellow", header: "plain-head", footer: state.me === state.host
-        ? `<button type="button" class="button" id="start" ${state.players.length < 3 ? "disabled" : ""}>${state.players.length < 3 ? "מתחילים כשיש 3 שחקנים" : "מתחילים"}</button>${button("leave", "יציאה מהחדר", "plain")}`
+      ${joinTicket(state)}<p class="pill">${state.players.length === 1 ? "שחקן אחד בחדר" : `${state.players.length} שחקנים בחדר`}</p>${roster(state)}
+      <div class="room-links">
+        ${button("copy-join", "שיתוף קישור למשחק", "light")}
+        <details class="tv-menu"><summary>מסך משותף לטלוויזיה</summary><div class="tv-menu-actions">
+          <a class="button" href="/between/tv?room=${state.code}" target="_blank" rel="noopener">פתיחת המסך</a>
+          ${button("copy-tv", "העתקת קישור", "light")}
+        </div></details>
+      </div><p class="share-result" id="share-result" aria-live="polite"></p>`,
+      { theme: "yellow", header: "plain-head", layout: "lobby-screen", footer: state.me === state.host
+        ? `<button type="button" class="button" id="start" ${state.players.length < 2 ? "disabled" : ""}>${state.players.length < 2 ? "מתחילים כשמצטרף עוד שחקן" : "מתחילים"}</button>${button("leave", "יציאה מהחדר", "plain")}`
         : `<p class="form-hint">מחכים שמארח החדר יתחיל</p>${button("leave", "יציאה מהחדר", "plain")}` });
   }
 
-  function roundHeader(state, topic) {
+  function roundHeader(state, topic, clock = true) {
     return `<div class="round-strip"><span>שאלה ${state.round} מתוך ${state.roundCount}</span>${topic ? `<span>${esc(topic)}</span>` : ""}
-      ${state.deadline ? '<span class="clock" data-clock dir="ltr"></span>' : ""}</div>`;
+      ${clock && state.deadline ? '<span class="clock" data-clock dir="ltr"></span>' : ""}</div>`;
   }
 
   function category(state) {
@@ -150,9 +153,28 @@
     return withHeader(`${roundHeader(state)}${choosing ? `<h1>התור שלך לבחור נושא</h1>
       <div class="category-cards">${state.choices.map((choice, i) => `<button type="button" class="card topic"
         style="--i:${i}" data-topic="${esc(choice.key)}" aria-pressed="${draft.topic === choice.key}"><span>${esc(choice.name)}</span>${token("pick-token")}</button>`).join("")}</div>`
-      : `<h1>${esc(chooser?.name || "המארח")} בוחר נושא</h1><div class="waiting-card card">
+      : `<h1>בחירת נושא · ${esc(chooser?.name || "המארח")}</h1><div class="waiting-card card">
       ${photo(chooser?.face || "fox", 128)}<strong>השאלה תופיע כאן</strong></div>`}`,
     { theme: choosing ? "yellow" : "lilac", footer: choosing ? `<button type="button" class="button" id="pick-topic" ${draft.topic ? "" : "disabled"}>בוחרים</button>` : "" });
+  }
+
+  function rangeScale(interval, limits, correct) {
+    const [min, max] = limits;
+    const percent = value => ((value - min) / Math.max(1, max - min) * 100).toFixed(2);
+    const hitMark = correct === undefined ? "" : `<i class="answer-marker" style="--at:${percent(correct)}%"></i>`;
+    return `<div class="range-scale" dir="ltr" aria-hidden="true">
+      <div class="scale-track">${hitMark}<i class="scale-fill" style="--from:${percent(interval[0])}%;--to:${percent(interval[1])}%"></i>
+        <i class="scale-end" style="--at:${percent(interval[0])}%"></i><i class="scale-end" style="--at:${percent(interval[1])}%"></i>
+      </div><span>${min}</span><span>${max}</span></div>`;
+  }
+
+  function selectedScale(guess, tier, widths) {
+    if (guess === null || tier === null || guess > 1_000_000_000) return "";
+    const interval = range(guess, widths[tier]);
+    const padding = Math.max(1, Math.ceil(widths[2] / 3));
+    const limits = [Math.max(0, guess - widths[2] - padding), guess + widths[2] + padding];
+    return `<div class="selected-scale card"><span>הטווח שלך</span><strong>${numberHTML(prettyRange(interval))}</strong>
+      ${rangeScale(interval, limits)}</div>`;
   }
 
   function guessScreen(state) {
@@ -163,14 +185,16 @@
     const editing = state.phase === "guess" && !entry;
     let content;
     if (editing) {
-      content = `<label for="guess-number" class="guess-label">הניחוש שלך <small>${esc(question.unit)}</small></label>
-        <div class="guess-control card"><button type="button" class="step" id="minus" aria-label="הפחתת אחד">−</button>
-        <input id="guess-number" type="text" pattern="[0-9]*" inputmode="numeric" autocomplete="off" value="${esc(draft.guess)}" placeholder="?" maxlength="10">
-        <button type="button" class="step" id="plus" aria-label="תוספת אחד">+</button></div>
+      content = `<div class="guess-control card"><label for="guess-number" class="guess-label">הניחוש שלך</label>
+        <button type="button" class="step" id="minus" aria-label="הפחתת אחד מהניחוש">−</button>
+        <input id="guess-number" type="text" pattern="[0-9]*" inputmode="numeric" autocomplete="off" value="${esc(draft.guess)}" placeholder="?" maxlength="10" aria-describedby="guess-unit">
+        <button type="button" class="step" id="plus" aria-label="הוספת אחד לניחוש">+</button>
+        <small id="guess-unit">${esc(question.unit)}</small></div>
         <div class="ranges" aria-label="בחירת רוחב הטווח">${tiers.map((tier, i) =>
           `<button type="button" class="card range-card" style="--i:${i}" data-tier="${i}" aria-pressed="${draft.tier === i}">
-          ${token("pick-token")}<strong>${tier}</strong><bdi dir="ltr" class="range-value">${attempt === null ? `±${question.widths[i]}` : prettyRange(range(attempt, question.widths[i]))}</bdi>
-          <small>${scoreByTier[i]} נק׳</small></button>`).join("")}</div>`;
+          ${token("pick-token")}<strong>${tier}</strong><bdi dir="ltr" class="range-value">${attempt === null ? "—" : prettyRange(range(attempt, question.widths[i]))}</bdi>
+          <small>${scoreByTier[i]} נק׳ בפגיעה</small></button>`).join("")}</div>
+        <div id="selected-scale">${selectedScale(attempt, draft.tier, question.widths)}</div>`;
     } else if (entry) {
       content = `<div class="card locked" role="status"><span>טווח ${tiers[entry.tier]}</span>
         <strong>${numberHTML(prettyRange(range(entry.number, question.widths[entry.tier])))}</strong>${token("lock-token")}</div>`;
@@ -180,34 +204,40 @@
     if (state.phase === "tighten") content = `<p class="hint card"><strong>רמז</strong> ${esc(state.hint)}</p>${content}`;
     if (!editing) content += `${roster(state, true)}<p class="status-line">${canTighten ? "אפשר לצמצם את הטווח בדרגה אחת" : "מחכים לכולם"}</p>`;
     return withHeader(`${roundHeader(state, question.topic)}<h1 class="question">${esc(question.prompt)}</h1>${content}`, {
+      header: "plain-head", layout: "guess-screen",
       footer: editing ? `<button type="button" id="lock" class="button" ${attempt === null || draft.tier === null ? "disabled" : ""}>נעלתי</button>`
         : canTighten ? `${button("tighten", `מצמצמים ל־${numberHTML(prettyRange(range(entry.number, question.widths[entry.tier - 1])))}`)}${button("keep", "נשארים עם הטווח", "light")}` : ""
     });
   }
 
-  function answerCard(state) {
-    return `<div class="answer-wrap">${token("drop-token")}<div class="answer card">
+  function answerCard(state, onStage = false) {
+    return `<div class="answer-wrap" style="--digits:${String(state.answer).length}">${onStage ? '<img class="reveal-rays" src="/between-rays.png" alt="">' : ""}
+      ${token("drop-token")}<div class="answer card">
       <strong>${numberHTML(state.answer)}</strong><span>${esc(state.question.unit)}</span>
     </div></div>`;
   }
 
   function resultRows(state, big = false) {
+    const limits = state.results.reduce(([min, max], row) => row.range
+      ? [Math.min(min, row.range[0]), Math.max(max, row.range[1])] : [min, max], [state.answer, state.answer]);
     return `<div class="result-grid ${big ? "stage-results" : ""}" data-count="${state.players.length}">${state.results.flatMap((row, i) => {
       const player = state.players.find(candidate => candidate.id === row.id);
       if (!player) return [];
       return [`<div class="card result ${row.points ? "hit" : "miss"} ${row.bonus ? "bonus" : ""}" style="--i:${i}">
-        <div class="result-person">${photo(player.face, big ? 76 : 40)}<strong>${esc(player.name)}</strong></div>
-        <span class="result-range">${numberHTML(prettyRange(row.range))}</span>
-        <span class="earned">${numberHTML(`+${row.points}`)}</span>
-        ${row.bonus ? '<small class="bonus-note">+1 על בחירת הנושא</small>' : ""}
+        <div class="result-avatar">${photo(player.face, big ? 118 : 54)}</div>
+        <div class="result-copy"><strong>${esc(player.name)}</strong>
+          <span class="result-range">${numberHTML(prettyRange(row.range))}</span>
+          <span class="earned">${numberHTML(`+${row.points}`)}</span>
+          ${row.bonus ? '<small class="bonus-note">+1 על בחירת הנושא</small>' : ""}
+        </div>${!big && row.range ? rangeScale(row.range, limits, state.answer) : ""}
       </div>`];
     }).join("")}</div>`;
   }
 
   function reveal(state) {
-    return withHeader(`${roundHeader(state)}${answerCard(state)}
+    return withHeader(`${roundHeader(state, null, false)}${answerCard(state)}
       ${state.note ? `<p class="fact">${esc(state.note)}</p>` : ""}${resultRows(state)}`,
-    { theme: "yellow", header: "plain-head", footer: state.me === state.host
+    { theme: "yellow", header: "plain-head", layout: "reveal-screen", footer: state.me === state.host
       ? button("next", state.round === state.roundCount ? "לסיכום המשחק" : "לסיבוב הבא") : "" });
   }
 
@@ -278,12 +308,12 @@
         : `<form id="tv-form"><label for="room-code">קוד החדר</label><input id="room-code" maxlength="4"
           class="code-field" value="${roomCode}" placeholder="ABCD" required><button class="button" type="submit">צפייה במשחק</button></form>`}</div>`;
     } else if (state.phase === "reveal") {
-      content = `${roundHeader(state)}${answerCard(state)}${resultRows(state, true)}`;
+      content = `${roundHeader(state, null, false)}${answerCard(state, true)}${resultRows(state, true)}`;
     } else if (state.phase === "over") {
       content = `<h1 class="stage-title">${endTitle(state)}</h1>${standings(state)}`;
     } else if (state.phase === "topic") {
       const chooser = state.players.find(player => player.id === state.chooser);
-      content = `${roundHeader(state)}<div class="stage-question"><h1>${esc(chooser?.name)} בוחר נושא</h1>
+      content = `${roundHeader(state)}<div class="stage-question"><h1>בחירת נושא · ${esc(chooser?.name)}</h1>
         <div class="stage-topics">${state.choices.map(choice => `<span class="card">${esc(choice.name)}</span>`).join("")}</div></div>${roster(state)}`;
     } else {
       content = `${roundHeader(state, state.question.topic)}<div class="stage-question"><h1>${esc(state.question.prompt)}</h1>
@@ -295,6 +325,7 @@
 
   function render({ replay = false } = {}) {
     const focus = document.activeElement?.id;
+    const tvMenuOpen = app.querySelector(".tv-menu")?.open;
     let markup;
     if (tv) markup = stage(model);
     else if (screen === "home") markup = home();
@@ -311,6 +342,8 @@
     else markup = podium(model);
     app.classList.toggle("animated", replay);
     app.innerHTML = markup;
+    const tvMenu = app.querySelector(".tv-menu");
+    if (tvMenu && tvMenuOpen) tvMenu.open = true;
     if (focus === "guess-number" || focus === "nickname" || focus === "room-code") {
       const input = document.getElementById(focus);
       input?.focus({ preventScroll: true });
@@ -437,9 +470,11 @@
   function refreshGuess() {
     app.querySelectorAll("[data-tier]").forEach(button => {
       const width = model.question.widths[Number(button.dataset.tier)];
-      button.querySelector(".range-value").textContent = draft.guess === "" ? `±${width}` : prettyRange(range(Number(draft.guess), width));
+      button.querySelector(".range-value").textContent = draft.guess === "" ? "—" : prettyRange(range(Number(draft.guess), width));
     });
     document.getElementById("lock").disabled = draft.guess === "" || draft.tier === null || Number(draft.guess) > 1_000_000_000;
+    document.getElementById("selected-scale").innerHTML = selectedScale(
+      draft.guess === "" ? null : Number(draft.guess), draft.tier, model.question.widths);
   }
 
   async function copy(text) {

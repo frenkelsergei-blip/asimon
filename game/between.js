@@ -189,7 +189,7 @@ function action(room, player, body, bank, now) {
     if (room.phase === "guess" && room.players.length && room.players.every(candidate => candidate.entry)) finishGuess(room, now);
     if (room.phase === "tighten" && room.players.length && room.players.every(candidate => !candidate.entry || candidate.entry.tier === 0 || candidate.entry.adjusted)) reveal(room, now);
   } else if (body.type === "start" && room.phase === "lobby") {
-    if (room.players.length < 3) throw new GameError("need_3");
+    if (room.players.length < 2) throw new GameError("need_2");
     room.order = shuffle(room.players.map(candidate => candidate.id));
     offer(room, bank, now);
   } else if (body.type === "topic" && room.phase === "topic") {

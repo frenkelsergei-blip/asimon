@@ -35,6 +35,16 @@ async function main() {
   }
 
   try {
+    const duo = await call("/create", { guest: true });
+    const duoRoute = `/rooms/${duo.code}/action`;
+    assert.equal((await call(duoRoute, { type: "start" }, { seat: duo, status: 409 })).error, "need_2");
+    const second = await call("/join", { code: duo.code, guest: true });
+    const duel = await call(duoRoute, { type: "start" }, { seat: duo });
+    assert.equal(duel.phase, "topic");
+    assert.equal(duel.players.length, 2);
+    await call(duoRoute, { type: "leave" }, { seat: second });
+    await call(duoRoute, { type: "leave" }, { seat: duo });
+
     const start = await api(new Request(`${url}/auth/google`));
     const target = new URL(start.headers.get("location"));
     assert.equal(start.status, 303);

@@ -36,6 +36,15 @@ const RANK = { patch:0, minor:1, major:2 };
 
 const RELEASES = [
 
+  { v:"0.14.0", date:"2026-11-16", lines:[
+    { kind:"new",
+      en:"Start a Between room with two players.",
+      he:"אפשר להתחיל משחק בין לבין בשני שחקנים." },
+    { kind:"change",
+      en:"Between has larger cards, a visible range scale, and a redesigned TV reveal and room menu.",
+      he:"בבין לבין יש קלפים גדולים יותר, סרגל טווח ותצוגה מחודשת של תפריט החדר ומסך החשיפה בטלוויזיה." },
+  ]},
+
   { v:"0.13.0", date:"2026-11-16", lines:[
     { kind:"new",
       en:"Play Between, the number trivia game with rotating topics, three ranges and a new living-room screen.",
