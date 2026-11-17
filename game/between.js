@@ -128,7 +128,7 @@ function reveal(room, now) {
     const entry = player.entry;
     const range = entry ? bounds(entry.number, widths[entry.tier]) : null;
     const hit = range && answer >= range[0] && answer <= range[1];
-    return { id: player.id, range, tier: entry?.tier ?? null, points: hit ? points[entry.tier] : 0,
+    return { id: player.id, number: entry?.number ?? null, range, tier: entry?.tier ?? null, points: hit ? points[entry.tier] : 0,
       exactBonus: entry?.number === answer ? 1 : 0, bonus: 0 };
   });
   const top = Math.max(0, ...room.results.map(row => row.points + row.exactBonus));

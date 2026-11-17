@@ -5,6 +5,12 @@ game itself shows under the version at the foot of the first screen.
 
 Generated from `game/changelog.js` by `npm run release` — edit that file, not this one.
 
+## 0.15.2 — 2026-11-17
+
+### Fixed
+
+- Between's leaderboard opens with room for the cards below. Topic cards have new illustrations, and round results explain each guess and its points.
+
 ## 0.15.1 — 2026-11-16
 
 ### Fixed

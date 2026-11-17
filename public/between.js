@@ -25,8 +25,7 @@
   const tiers = ["צר", "בינוני", "רחב"];
   const scoreByTier = [3, 2, 1];
   const corner = ["narrow", "medium", "wide"];
-  const topicArt = { israel: "town", food: "food", nature: "beast", space: "world",
-    sports: "sport", culture: "music", inventions: "now", room: "folk" };
+  const illustratedTopics = new Set(["israel", "food", "nature", "space", "sports", "culture", "inventions", "room"]);
   const errors = {
     no_room: "החדר לא נמצא. כדאי לבדוק את הקוד.", no_seat: "המקום בחדר פג.",
     room_full: "החדר מלא. אפשר לצפות במשחק במסך המשותף.", already_started: "המשחק כבר התחיל.",
@@ -166,7 +165,9 @@
   }
 
   function liveStandings(state) {
-    return `<details class="live-standings"><summary>טבלת המשחק</summary>${standings(state)}</details>`;
+    return `<div class="live-standings"><button type="button" id="game-standings-toggle" aria-expanded="false"
+      aria-controls="game-standings-panel">טבלת המשחק</button>
+      <div id="game-standings-panel" hidden>${standings(state)}</div></div>`;
   }
 
   function category(state) {
@@ -175,7 +176,8 @@
     return withHeader(`${roundHeader(state)}${liveStandings(state)}${choosing ? `<div class="topic-heading">${photo(chooser?.face || "fox", 62)}<h1>התור שלך לבחור נושא</h1></div>
       <div class="category-cards">${state.choices.map((choice, i) => `<button type="button" class="card topic"
         style="--i:${i}" data-topic="${esc(choice.key)}" aria-pressed="${draft.topic === choice.key}">${token("pick-token")}
-        <span class="topic-art">${topicSvg(topicArt[choice.key] || "folk", 65)}</span><span>${esc(choice.name)}</span></button>`).join("")}</div>`
+        <span class="topic-art"><img src="/between-topic-${illustratedTopics.has(choice.key) ? choice.key : "room"}.webp" alt=""></span>
+        <span class="topic-label">${esc(choice.name)}</span></button>`).join("")}</div>`
       : `<h1>בחירת נושא · ${esc(chooser?.name || "המארח")}</h1><div class="waiting-card">
         <img class="waiting-paper" src="/between-card-stack.png" alt="">
         <div class="waiting-avatar">${photo(chooser?.face || "fox", 128)}</div><strong>השאלה<br>תופיע כאן</strong></div>`}`,
@@ -259,11 +261,13 @@
       if (!player) return [];
       const wins = state.roundWinners?.includes(player.id);
       const tally = [`${row.points} טווח`, row.exactBonus && "1 בול", row.bonus && "1 בחירת נושא"].filter(Boolean).join(" · ");
+      const shownRange = `<span class="result-range">${numberHTML(prettyRange(row.range))}</span>`;
+      const pick = row.number == null ? "" : `<small class="result-guess">ניחוש ${numberHTML(row.number)} · ${tiers[row.tier]}</small>`;
       return [`<div class="${big ? "card " : ""}result ${row.points ? "hit" : "miss"} ${wins ? "leader" : ""} points-${row.points}" style="--i:${i}">
         <div class="result-avatar">${wins && big ? celebratingFace(player) : photo(player.face, big ? 118 : 54)}</div>
         <div class="result-copy"><strong>${esc(player.name)}</strong>
           ${big ? "" : `<span class="hit-label">${row.exactBonus ? "בול" : row.points ? "פגיעה" : row.range ? "פספוס" : "לא ננעל"}</span>`}
-          <span class="result-range">${numberHTML(prettyRange(row.range))}</span>
+          ${big ? shownRange : `<div class="result-pick">${shownRange}${pick}</div>`}
           <span class="earned">${numberHTML(`+${row.total}`)}</span>
           ${row.exactBonus || row.bonus ? `<small class="bonus-note">${tally}</small>` : ""}
         </div>
@@ -274,6 +278,10 @@
   function reveal(state) {
     return withHeader(`${roundHeader(state, null, false)}${answerCard(state)}${roundWinner(state)}
       ${state.note ? `<p class="fact">${esc(state.note)}</p>` : ""}${resultRows(state)}
+      <details class="scoring-help"><summary>איך נקבע המנצח?</summary>
+        <p>טווח שכולל את התשובה שווה 3 נק׳ בצר, 2 בבינוני ו־1 ברחב. ניחוש בול מוסיף נקודה.</p>
+        <p>מי שבחר את הנושא מקבל נקודה אם היה בין המובילים לפני הבונוס. הניקוד הגבוה מנצח. בשוויון חיובי יש ניצחון משותף, גם אם אחד היה קרוב יותר.</p>
+      </details>
       <section class="score-section"><h2>טבלה מצטברת</h2>${standings(state)}</section>`,
     { theme: "yellow", header: "plain-head", layout: "reveal-screen", footer: state.me === state.host
       ? button("next", state.round === state.roundCount ? "לסיכום המשחק" : "לסיבוב הבא") : "" });
@@ -368,6 +376,7 @@
   function render({ replay = false, resetScroll = false } = {}) {
     const focus = document.activeElement?.id;
     const openMenus = Array.from(app.querySelectorAll("details[open]"), menu => menu.className);
+    const standingsOpen = !resetScroll && document.getElementById("game-standings-toggle")?.getAttribute("aria-expanded") === "true";
     let markup;
     if (tv) markup = stage(model);
     else if (screen === "home") markup = home();
@@ -387,6 +396,7 @@
     if (!resetScroll) {
       for (const menu of app.querySelectorAll("details")) menu.open = openMenus.includes(menu.className);
     }
+    if (standingsOpen) toggleGameStandings();
     if (replay) {
       for (const face of app.querySelectorAll(".celebrating-face")) {
         setTimeout(() => { if (face.isConnected) face.classList.add("on"); }, 390);
@@ -397,8 +407,17 @@
       input?.focus({ preventScroll: true });
       input?.setSelectionRange(input.value.length, input.value.length);
     }
+    if (!resetScroll && focus === "game-standings-toggle") document.getElementById(focus)?.focus({ preventScroll: true });
     if (resetScroll) window.scrollTo(0, 0);
     updateClock();
+  }
+
+  function toggleGameStandings() {
+    const button = document.getElementById("game-standings-toggle");
+    const panel = document.getElementById("game-standings-panel");
+    if (!button || !panel) return;
+    panel.hidden = !panel.hidden;
+    button.setAttribute("aria-expanded", String(!panel.hidden));
   }
 
   function updateClock() {
@@ -572,6 +591,8 @@
       draft.tier = Number(button.dataset.tier); markChoice("tier", draft.tier); refreshGuess();
     } else if (button.dataset.period) {
       period = button.dataset.period; await openData("leaders");
+    } else if (id === "game-standings-toggle") {
+      toggleGameStandings();
     } else if (id === "guest") {
       guest = true; visit(roomCode ? "join" : "create");
     } else if (["join", "create", "rules"].includes(id)) {

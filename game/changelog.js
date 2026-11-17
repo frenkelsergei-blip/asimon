@@ -36,6 +36,12 @@ const RANK = { patch:0, minor:1, major:2 };
 
 const RELEASES = [
 
+  { v:"0.15.2", date:"2026-11-17", lines:[
+    { kind:"fix",
+      en:"Between's leaderboard opens with room for the cards below. Topic cards have new illustrations, and round results explain each guess and its points.",
+      he:"טבלת המשחק נפתחת עם מרווח לקלפים שמתחתיה. קלפי הנושאים מאוירים, ובתוצאות רואים את הניחוש ואת הטווח של כל שחקן." },
+  ]},
+
   { v:"0.15.1", date:"2026-11-16", lines:[
     { kind:"fix",
       en:"Scroll through all eight players on your phone. The next-round button stays in reach, and the winner card and standings line up.",

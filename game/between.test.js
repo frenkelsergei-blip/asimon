@@ -7,8 +7,30 @@ const path = require("node:path");
 const { createApi, memoryRooms } = require("./between-api");
 const { fileStore, startDay } = require("./between-store");
 const { questions } = require("./between-questions");
+const engine = require("./between");
+
+function compareGolfGuesses() {
+  const bank = [questions.find(question => question.unit === "גומות")];
+  for (const [secondTier, totals] of [[2, [1, 1, 0]], [1, [1, 2, 0]]]) {
+    const room = engine.makeRoom("GOLF", 0);
+    for (const name of ["ינשוף", "ניצוץ", "מארחת"]) engine.addPlayer(room, { name }, null, 0);
+    const [first, second, chooser] = room.players;
+    engine.action(room, first, { type: "start" }, bank, 0);
+    room.chooser = chooser.id;
+    engine.action(room, chooser, { type: "topic", topic: "sports" }, bank, 0);
+    engine.action(room, first, { type: "guess", number: 12, tier: 2 }, bank, 0);
+    engine.action(room, second, { type: "guess", number: 13, tier: secondTier }, bank, 0);
+    assert.equal(engine.view(room, null, 0).results, undefined);
+    engine.action(room, chooser, { type: "guess", number: 50, tier: 0 }, bank, 0);
+    const reveal = engine.view(room, null, 0);
+    assert.equal(reveal.answer, 18);
+    assert.deepEqual(reveal.results.map(row => row.total), totals);
+    assert.deepEqual(reveal.roundWinners, secondTier === 2 ? [first.id, second.id] : [second.id]);
+  }
+}
 
 async function main() {
+  compareGolfGuesses();
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "asimon-between-"));
   const realFetch = global.fetch;
   const url = "https://asimon.test/api/between";
@@ -120,6 +142,7 @@ async function main() {
       assert.equal(after.phase, "reveal");
       assert.equal(after.answer, answer);
       assert.equal(after.results.length, 8);
+      assert.deepEqual(after.results.map(row => row.number), [answer, answer, answer + 1, answer, answer, answer, answer, answer]);
       assert.deepEqual(after.results.map(row => row.points), [3, number === 5 ? 3 : 2, 1, 2, 1, 2, 1, 2]);
       assert.deepEqual(after.results.map(row => row.exactBonus), [1, 1, 0, 1, 1, 1, 1, 1]);
       for (const row of after.results) assert.equal(row.total, row.points + row.exactBonus + row.bonus);
