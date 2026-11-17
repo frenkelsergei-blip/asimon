@@ -2,7 +2,7 @@
   color-scheme: light;
   --ink: #17161c;
   --blue: #1552f0;
-  --lilac: #dcc1f3;
+  --lilac: #bea0e8;
   --yellow: #ffcf4a;
   --red: #ff654a;
   --paper: #fff7e7;
@@ -126,10 +126,14 @@ form .button { margin-top: 8px; }
 label, .field-label { font-weight: 900; }
 input { width: 100%; min-height: 49px; border: 2px solid var(--ink); border-radius: 12px; padding: 7px 12px; background: var(--white); color: var(--ink); font-size: 1.12rem; }
 .code-field { direction: ltr; text-align: center; font: 900 1.7rem/1.2 var(--heading); letter-spacing: .16em; }
-.face-picker { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
-.face-choice { display: grid; place-items: center; min-width: 0; padding: 4px; border-radius: 12px; background: var(--paper); border: 2px solid transparent; transition: transform .16s ease, background .16s ease; }
-.face-choice[aria-pressed="true"] { border-color: var(--ink); transform: translateY(-3px); background: var(--yellow); box-shadow: 0 3px 0 var(--ink); }
-.face-choice svg { max-width: 100%; }
+.face-picker { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: clamp(6px, 2vw, 10px); }
+.face-choice {
+  display: grid; place-items: center; width: 100%; min-width: 0; aspect-ratio: 1; padding: 0;
+  border: 2px solid #8a6caa; border-radius: clamp(10px, 3.4vw, 16px); background: var(--paper);
+  transition: border-color .16s ease, background-color .16s ease, box-shadow .16s ease;
+}
+.face-choice[aria-pressed="true"] { border-color: var(--ink); background-color: var(--yellow); box-shadow: 0 3px 0 var(--ink); }
+.face-choice > .face { display: block; width: 80%; height: auto; }
 
 .ticket { direction: ltr; display: grid; grid-template-columns: minmax(75px, .85fr) 1.6fr; align-items: center; gap: 12px; padding: 14px 12px; text-align: center; }
 .ticket-code { min-width: 0; display: grid; justify-items: center; border-inline-start: 2px solid var(--ink); }
@@ -372,7 +376,7 @@ body.theatre { background: #11142d; }
 }
 
 /* The printed Between layouts share paper, ink and the same deep blue offset. */
-:root { --blue: #0b53ff; --lilac: #e0c4f8; --yellow: #ffcd38; --paper: #fff5e3; }
+:root { --blue: #0b53ff; --yellow: #ffcd38; --paper: #fff5e3; }
 
 .ink-rays { width: clamp(23px, 6.4vw, 38px); height: auto; pointer-events: none; }
 .code-entry { position: relative; margin-bottom: 3px; }
@@ -588,15 +592,14 @@ body.theatre { background: #11142d; }
 .games-screen .pane { gap: 19px; }
 .games-list { display: grid; gap: 12px; }
 .game-cover {
-  display: grid; grid-template-columns: clamp(49px, 16vw, 74px) minmax(0, 1fr);
-  align-items: center; column-gap: 13px; min-height: 89px; padding: 8px 12px;
+  display: grid; grid-template-columns: clamp(70px, 24vw, 108px) minmax(0, 1fr);
+  align-items: center; column-gap: 13px; min-height: 94px; padding: 8px 12px;
   text-decoration: none; border-radius: 18px;
 }
-.game-cover img { grid-row: span 2; width: 100%; height: 66px; object-fit: contain; }
+.game-cover img { grid-row: span 2; width: 100%; height: clamp(68px, 20vw, 86px); object-fit: contain; }
 .game-cover strong { align-self: end; font: 900 clamp(1.23rem, 6vw, 1.76rem)/1.05 var(--heading); }
 .game-cover > span { align-self: start; }
 .game-cover:nth-child(2) { background-color: #f6ddff; }
-.game-cover:nth-child(3) { background-color: #ffdf70; }
 .who-hello { gap: 10px; }
 .who-hello .title-tag { background: var(--yellow); transform: rotate(-4deg); font-size: clamp(2rem, 9vw, 3.1rem); }
 .who-home-art { width: min(78%, 270px); max-height: 36dvh; object-fit: contain; }

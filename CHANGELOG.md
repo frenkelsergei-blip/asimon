@@ -5,6 +5,16 @@ game itself shows under the version at the foot of the first screen.
 
 Generated from `game/changelog.js` by `npm run release` — edit that file, not this one.
 
+## 0.17.1 — 2026-11-17
+
+### Changed
+
+- Asimon opens to the games collection, with a dedicated illustration for Between.
+
+### Fixed
+
+- Pick from larger avatars on square cards, with a deeper purple background.
+
 ## 0.17.0 — 2026-11-17
 
 ### Rules

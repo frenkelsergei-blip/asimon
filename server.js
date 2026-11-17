@@ -579,10 +579,13 @@ const server = http.createServer(async (req, res) => {
     }
 
     /* ---- static ---- */
-    /* two pages, two addresses somebody has to be able to type: the root for a
-       phone, /board for whatever is going to stand on the sideboard */
-    let file = p === "/" ? "/index.html"
-             : (p === "/board" || p === "/board/") ? "/board.html"
+    // Older Classic invitations still use /?room=CODE.
+    if (p === "/") {
+      const entry = url.searchParams.get("room") ? "/index.html" : "/games";
+      res.writeHead(302, { location: entry + url.search, "cache-control": "no-store" });
+      return res.end();
+    }
+    let file = (p === "/board" || p === "/board/") ? "/board.html"
              : ["/between", "/between/tv", "/games", "/who"].includes(p.replace(/\/$/, "")) ? "/between.html"
              : p;
     file = path.normalize(file).replace(/^(\.\.[/\\])+/, "");

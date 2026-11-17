@@ -36,6 +36,15 @@ const RANK = { patch:0, minor:1, major:2 };
 
 const RELEASES = [
 
+  { v:"0.17.1", date:"2026-11-17", lines:[
+    { kind:"change",
+      en:"Asimon opens to the games collection, with a dedicated illustration for Between.",
+      he:"אסימון נפתח בבורר המשחקים, ול׳בין לבין׳ יש איור משלו." },
+    { kind:"fix",
+      en:"Pick from larger avatars on square cards, with a deeper purple background.",
+      he:"בוחרים דמות מתוך כרטיסים מרובעים עם איורים גדולים יותר, על רקע סגול עמוק." },
+  ]},
+
   { v:"0.17.0", date:"2026-11-17", lines:[
     { kind:"rules",
       en:"Take one minute each in Who Am I? The fastest correct guesses earn points.",

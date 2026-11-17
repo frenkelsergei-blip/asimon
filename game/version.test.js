@@ -68,6 +68,9 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
     /* ---- what the page says it is ---- */
     const pr = await fetch(BASE + "/");
     const html = await pr.text();
+    ok(new URL(pr.url).pathname === "/games", "the public entry does not open the games collection");
+    const invite = await fetch(BASE + "/?room=ABCD", { redirect: "manual" });
+    ok(invite.headers.get("location") === "/index.html?room=ABCD", "a Classic room invitation lost its room code or entry page");
     ok(pr.headers.get("cache-control") === "no-store",
        "the page may be cached — then nothing downstream of it can ever be replaced");
     ok(html.indexOf('<meta name="asimon-build" content="' + v.build + '">') >= 0,

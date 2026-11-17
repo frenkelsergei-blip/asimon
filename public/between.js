@@ -24,7 +24,6 @@
   let clockOffset = 0;
   let replayKey = "";
   let version = "";
-  const faces = ["fox", "astro", "grandpa", "grandma", "boy", "girl", "hippy", "beard", "curly", "beanie", "robot", "cat", "owl", "frog", "panda"];
   const tiers = ["צר", "בינוני", "רחב"];
   const scoreByTier = [3, 2, 1];
   const corner = ["narrow", "medium", "wide"];
@@ -90,7 +89,7 @@
     if (landing === "games") return gamesHome();
     if (landing === "who") return withHeader(`<div class="hello who-hello">
       <h1 class="title-tag">מי אני?</h1><img src="/who-hero.webp" class="who-home-art" alt="">
-      <p class="tagline">רואים את השמות של כולם. מנחשים מי אתם.</p>
+      <p class="tagline">דקה לשאלות כן או לא. מנחשים מי אתם.</p>
     </div><div class="home-buttons">${button("create", "פתיחת חדר")}${button("join", "הצטרפות לחדר", "light")}</div>
     <nav class="links"><button type="button" id="rules" class="text">איך משחקים?</button><a href="/games">כל המשחקים</a></nav>`,
     { header: "plain-head", layout: "home-screen" });
@@ -103,15 +102,14 @@
       <p class="tagline">מנחשים מספר. בוחרים טווח.</p>
     </div><div class="home-buttons">${button("create", "פתיחת חדר")}${button("join", "הצטרפות לחדר", "light")}</div>
     ${account}<nav class="links"><button type="button" id="leaders" class="text">טבלת המובילים</button>
-      <button type="button" id="rules" class="text">איך משחקים?</button><a href="/games">כל המשחקים</a><a href="/">אסימון הקלאסי</a></nav>`,
+      <button type="button" id="rules" class="text">איך משחקים?</button><a href="/games">כל המשחקים</a></nav>`,
     { header: "plain-head", layout: "home-screen" });
   }
 
   function gamesHome() {
     const games = [
-      ["/between", "בין לבין", "/between-token.png", "מנחשים מספר. בוחרים טווח."],
-      ["/who", "מי אני?", "/who-hero.webp", "מגלים מי האדם שבקלף שלכם."],
-      ["/", "אסימון קלאסי", "/between-hero.png", "משחק הניחושים המקורי."]
+      ["/between", "בין לבין", "/between-hero.png", "מנחשים מספר. בוחרים טווח."],
+      ["/who", "מי אני?", "/who-hero.webp", "מגלים מי האדם שבקלף שלכם."]
     ];
     return withHeader(`<h1 class="title-tag">משחקים לכל המשפחה</h1><nav class="games-list" aria-label="משחקים">
       ${games.map(([href, title, image, caption]) => `<a class="card game-cover" href="${href}">
@@ -121,8 +119,8 @@
   }
 
   function facePicker(selected) {
-    return `<div class="face-picker" aria-label="בחירת דמות">${faces.map(face =>
-      `<button type="button" class="face-choice facetile${selected === face ? " on" : ""}" data-face="${face}" aria-label="${face}" aria-pressed="${selected === face}">${photo(face, 37)}</button>`
+    return `<div class="face-picker" role="group" aria-labelledby="face-picker-label">${FACES.map(({ id }) =>
+      `<button type="button" class="face-choice facetile${selected === id ? " on" : ""}" data-face="${id}" aria-label="${id}" aria-pressed="${selected === id}">${photo(id, 60)}</button>`
     ).join("")}</div>`;
   }
 
@@ -143,7 +141,7 @@
       ${create ? "" : codeInput()}
       <label for="nickname">איך קוראים לכם?</label>
       <input id="nickname" maxlength="18" value="${esc(draft.name)}" placeholder="כינוי אקראי" autocomplete="nickname">
-      <p class="field-label">בחרו דמות</p>${facePicker(draft.face)}
+      <p class="field-label" id="face-picker-label">בחרו דמות</p>${facePicker(draft.face)}
       ${account ? `<p class="form-hint">משחקים בתור ${esc(account.name)}</p>` : '<p class="form-hint">אפשר להשאיר את הכינוי והדמות להגרלה.</p>'}
       <button type="submit" class="button" ${busy ? "disabled" : ""}>${create ? "פותחים" : "מצטרפים"}</button>
     </form>${account || landing !== "between" ? "" : `<div class="account">${googleButton()}</div>`}`, { back: true });
