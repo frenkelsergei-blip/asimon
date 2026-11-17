@@ -3,6 +3,7 @@
 const clues = require("./who-cards");
 const identities = Object.keys(clues);
 const places = [3, 2, 1];
+const turnMs = 60_000;
 
 function deal(room, shuffle) {
   const previous = room.who;
@@ -12,9 +13,13 @@ function deal(room, shuffle) {
     deck.push(...shuffle(identities.filter(identity => !excluded.has(identity))));
   }
   const cards = Object.fromEntries(room.players.map(player => [player.id, deck.shift()]));
-  room.who = { cards, deck, usedHints: {}, placements: [], places: Math.min(3, room.players.length - 1) };
+  const seats = room.players.map(({ id, name, face }) => ({ id, name, face }));
+  const first = room.round % seats.length;
+  const order = seats.slice(first).concat(seats.slice(0, first));
+  room.who = { cards, deck, usedHints: {}, order, index: 0, results: [], placements: [],
+    places: Math.min(3, order.length - 1) };
   room.round++;
-  room.phase = "who-active";
+  room.phase = "who-ready";
 }
 
 function useHint(room, player, shuffle) {
@@ -28,43 +33,64 @@ function useHint(room, player, shuffle) {
   usedHints[player.id] = hint;
 }
 
-function isPlaced(room, player) {
-  return room.who.placements.some(placement => placement.id === player.id);
+function current(room) {
+  return room.who.order[room.who.index];
 }
 
-function place(room, player) {
-  const { cards, usedHints, placements } = room.who;
-  if (player) {
-    const { id, name, face } = player;
-    const hinted = !!usedHints[id];
-    const number = placements.length + 1;
-    const points = Math.max(0, places[number - 1] - Number(hinted));
-    placements.push({ id, name, face, identity: cards[id], place: number, points, hinted });
-    player.score += points;
+function startTurn(room, now) {
+  room.deadline = now + turnMs;
+  room.phase = "who-active";
+}
+
+function finishTurn(room, now) {
+  const seat = current(room);
+  const elapsed = now < room.deadline ? Math.ceil(Math.max(0, now - (room.deadline - turnMs)) / 100) * 100 : null;
+  room.who.results.push({ ...seat, elapsed, hinted: Boolean(room.who.usedHints[seat.id]) });
+  room.deadline = null;
+  room.phase = "who-turn-result";
+}
+
+function nextTurn(room) {
+  const { order, results } = room.who;
+  const index = order.findIndex((seat, i) => i > room.who.index && room.players.some(player => player.id === seat.id));
+  room.deadline = null;
+  if (index !== -1) {
+    room.who.index = index;
+    room.phase = "who-ready";
+    return;
   }
-  if (!player || placements.length === room.who.places) room.phase = "who-reveal";
-}
-
-function afterLeave(room) {
-  const unsolved = room.players.filter(player => !isPlaced(room, player)).length;
-  const placed = room.who.placements.length;
-  room.who.places = Math.min(room.who.places, placed + Math.max(0, unsolved - 1));
-  if (placed >= room.who.places) room.phase = "who-reveal";
+  const ranked = results.filter(turn => turn.elapsed !== null)
+    .sort((a, b) => a.elapsed - b.elapsed || Number(a.hinted) - Number(b.hinted));
+  room.who.placements = ranked.map((turn, i) => {
+    const place = i + 1;
+    const base = place <= room.who.places ? places[place - 1] : 0;
+    const points = Math.max(0, base - Number(turn.hinted));
+    const player = room.players.find(candidate => candidate.id === turn.id);
+    if (player) player.score += points;
+    return { ...turn, place, points };
+  });
+  room.phase = "who-reveal";
 }
 
 function view(room, player) {
   if (!room.who) return {};
-  const { cards, usedHints, placements, places } = room.who;
-  const active = room.phase === "who-active";
-  const result = {
-    places,
-    placements: placements.map(({ identity, ...row }) => active || !player ? row : { ...row, identity })
-  };
-  if (active && player) {
-    result.cards = Object.fromEntries(room.players.filter(other => other !== player).map(other => [other.id, cards[other.id]]));
-    result.hint = usedHints[player.id] ?? null;
+  const { cards, usedHints, order, index, results, placements, places } = room.who;
+  if (room.phase === "who-reveal") {
+    return { places, placements: placements.map(row => player ? { ...row, identity: cards[row.id] } : row),
+      missed: results.filter(turn => turn.elapsed === null) };
+  }
+  const seat = current(room);
+  const result = { turn: { ...seat, number: index + 1, total: order.length } };
+  if (room.phase === "who-turn-result") {
+    result.turn.elapsed = results.at(-1).elapsed;
+    result.turn.hasNext = order.slice(index + 1).some(next => room.players.some(member => member.id === next.id));
+    if (player) result.turn.identity = cards[seat.id];
+  }
+  if (room.phase === "who-active" && player) {
+    if (player.id === seat.id) result.hint = usedHints[seat.id] ?? null;
+    else result.turn.identity = cards[seat.id];
   }
   return result;
 }
 
-module.exports = { deal, isPlaced, useHint, place, afterLeave, view };
+module.exports = { deal, current, startTurn, useHint, finishTurn, nextTurn, view };

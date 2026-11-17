@@ -36,8 +36,7 @@
     need_2: "צריך לפחות שני שחקנים כדי להתחיל.", host_only: "רק מי שמארח יכול לבצע את הפעולה הזאת.",
     chooser_only: "בחירת הנושא עוברת לפי התור.", wrong_phase: "הסיבוב כבר התקדם.",
     guess_invalid: "מזינים מספר שלם ובוחרים טווח.", profile_invalid: "צריך לבחור כינוי ודמות.",
-    mode_invalid: "המשחק הזה אינו זמין.", winner_invalid: "השחקן כבר לא בחדר. בחרו שוב.",
-    already_placed: "השחקן כבר פתר את הקלף בסיבוב הזה.",
+    mode_invalid: "המשחק הזה אינו זמין.",
     slow_down: "אפשר לנסות לפתוח חדר נוסף בעוד כמה דקות.", sign_in: "כדי לפתוח פרופיל, מתחברים עם Google.",
     network: "החיבור נקטע לרגע. מנסים להתחבר שוב."
   };
@@ -190,60 +189,79 @@
 
   function whoRules() {
     return withHeader(`<h1>איך משחקים?</h1><ol class="rule-list">
-      <li>כל טלפון מציג את הקלפים של השחקנים האחרים. הקלף שלכם נשאר מוסתר.</li>
-      <li>עוברים ביניכם בתור. כל שחקן שואל בקול שאלה אחת שאפשר לענות עליה בכן או לא, או מנחש מה יש בקלף שלו.</li>
-      <li>המארח מסמן את מי שניחשו נכון לפי הסדר. בשניים מסמנים מקום אחד, בשלושה שניים, ומארבעה שחקנים מסמנים שלושה.</li>
-      <li>המקומות שווים 3, 2 ו־1 נקודות. לכל שחקן רמז פרטי אחד בסיבוב. שימוש בו מוריד נקודה מהניקוד שתקבלו על המקום שלכם.</li>
+      <li>בתור שלכם יש לכם דקה לשאול בקול שאלות כן או לא ולנחש את השם בקלף שלכם. שאר השחקנים רואים את השם.</li>
+      <li>כשמישהו מנחש נכון, אחד השחקנים האחרים לוחץ על ״ניחשו נכון״. כשהזמן נגמר, התור נסגר.</li>
+      <li>בסוף הסיבוב מדרגים לפי זמן הפתרון. בשניים רק הראשון מקבל ניקוד. בשלושה שני הראשונים, ומארבעה שחקנים שלושת הראשונים.</li>
+      <li>המקומות שווים 3, 2 ו־1 נקודות. רמז פרטי בתור שלכם מוריד נקודה מהניקוד שקיבלתם. בשוויון בזמן, מי שניחש בלי רמז קודם, ואז סדר התורות קובע.</li>
     </ol>`, { back: true });
   }
+
+  const whoTime = elapsed => `${numberHTML((elapsed / 1000).toFixed(1))} שנ׳`;
 
   function whoWinner(state) {
     const winner = state.placements[0];
     if (!winner) return '<h1 class="title-tag">הסיבוב הסתיים</h1>';
     return `<div class="who-celebration card">${confetti()}
-      ${celebratingFace(winner)}<div><p>ניחש ראשון · +${winner.points} נק׳</p><h1>${esc(winner.name)}</h1>
+      ${celebratingFace(winner)}<div><p>הזמן המהיר בסיבוב · ${whoTime(winner.elapsed)}</p><h1>${esc(winner.name)}</h1>
       ${winner.identity ? `<strong class="who-identity">${esc(winner.identity)}</strong>` : ""}</div></div>`;
   }
 
   function whoPlacements(state) {
-    if (!state.placements.length) return "";
-    return `<section class="who-places"><h2>סדר הפתרון</h2><ol class="card">${state.placements.map(player =>
-      `<li>${photo(player.face, 32)}<span><strong>${player.place}. ${esc(player.name)}</strong>
-        ${player.hinted ? '<small>רמז · נקודה פחות</small>' : ""}</span><b class="earned">${numberHTML(`+${player.points}`)} נק׳</b></li>`).join("")}</ol></section>`;
+    const results = state.placements.concat(state.missed);
+    if (!results.length) return "";
+    return `<section class="who-places"><h2>זמני הסיבוב</h2><ol class="card">${results.map(player =>
+      `<li>${photo(player.face, 32)}<span><strong>${player.place ? `${player.place}. ` : ""}${esc(player.name)}</strong>
+        <small>${player.elapsed === null ? "נגמר הזמן" : whoTime(player.elapsed)}${player.hinted ? " · רמז" : ""}</small>
+      </span><b class="earned">${numberHTML(`+${player.points ?? 0}`)} נק׳</b></li>`).join("")}</ol></section>`;
+  }
+
+  function whoTurnHeader(state) {
+    return `<div class="who-turn-bar"><span class="pill">סיבוב ${numberHTML(state.round)} · תור ${numberHTML(state.turn.number)} מתוך ${numberHTML(state.turn.total)}</span>
+      ${state.phase === "who-active" ? '<span class="pill who-clock" data-clock></span>' : ""}</div>`;
+  }
+
+  function whoCard(turn, own) {
+    if (!turn.identity) {
+      return `<div class="who-card who-own"><img class="who-card-paper" src="/who-card-back.webp" alt="">
+        <span class="who-own-label">${own ? "הקלף שלך" : `הקלף של ${esc(turn.name)}`}</span></div>`;
+    }
+    return `<div class="who-card"><img class="who-card-paper" src="/who-card-front.webp" alt="">
+      <div class="who-owner">${photo(turn.face, 88)}<strong>${esc(turn.name)}</strong></div>
+      <strong class="who-identity${turn.identity.length > 17 ? " who-identity-long" : ""}">${esc(turn.identity)}</strong></div>`;
   }
 
   function whoScreen(state) {
     const isHost = state.host === state.me;
-    const round = `<p class="pill">סיבוב ${numberHTML(state.round)} · ${numberHTML(state.placements.length)} מתוך ${numberHTML(state.places)} מקומות</p>`;
-    if (state.phase === "who-reveal") return withHeader(`${round}${whoWinner(state)}
+    if (state.phase === "who-reveal") return withHeader(`<p class="pill">סיבוב ${numberHTML(state.round)}</p>${whoWinner(state)}
       ${whoPlacements(state)}<section class="score-section"><h2>ניקוד מצטבר</h2>${standings(state)}</section>`,
       { theme: "yellow", header: "plain-head", layout: "who-screen", footer: isHost
         ? `${button("who-next", "מחלקים קלפים חדשים")}${button("who-lobby", "חזרה ללובי", "light")}`
         : `<p class="form-hint">מחכים לחלוקה הבאה</p>${button("leave", "יציאה מהחדר", "plain")}` });
-    const placed = new Set(state.placements.map(player => player.id));
-    const me = state.players.find(player => player.id === state.me);
-    const others = state.players.filter(other => other !== me);
-    const hostActions = `<details class="who-picker card"><summary>מסמנים מי פתר</summary>
-      <p>מי ניחש עכשיו את הקלף שלו?</p><div class="who-winner-options">
-        ${state.players.filter(player => !placed.has(player.id)).map(player => `<button type="button" class="button light" data-who-winner="${player.id}"
-          data-round="${state.round}">${photo(player.face, 34)}<span>${esc(player.name)}</span></button>`).join("")}
-      </div><button type="button" class="button plain" data-who-winner="" data-round="${state.round}">מסיימים את הסיבוב</button></details>`;
-    const hint = state.hint ? `<div class="who-hint card"><strong>הרמז שלך · נקודה פחות</strong><p>${esc(state.hint)}</p></div>`
-      : placed.has(state.me) ? "" : button("who-hint", "רמז אישי · נקודה פחות", "light");
-    return withHeader(`${round}<h1 class="title-tag">מי אני?</h1>
-      <p class="who-instruction">בתורכם שואלים בקול שאלה של כן או לא, או מנחשים.</p>
-      ${hint}
-      <ul class="who-cards" aria-label="הקלפים בחדר">
-        <li class="who-card who-own"><img class="who-card-paper" src="/who-card-back.webp" alt="">
-          <span class="who-owner" aria-label="הקלף שלך מוסתר">הקלף שלך</span></li>
-        ${others.map((other, i) => `<li class="who-card" style="--i:${i + 1}">
-          <img class="who-card-paper" src="/who-card-front.webp" alt="">
-          <strong class="who-identity">${esc(state.cards?.[other.id])}</strong>
-          <span class="who-owner">${photo(other.face, 26)}<span>${esc(other.name)}${placed.has(other.id) ? " · פתרו" : ""}</span></span>
-        </li>`).join("")}
-      </ul>${whoPlacements(state)}`,
-      { header: "plain-head", layout: "who-screen", footer: `${isHost ? hostActions : ""}
-        ${button("leave", "יציאה מהחדר", "plain")}` });
+    const { turn } = state;
+    const own = turn.id === state.me;
+    const result = state.phase === "who-turn-result";
+    let title = own ? "התור שלך" : `התור של ${esc(turn.name)}`;
+    let guidance = "";
+    let controls = "";
+    if (result) {
+      title = turn.elapsed === null ? "הזמן נגמר" : `ניחוש נכון ב־${whoTime(turn.elapsed)}`;
+      controls = button("who-continue", turn.hasNext ? "לתור הבא" : "לתוצאות הסיבוב");
+    } else if (state.phase === "who-ready") {
+      if (own) controls = button("who-start", "מתחילים · 60 שניות");
+      else guidance = "מחכים לתחילת התור";
+    } else if (own) {
+      guidance = "שואלים שאלות כן או לא ומנחשים בקול.";
+      controls = state.hint ? `<div class="who-hint card"><strong>הרמז שלך · נקודה פחות</strong><p>${esc(state.hint)}</p></div>`
+        : button("who-hint", "רמז אישי · נקודה פחות", "light");
+    } else {
+      guidance = "עונים בקול רק כן או לא.";
+      controls = button("who-solved", "ניחשו נכון");
+    }
+    return withHeader(`${whoTurnHeader(state)}<h1 class="title-tag">${title}</h1>${whoCard(turn, own)}
+      ${guidance ? `<p class="who-instruction">${guidance}</p>` : ""}`, {
+      header: "plain-head", layout: "who-screen who-turn",
+      footer: `${controls}${button("leave", "יציאה מהחדר", "plain")}`
+    });
   }
 
   function roundHeader(state, topic, clock = true) {
@@ -446,9 +464,16 @@
       content = `<div class="stage-lobby"><h1>${title}</h1>${state ? `${joinTicket(state)}${roster(state)}`
         : `<form id="tv-form">${codeInput()}<button class="button" type="submit">צפייה במשחק</button></form>`}</div>`;
     } else if (state.mode === "who") {
-      content = `<p class="pill">סיבוב ${numberHTML(state.round)}</p>${state.phase === "who-reveal"
-        ? `${whoWinner(state)}${standings(state)}`
-        : `<div class="stage-question"><h1>שאלות של כן או לא</h1><p>הקלפים בטלפונים</p></div>${roster(state)}${whoPlacements(state)}`}`;
+      if (state.phase === "who-reveal") {
+        content = `<p class="pill">סיבוב ${numberHTML(state.round)}</p>${whoWinner(state)}${whoPlacements(state)}${standings(state)}`;
+      } else {
+        const { turn } = state;
+        const status = state.phase === "who-turn-result"
+          ? (turn.elapsed === null ? "הזמן נגמר" : `ניחוש נכון ב־${whoTime(turn.elapsed)}`)
+          : (state.phase === "who-ready" ? "מחכים לתחילת התור" : "שואלים שאלות כן או לא");
+        content = `${whoTurnHeader(state)}<div class="stage-question">${photo(turn.face, 120)}
+          <h1>התור של ${esc(turn.name)}</h1><p>${status}</p></div>`;
+      }
     } else if (state.phase === "reveal") {
       content = `${roundHeader(state, null, false)}${answerCard(state, true)}${resultRows(state, true)}`;
     } else if (state.phase === "over") {
@@ -517,7 +542,7 @@
     const clock = app.querySelector("[data-clock]");
     if (clock && model?.deadline) {
       const left = Math.max(0, Math.ceil((model.deadline - Date.now() - clockOffset) / 1000));
-      clock.textContent = left;
+      clock.textContent = model.mode === "who" ? `${Math.floor(left / 60)}:${String(left % 60).padStart(2, "0")}` : left;
       clock.classList.toggle("urgent", left <= 5);
     }
   }
@@ -542,7 +567,7 @@
     model = state;
     clockOffset = (state.now || Date.now()) - Date.now();
     const rosterKey = state.phase === "lobby" ? state.players.map(player => player.id).join(",") : "";
-    const key = `${state.phase}:${state.round}:${!!state.entry}:${state.entry?.tier ?? ""}:${rosterKey}`;
+    const key = `${state.phase}:${state.round}:${state.turn?.number ?? ""}:${!!state.entry}:${state.entry?.tier ?? ""}:${rosterKey}`;
     if (before?.round !== state.round || before?.phase === "lobby") {
       Object.assign(draft, { guess: "", tier: null, topic: "" });
     }
@@ -562,9 +587,11 @@
         }
         if (state.phase === "over") window.SFX?.play("win");
         if (state.phase === "who-active") window.SFX?.play("deal");
+        if (state.phase === "who-turn-result") window.SFX?.play(state.turn.elapsed === null ? "nobody" : "correct");
         if (state.phase === "who-reveal" && state.placements.length) window.SFX?.play("win");
       }
-      const resetScroll = !tv && (before?.phase !== state.phase || before?.round !== state.round || (!before?.entry && !!state.entry));
+      const resetScroll = !tv && (before?.phase !== state.phase || before?.round !== state.round ||
+        before?.turn?.number !== state.turn?.number || (!before?.entry && !!state.entry));
       render({ replay, resetScroll });
       replayKey = key;
     }
@@ -682,8 +709,6 @@
       draft.face = button.dataset.face; markChoice("face", draft.face);
     } else if (button.dataset.gameMode) {
       await action("mode", { mode: button.dataset.gameMode });
-    } else if (button.dataset.whoWinner !== undefined) {
-      await action("who-winner", { winner: button.dataset.whoWinner || null, round: Number(button.dataset.round) });
     } else if (button.dataset.topic) {
       draft.topic = button.dataset.topic; markChoice("topic", draft.topic);
       document.getElementById("pick-topic").disabled = false;
@@ -722,7 +747,9 @@
       await action("guess", { number: Number(draft.guess), tier: draft.tier });
     } else if (id === "tighten" || id === "keep") {
       await action("tighten", { shrink: id === "tighten" });
-    } else if (id === "who-hint" || id === "who-next" || id === "who-lobby") {
+    } else if (["who-start", "who-hint", "who-solved", "who-continue"].includes(id)) {
+      await action(id, { round: model.round, turn: model.turn.number });
+    } else if (id === "who-next" || id === "who-lobby") {
       await action(id, { round: model.round });
     } else if (["start", "next", "again", "leave"].includes(id)) {
       await action(id);

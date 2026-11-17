@@ -36,6 +36,15 @@ const RANK = { patch:0, minor:1, major:2 };
 
 const RELEASES = [
 
+  { v:"0.17.0", date:"2026-11-17", lines:[
+    { kind:"rules",
+      en:"Take one minute each in Who Am I? The fastest correct guesses earn points.",
+      he:"ב׳מי אני?׳ כל שחקן מקבל דקה בתורו. הניחושים הנכונים המהירים ביותר מקבלים נקודות." },
+    { kind:"fix",
+      en:"Who Am I? cards show the player's avatar and name above the identity to guess.",
+      he:"בקלפי ׳מי אני?׳ האווטאר וכינוי השחקן מופיעים מעל השם שצריך לנחש." },
+  ]},
+
   { v:"0.16.0", date:"2026-11-17", lines:[
     { kind:"new",
       en:"Play Who Am I? Ask yes-or-no questions aloud, take an optional private hint, and score points in the order you solve your cards.",

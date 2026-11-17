@@ -35,16 +35,42 @@ function checkWhoSmallRooms() {
   for (const count of [2, 3, 4]) {
     const room = engine.makeRoom("WHOO", 0, "who");
     for (let i = 0; i < count; i++) engine.addPlayer(room, { name: `שחקן ${i}` }, null, 0);
-    const host = room.players[0];
-    const act = (type, fields) => engine.action(room, host, { type, ...fields }, null, 0);
-    act("start");
-    assert.equal(engine.view(room, host, 0).places, count - 1);
-    for (let i = 0; i < count - 1; i++) {
+    const players = room.players;
+    const host = players[0];
+    engine.action(room, host, { type: "start" }, null, 0);
+    for (let i = 0; i < count; i++) {
+      const actor = players[i];
+      const witness = players[(i + 1) % count];
+      const body = { round: 1, turn: i + 1 };
+      const now = i * 60_000;
+      const act = (player, type, time = now) => engine.action(room, player, { type, ...body }, null, time);
+      assert.equal(room.phase, "who-ready");
+      assert.equal(engine.view(room, actor, now).turn.id, actor.id);
+      assert.equal(room.deadline, null);
+      act(actor, "who-start");
       assert.equal(room.phase, "who-active");
-      act("who-winner", { round: 1, winner: room.players[i].id });
+      assert.equal(room.deadline, now + 60_000);
+      if (i === count - 1) act(actor, "who-hint");
+      if (count === 4 && i === 0) {
+        assert.equal(engine.advance(room, null, now + 59_999), false);
+        assert.equal(engine.advance(room, null, now + 60_000), true);
+        assert.equal(engine.view(room, actor, now + 60_000).turn.elapsed, null);
+        assert.throws(() => act(witness, "who-solved", now + 60_000), /wrong_phase/);
+        act(witness, "who-continue", now + 60_000);
+      } else {
+        const elapsed = 30_000 - i * 5000;
+        act(witness, "who-solved", now + elapsed);
+        assert.equal(engine.view(room, actor, now + elapsed).turn.elapsed, elapsed);
+        act(witness, "who-continue", now + elapsed);
+      }
     }
     assert.equal(room.phase, "who-reveal");
-    assert.deepEqual(room.players.map(player => player.score), [3, 2, 1].slice(0, count - 1).concat(0));
+    assert.deepEqual(room.who.placements.map(player => player.id), players.slice(count === 4 ? 1 : 0).reverse().map(player => player.id));
+    assert.deepEqual(players.map(player => player.score), [0, 1, 2, 2].slice(4 - count).map((score, i) => i === 0 ? 0 : score));
+    const previous = Object.values(room.who.cards);
+    engine.action(room, host, { type: "who-next", round: 1 }, null, count * 60_000);
+    assert.equal(engine.view(room, host, 0).turn.id, players[1].id);
+    assert.ok(Object.values(room.who.cards).every(card => !previous.includes(card)));
   }
 }
 
@@ -112,52 +138,50 @@ async function main() {
       whoSeats.push(await call("/join", { code: whoHost.code, name: `אורח ${i}` }));
     }
     await whoAction(whoSeats[1], "mode", { mode: "between" }, 403);
-    const whoStarted = await whoAction(whoHost, "start");
-    assert.equal(whoStarted.mode, "who");
-    assert.equal(whoStarted.phase, "who-active");
-    assert.equal(whoStarted.deadline, null);
-    assert.equal(whoStarted.places, 3);
-    const whoViews = await Promise.all(whoSeats.map(seat => call(whoRoom, undefined, { seat })));
-    const dealing = { ...whoViews[0].cards, ...whoViews[1].cards };
-    assert.equal(new Set(Object.values(dealing)).size, 8);
-    for (const view of whoViews) {
-      assert.equal(Object.keys(view.cards).length, 7);
-      assert.equal(Object.hasOwn(view.cards, view.me), false);
-      assert.deepEqual(view.placements, []);
-      assert.equal(view.hint, null);
+    let whoState = await whoAction(whoHost, "start");
+    assert.equal(whoState.mode, "who");
+    const dealing = new Set();
+    for (let i = 0; i < whoSeats.length; i++) {
+      const actor = whoSeats[i];
+      const witness = whoSeats[(i + 1) % whoSeats.length];
+      const fields = { round: 1, turn: i + 1 };
+      assert.equal(whoState.phase, "who-ready");
+      assert.equal(whoState.turn.identity, undefined);
+      assert.equal(whoState.turn.number, i + 1);
+      await whoAction(witness, "who-start", fields, 409);
+      const active = await whoAction(actor, "who-start", fields);
+      assert.equal(active.phase, "who-active");
+      assert.equal(active.turn.id, active.me);
+      assert.equal(active.turn.identity, undefined);
+      assert.equal(active.deadline - active.now, 60_000);
+      const seeCard = await call(whoRoom, undefined, { seat: witness });
+      assert.ok(seeCard.turn.identity);
+      assert.equal(seeCard.cards, undefined);
+      dealing.add(seeCard.turn.identity);
+      assert.equal((await call(whoRoom)).turn.identity, undefined);
+      await whoAction(witness, "who-hint", fields, 409);
+      await whoAction(actor, "who-solved", fields, 409);
+      if (i === 0) {
+        const hint = await whoAction(actor, "who-hint", fields);
+        assert.ok(hint.hint);
+        assert.equal((await whoAction(actor, "who-hint", fields)).hint, hint.hint);
+        assert.equal((await call(whoRoom, undefined, { seat: witness })).hint, undefined);
+      }
+      const solved = await whoAction(witness, "who-solved", fields);
+      assert.equal(solved.phase, "who-turn-result");
+      assert.equal(solved.turn.identity, seeCard.turn.identity);
+      assert.equal(typeof solved.turn.elapsed, "number");
+      await whoAction(witness, "who-solved", fields, 409);
+      whoState = await whoAction(witness, "who-continue", fields);
     }
-    assert.equal((await call(whoRoom)).cards, undefined);
-    const whoWinner = whoViews[1].me;
-    await whoAction(whoSeats[1], "who-winner", { round: 1, winner: whoWinner }, 403);
-    await whoAction(whoHost, "who-winner", { round: 1, winner: "not-a-player" }, 400);
-    const hint = await whoAction(whoSeats[1], "who-hint", { round: 1 });
-    assert.ok(hint.hint);
-    assert.equal((await whoAction(whoSeats[1], "who-hint", { round: 1 })).hint, hint.hint);
-    assert.equal((await call(whoRoom, undefined, { seat: whoHost })).hint, null);
-    assert.equal((await call(whoRoom)).hint, undefined);
-    const won = await whoAction(whoHost, "who-winner", { round: 1, winner: whoWinner });
-    assert.equal(won.phase, "who-active");
-    assert.equal(won.placements[0].identity, undefined);
-    assert.equal(won.players[1].score, 2);
-    await whoAction(whoHost, "who-winner", { round: 1, winner: whoWinner }, 409);
-    await whoAction(whoSeats[1], "who-hint", { round: 1 }, 409);
-    const runnerUp = await whoAction(whoHost, "who-winner", { round: 1, winner: whoViews[2].me });
-    assert.equal(runnerUp.players[2].score, 2);
-    await whoAction(whoSeats[3], "who-hint", { round: 1 });
-    const ranked = await whoAction(whoHost, "who-winner", { round: 1, winner: whoViews[3].me });
-    assert.equal(ranked.phase, "who-reveal");
-    assert.deepEqual(ranked.placements.map(result => result.points), [2, 2, 0]);
-    assert.equal(ranked.placements[0].identity, dealing[whoWinner]);
+    assert.equal(dealing.size, 8);
+    assert.equal(whoState.phase, "who-reveal");
+    assert.equal(whoState.places, 3);
+    assert.equal(whoState.placements.length, 8);
+    assert.deepEqual(whoState.placements.map(row => row.points),
+      whoState.placements.map(({ place, hinted }) => Math.max(0, 4 - place - Number(hinted))));
     assert.equal((await call(whoRoom)).placements[0].identity, undefined);
-    const fresh = await whoAction(whoHost, "who-next", { round: 1 });
-    assert.equal(fresh.round, 2);
-    assert.equal(fresh.players[1].score, 2);
-    assert.equal(fresh.hint, null);
-    assert.ok(Object.values(fresh.cards).every(card => !Object.values(dealing).includes(card)));
-    await whoAction(whoHost, "who-winner", { round: 1, winner: whoWinner }, 409);
-    const noWinner = await whoAction(whoHost, "who-winner", { round: 2, winner: null });
-    assert.deepEqual(noWinner.placements, []);
-    const switchLobby = await whoAction(whoHost, "who-lobby", { round: 2 });
+    const switchLobby = await whoAction(whoHost, "who-lobby", { round: 1 });
     assert.equal(switchLobby.code, whoHost.code);
     assert.equal(switchLobby.players.length, 8);
     assert.equal(switchLobby.phase, "lobby");

@@ -176,6 +176,7 @@ function advance(room, bank, now) {
   else if (room.phase === "guess") finishGuess(room, now);
   else if (room.phase === "tighten") reveal(room, now);
   else if (room.phase === "reveal") nextRound(room, bank, now);
+  else if (room.phase === "who-active") who.finishTurn(room, now);
   room.changedAt = now;
   return true;
 }
@@ -187,7 +188,7 @@ function winners(room) {
 
 function action(room, player, body, bank, now) {
   const host = room.host === player.id;
-  if (["start", "again", "mode", "who-winner", "who-next", "who-lobby"].includes(body.type) && !host) {
+  if (["start", "again", "mode", "who-next", "who-lobby"].includes(body.type) && !host) {
     throw new GameError("host_only", 403);
   }
   if (body.type === "leave") {
@@ -202,7 +203,7 @@ function action(room, player, body, bank, now) {
     if (room.phase === "tighten" && room.players.length && room.players.every(candidate => !candidate.entry || candidate.entry.tier === 0 || candidate.entry.adjusted)) reveal(room, now);
     if (room.mode === "who" && room.phase !== "lobby") {
       if (room.players.length < 2) resetLobby(room, now);
-      else if (room.phase === "who-active") who.afterLeave(room);
+      else if (["who-ready", "who-active"].includes(room.phase) && who.current(room).id === player.id) who.nextTurn(room);
     }
   } else if (body.type === "mode" && room.phase === "lobby") {
     if (!modes.includes(body.mode)) throw new GameError("mode_invalid", 400);
@@ -214,14 +215,16 @@ function action(room, player, body, bank, now) {
       room.order = shuffle(room.players.map(candidate => candidate.id));
       offer(room, bank, now);
     }
-  } else if (body.type === "who-winner" && room.phase === "who-active" && body.round === room.round) {
-    const winner = room.players.find(candidate => candidate.id === body.winner);
-    if (body.winner !== null && !winner) throw new GameError("winner_invalid", 400);
-    if (winner && who.isPlaced(room, winner)) throw new GameError("already_placed");
-    who.place(room, winner);
-  } else if (body.type === "who-hint" && room.phase === "who-active" && body.round === room.round) {
-    if (who.isPlaced(room, player)) throw new GameError("already_placed");
-    who.useHint(room, player, shuffle);
+  } else if (["who-start", "who-solved", "who-hint", "who-continue"].includes(body.type)) {
+    if (room.mode !== "who" || !room.who || body.round !== room.round || body.turn !== room.who.index + 1) {
+      throw new GameError("wrong_phase");
+    }
+    const guessing = who.current(room).id === player.id;
+    if (body.type === "who-start" && room.phase === "who-ready" && guessing) who.startTurn(room, now);
+    else if (body.type === "who-solved" && room.phase === "who-active" && !guessing && now < room.deadline) who.finishTurn(room, now);
+    else if (body.type === "who-hint" && room.phase === "who-active" && guessing && now < room.deadline) who.useHint(room, player, shuffle);
+    else if (body.type === "who-continue" && room.phase === "who-turn-result") who.nextTurn(room);
+    else throw new GameError("wrong_phase");
   } else if (body.type === "who-next" && room.phase === "who-reveal" && body.round === room.round) {
     who.deal(room, shuffle);
   } else if (body.type === "who-lobby" && room.phase === "who-reveal" && body.round === room.round) {

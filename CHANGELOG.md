@@ -5,6 +5,16 @@ game itself shows under the version at the foot of the first screen.
 
 Generated from `game/changelog.js` by `npm run release` — edit that file, not this one.
 
+## 0.17.0 — 2026-11-17
+
+### Rules
+
+- Take one minute each in Who Am I? The fastest correct guesses earn points.
+
+### Fixed
+
+- Who Am I? cards show the player's avatar and name above the identity to guess.
+
 ## 0.16.0 — 2026-11-17
 
 ### Added
