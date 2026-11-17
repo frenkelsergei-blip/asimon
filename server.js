@@ -45,7 +45,7 @@ const ASSETS = ["index.html","app.js","art.js","boardart.js","qr.js","sfx.js","s
                 "between-reveal-plate.png", "between-rays.png", "between-ink-rays.png",
                 "between-card-star.png", "between-corner-wide.png", "between-corner-medium.png",
                 "between-corner-narrow.png", "between-card-stack.png", "between-ticket.png",
-                "between-result-paper.png", "between-winner-paper.png",
+                "between-result-paper.png", "between-winner-paper.png", "who-card-back.webp", "who-card-front.webp", "who-hero.webp",
                 ...["inventions","nature","food","space","israel","sports","culture","room"].map(topic => `between-topic-${topic}.webp`)];
 
 let BUILD = "", assetStamp = null;
@@ -583,7 +583,7 @@ const server = http.createServer(async (req, res) => {
        phone, /board for whatever is going to stand on the sideboard */
     let file = p === "/" ? "/index.html"
              : (p === "/board" || p === "/board/") ? "/board.html"
-             : ["/between", "/between/", "/between/tv", "/between/tv/"].includes(p) ? "/between.html"
+             : ["/between", "/between/tv", "/games", "/who"].includes(p.replace(/\/$/, "")) ? "/between.html"
              : p;
     file = path.normalize(file).replace(/^(\.\.[/\\])+/, "");
     const full = path.join(PUBLIC, file);

@@ -2,6 +2,7 @@
 
 const { randomUUID, randomBytes, randomInt } = require("node:crypto");
 const { topics } = require("./between-questions");
+const who = require("./who");
 
 const faces = ["fox", "astro", "grandpa", "grandma", "boy", "girl", "hippy", "beard", "curly", "beanie", "robot", "cat", "owl", "frog", "panda"];
 const nicknames = ["שועל", "ינשוף", "ניצוץ", "כוכב", "צפרדע", "אסטרו", "גל", "ברק", "פנדה", "שביט"];
@@ -9,6 +10,7 @@ const points = [3, 2, 1];
 const roundCount = 10;
 const idleMs = 90 * 60 * 1000;
 const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+const modes = ["between", "who"];
 
 class GameError extends Error {
   constructor(code, status = 409) {
@@ -36,12 +38,18 @@ function shuffle(list) {
   return result;
 }
 
-function makeRoom(code, now) {
+function makeRoom(code, now, mode = "between") {
   return {
-    code, gameId: randomUUID(), changedAt: now, phase: "lobby", host: null,
+    code, mode, gameId: randomUUID(), changedAt: now, phase: "lobby", host: null,
     players: [], order: [], chooser: null, round: 0, used: [], history: [],
     choices: [], question: null, deadline: null, finalized: false
   };
+}
+
+function resetLobby(room, now) {
+  const { code, mode, players, host } = room;
+  Object.assign(room, makeRoom(code, now, mode), { players, host, who: null });
+  for (const player of players) { player.entry = null; player.score = 0; }
 }
 
 function addPlayer(room, form, profile, now) {
@@ -179,7 +187,7 @@ function winners(room) {
 
 function action(room, player, body, bank, now) {
   const host = room.host === player.id;
-  if (body.type !== "leave" && (body.type === "start" || body.type === "again") && !host) {
+  if (["start", "again", "mode", "who-winner", "who-next", "who-lobby"].includes(body.type) && !host) {
     throw new GameError("host_only", 403);
   }
   if (body.type === "leave") {
@@ -192,10 +200,32 @@ function action(room, player, body, bank, now) {
     }
     if (room.phase === "guess" && room.players.length && room.players.every(candidate => candidate.entry)) finishGuess(room, now);
     if (room.phase === "tighten" && room.players.length && room.players.every(candidate => !candidate.entry || candidate.entry.tier === 0 || candidate.entry.adjusted)) reveal(room, now);
+    if (room.mode === "who" && room.phase !== "lobby") {
+      if (room.players.length < 2) resetLobby(room, now);
+      else if (room.phase === "who-active") who.afterLeave(room);
+    }
+  } else if (body.type === "mode" && room.phase === "lobby") {
+    if (!modes.includes(body.mode)) throw new GameError("mode_invalid", 400);
+    room.mode = body.mode;
   } else if (body.type === "start" && room.phase === "lobby") {
     if (room.players.length < 2) throw new GameError("need_2");
-    room.order = shuffle(room.players.map(candidate => candidate.id));
-    offer(room, bank, now);
+    if (room.mode === "who") who.deal(room, shuffle);
+    else {
+      room.order = shuffle(room.players.map(candidate => candidate.id));
+      offer(room, bank, now);
+    }
+  } else if (body.type === "who-winner" && room.phase === "who-active" && body.round === room.round) {
+    const winner = room.players.find(candidate => candidate.id === body.winner);
+    if (body.winner !== null && !winner) throw new GameError("winner_invalid", 400);
+    if (winner && who.isPlaced(room, winner)) throw new GameError("already_placed");
+    who.place(room, winner);
+  } else if (body.type === "who-hint" && room.phase === "who-active" && body.round === room.round) {
+    if (who.isPlaced(room, player)) throw new GameError("already_placed");
+    who.useHint(room, player, shuffle);
+  } else if (body.type === "who-next" && room.phase === "who-reveal" && body.round === room.round) {
+    who.deal(room, shuffle);
+  } else if (body.type === "who-lobby" && room.phase === "who-reveal" && body.round === room.round) {
+    resetLobby(room, now);
   } else if (body.type === "topic" && room.phase === "topic") {
     if (room.chooser !== player.id) throw new GameError("chooser_only", 403);
     if (!room.choices.includes(body.topic)) throw new GameError("topic_invalid", 400);
@@ -226,12 +256,14 @@ function action(room, player, body, bank, now) {
 function view(room, player, now) {
   const showResults = room.phase === "reveal" || room.phase === "over";
   const state = {
-    code: room.code, phase: room.phase, round: room.round, roundCount, now, deadline: room.deadline,
+    code: room.code, mode: room.mode, phase: room.phase, round: room.round,
+    roundCount: room.mode === "who" ? null : roundCount, now, deadline: room.deadline,
     host: room.host, chooser: room.chooser, me: player?.id ?? null,
     players: room.players.map(candidate => ({
       id: candidate.id, name: candidate.name, face: candidate.face, score: candidate.score, locked: !!candidate.entry
     }))
   };
+  if (room.mode === "who") return { ...state, ...who.view(room, player) };
   if (room.phase === "topic") state.choices = room.choices.map(key => ({ key, name: topics[key] || "החדר שלנו" }));
   if (room.question) {
     const { prompt, unit, widths, topic, answer, note, hint } = room.question;
@@ -252,6 +284,6 @@ function view(room, player, now) {
 }
 
 module.exports = {
-  GameError, faces, idleMs, nickname, makeCode, makeRoom, addPlayer, sessionPlayer,
+  GameError, faces, modes, idleMs, nickname, makeCode, makeRoom, addPlayer, sessionPlayer,
   refreshPlayer, advance, action, view, winners, bounds, roundCount
 };

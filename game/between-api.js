@@ -50,7 +50,7 @@ async function operate(room, operation, store, save) {
 
   const player = engine.sessionPlayer(room, token);
   if ((op === "action" || token) && !player) throw new engine.GameError("no_seat", 404);
-  const bank = room.phase !== "lobby" || op === "action" ? await store.bank() : null;
+  const bank = room.mode !== "who" && (room.phase !== "lobby" || op === "action") ? await store.bank() : null;
   let dirty = engine.advance(room, bank, now);
   if (player) dirty = engine.refreshPlayer(room, player, now) || dirty;
   const saveResult = async () => {
@@ -82,13 +82,15 @@ function memoryRooms(store, allowed, maxRooms) {
   };
   return {
     async create(data, profile, request) {
+      const mode = data.mode ?? "between";
+      if (!engine.modes.includes(mode)) throw new engine.GameError("mode_invalid", 400);
       if (!allowed(request)) throw new engine.GameError("slow_down", 429);
       sweep();
       if (rooms.size >= maxRooms) throw new engine.GameError("busy", 503);
       let code;
       do { code = engine.makeCode(); } while (rooms.has(code));
       const now = Date.now();
-      const room = engine.makeRoom(code, now);
+      const room = engine.makeRoom(code, now, mode);
       const seat = engine.addPlayer(room, data, profile, now);
       rooms.set(code, room);
       return seat;

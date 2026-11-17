@@ -8,6 +8,8 @@ const { createApi, memoryRooms } = require("./between-api");
 const { fileStore, startDay } = require("./between-store");
 const { questions } = require("./between-questions");
 const engine = require("./between");
+const whoGame = require("./who");
+const whoCards = require("./who-cards");
 
 function compareGolfGuesses() {
   const bank = [questions.find(question => question.unit === "גומות")];
@@ -29,8 +31,41 @@ function compareGolfGuesses() {
   }
 }
 
+function checkWhoSmallRooms() {
+  for (const count of [2, 3, 4]) {
+    const room = engine.makeRoom("WHOO", 0, "who");
+    for (let i = 0; i < count; i++) engine.addPlayer(room, { name: `שחקן ${i}` }, null, 0);
+    const host = room.players[0];
+    const act = (type, fields) => engine.action(room, host, { type, ...fields }, null, 0);
+    act("start");
+    assert.equal(engine.view(room, host, 0).places, count - 1);
+    for (let i = 0; i < count - 1; i++) {
+      assert.equal(room.phase, "who-active");
+      act("who-winner", { round: 1, winner: room.players[i].id });
+    }
+    assert.equal(room.phase, "who-reveal");
+    assert.deepEqual(room.players.map(player => player.score), [3, 2, 1].slice(0, count - 1).concat(0));
+  }
+}
+
+function checkHintRotation() {
+  assert.ok(Object.keys(whoCards).length >= 50);
+  for (const hints of Object.values(whoCards)) assert.equal(new Set(hints).size, 3);
+  const player = { id: "seat" };
+  const room = { who: { cards: { seat: "אלברט איינשטיין" }, usedHints: {} } };
+  const seen = new Set();
+  for (let i = 0; i < 3; i++) {
+    room.who.usedHints = {};
+    whoGame.useHint(room, player, values => [...values]);
+    seen.add(room.who.usedHints.seat);
+  }
+  assert.equal(seen.size, 3);
+}
+
 async function main() {
   compareGolfGuesses();
+  checkWhoSmallRooms();
+  checkHintRotation();
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "asimon-between-"));
   const realFetch = global.fetch;
   const url = "https://asimon.test/api/between";
@@ -66,6 +101,68 @@ async function main() {
     assert.equal(duel.players.length, 2);
     await call(duoRoute, { type: "leave" }, { seat: second });
     await call(duoRoute, { type: "leave" }, { seat: duo });
+
+    const whoHost = await call("/create", { mode: "who", name: "מארח א" });
+    const whoRoom = `/rooms/${whoHost.code}`;
+    const whoAction = (seat, type, fields = {}, status = 200) =>
+      call(`${whoRoom}/action`, { type, ...fields }, { seat, status });
+    await whoAction(whoHost, "start", {}, 409);
+    const whoSeats = [whoHost];
+    for (let i = 1; i < 8; i++) {
+      whoSeats.push(await call("/join", { code: whoHost.code, name: `אורח ${i}` }));
+    }
+    await whoAction(whoSeats[1], "mode", { mode: "between" }, 403);
+    const whoStarted = await whoAction(whoHost, "start");
+    assert.equal(whoStarted.mode, "who");
+    assert.equal(whoStarted.phase, "who-active");
+    assert.equal(whoStarted.deadline, null);
+    assert.equal(whoStarted.places, 3);
+    const whoViews = await Promise.all(whoSeats.map(seat => call(whoRoom, undefined, { seat })));
+    const dealing = { ...whoViews[0].cards, ...whoViews[1].cards };
+    assert.equal(new Set(Object.values(dealing)).size, 8);
+    for (const view of whoViews) {
+      assert.equal(Object.keys(view.cards).length, 7);
+      assert.equal(Object.hasOwn(view.cards, view.me), false);
+      assert.deepEqual(view.placements, []);
+      assert.equal(view.hint, null);
+    }
+    assert.equal((await call(whoRoom)).cards, undefined);
+    const whoWinner = whoViews[1].me;
+    await whoAction(whoSeats[1], "who-winner", { round: 1, winner: whoWinner }, 403);
+    await whoAction(whoHost, "who-winner", { round: 1, winner: "not-a-player" }, 400);
+    const hint = await whoAction(whoSeats[1], "who-hint", { round: 1 });
+    assert.ok(hint.hint);
+    assert.equal((await whoAction(whoSeats[1], "who-hint", { round: 1 })).hint, hint.hint);
+    assert.equal((await call(whoRoom, undefined, { seat: whoHost })).hint, null);
+    assert.equal((await call(whoRoom)).hint, undefined);
+    const won = await whoAction(whoHost, "who-winner", { round: 1, winner: whoWinner });
+    assert.equal(won.phase, "who-active");
+    assert.equal(won.placements[0].identity, undefined);
+    assert.equal(won.players[1].score, 2);
+    await whoAction(whoHost, "who-winner", { round: 1, winner: whoWinner }, 409);
+    await whoAction(whoSeats[1], "who-hint", { round: 1 }, 409);
+    const runnerUp = await whoAction(whoHost, "who-winner", { round: 1, winner: whoViews[2].me });
+    assert.equal(runnerUp.players[2].score, 2);
+    await whoAction(whoSeats[3], "who-hint", { round: 1 });
+    const ranked = await whoAction(whoHost, "who-winner", { round: 1, winner: whoViews[3].me });
+    assert.equal(ranked.phase, "who-reveal");
+    assert.deepEqual(ranked.placements.map(result => result.points), [2, 2, 0]);
+    assert.equal(ranked.placements[0].identity, dealing[whoWinner]);
+    assert.equal((await call(whoRoom)).placements[0].identity, undefined);
+    const fresh = await whoAction(whoHost, "who-next", { round: 1 });
+    assert.equal(fresh.round, 2);
+    assert.equal(fresh.players[1].score, 2);
+    assert.equal(fresh.hint, null);
+    assert.ok(Object.values(fresh.cards).every(card => !Object.values(dealing).includes(card)));
+    await whoAction(whoHost, "who-winner", { round: 1, winner: whoWinner }, 409);
+    const noWinner = await whoAction(whoHost, "who-winner", { round: 2, winner: null });
+    assert.deepEqual(noWinner.placements, []);
+    const switchLobby = await whoAction(whoHost, "who-lobby", { round: 2 });
+    assert.equal(switchLobby.code, whoHost.code);
+    assert.equal(switchLobby.players.length, 8);
+    assert.equal(switchLobby.phase, "lobby");
+    await whoAction(whoHost, "mode", { mode: "between" });
+    assert.equal((await whoAction(whoHost, "start")).phase, "topic");
 
     const start = await api(new Request(`${url}/auth/google`));
     const target = new URL(start.headers.get("location"));
@@ -169,7 +266,7 @@ async function main() {
     assert.match(logout.headers.get("set-cookie"), /Max-Age=0/);
     assert.equal(startDay("day", Date.parse("2026-11-14T22:30:00Z")), "2026-11-15");
     assert.equal(startDay("week", Date.parse("2026-11-14T21:30:00Z")), "2026-11-08");
-    console.log("Between: eight seats, private guesses, range scoring, chooser bonus, ten rounds, mock Google OAuth, profiles and standings passed.");
+    console.log("Asimon rooms: Between scoring, Who Am I? card privacy and redeal, eight seats, mode switching, mock Google OAuth, profiles and standings passed.");
   } finally {
     global.fetch = realFetch;
     fs.rmSync(tmp, { recursive: true, force: true });

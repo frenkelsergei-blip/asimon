@@ -36,6 +36,12 @@ const RANK = { patch:0, minor:1, major:2 };
 
 const RELEASES = [
 
+  { v:"0.16.0", date:"2026-11-17", lines:[
+    { kind:"new",
+      en:"Play Who Am I? Ask yes-or-no questions aloud, take an optional private hint, and score points in the order you solve your cards.",
+      he:"משחקים ׳מי אני?׳. שואלים שאלות כן או לא בקול, אפשר לפתוח רמז פרטי, ומקבלים נקודות לפי סדר הפתרון." },
+  ]},
+
   { v:"0.15.2", date:"2026-11-17", lines:[
     { kind:"fix",
       en:"Between's leaderboard opens with room for the cards below. Topic cards have new illustrations, and round results explain each guess and its points.",

@@ -5,6 +5,12 @@ game itself shows under the version at the foot of the first screen.
 
 Generated from `game/changelog.js` by `npm run release` — edit that file, not this one.
 
+## 0.16.0 — 2026-11-17
+
+### Added
+
+- Play Who Am I? Ask yes-or-no questions aloud, take an optional private hint, and score points in the order you solve your cards.
+
 ## 0.15.2 — 2026-11-17
 
 ### Fixed

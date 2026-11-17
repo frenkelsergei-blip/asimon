@@ -2,7 +2,10 @@
 
 (() => {
   const app = document.getElementById("between");
-  const tv = location.pathname.replace(/\/$/, "").endsWith("/tv");
+  const path = location.pathname.replace(/\/$/, "");
+  const tv = path.endsWith("/tv");
+  const landing = path === "/who" ? "who" : path === "/games" ? "games" : "between";
+  const gameNames = { between: "בין לבין", who: "מי אני?" };
   const query = new URLSearchParams(location.search);
   const codeOf = value => String(value || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 4);
   let roomCode = codeOf(query.get("room"));
@@ -33,6 +36,8 @@
     need_2: "צריך לפחות שני שחקנים כדי להתחיל.", host_only: "רק מי שמארח יכול לבצע את הפעולה הזאת.",
     chooser_only: "בחירת הנושא עוברת לפי התור.", wrong_phase: "הסיבוב כבר התקדם.",
     guess_invalid: "מזינים מספר שלם ובוחרים טווח.", profile_invalid: "צריך לבחור כינוי ודמות.",
+    mode_invalid: "המשחק הזה אינו זמין.", winner_invalid: "השחקן כבר לא בחדר. בחרו שוב.",
+    already_placed: "השחקן כבר פתר את הקלף בסיבוב הזה.",
     slow_down: "אפשר לנסות לפתוח חדר נוסף בעוד כמה דקות.", sign_in: "כדי לפתוח פרופיל, מתחברים עם Google.",
     network: "החיבור נקטע לרגע. מנסים להתחבר שוב."
   };
@@ -83,6 +88,13 @@
   }
 
   function home() {
+    if (landing === "games") return gamesHome();
+    if (landing === "who") return withHeader(`<div class="hello who-hello">
+      <h1 class="title-tag">מי אני?</h1><img src="/who-hero.webp" class="who-home-art" alt="">
+      <p class="tagline">רואים את השמות של כולם. מנחשים מי אתם.</p>
+    </div><div class="home-buttons">${button("create", "פתיחת חדר")}${button("join", "הצטרפות לחדר", "light")}</div>
+    <nav class="links"><button type="button" id="rules" class="text">איך משחקים?</button><a href="/games">כל המשחקים</a></nav>`,
+    { header: "plain-head", layout: "home-screen" });
     const account = session.profile
       ? `<div class="account row">${photo(session.profile.face, 31)}<button type="button" id="profile" class="text">${esc(session.profile.name)} · הפרופיל שלי</button></div>`
       : `<div class="account">${googleButton()}${button("guest", "המשך כאורח", "plain")}</div>`;
@@ -92,8 +104,21 @@
       <p class="tagline">מנחשים מספר. בוחרים טווח.</p>
     </div><div class="home-buttons">${button("create", "פתיחת חדר")}${button("join", "הצטרפות לחדר", "light")}</div>
     ${account}<nav class="links"><button type="button" id="leaders" class="text">טבלת המובילים</button>
-      <button type="button" id="rules" class="text">איך משחקים?</button><a href="/">אסימון הקלאסי</a></nav>`,
+      <button type="button" id="rules" class="text">איך משחקים?</button><a href="/games">כל המשחקים</a><a href="/">אסימון הקלאסי</a></nav>`,
     { header: "plain-head", layout: "home-screen" });
+  }
+
+  function gamesHome() {
+    const games = [
+      ["/between", "בין לבין", "/between-token.png", "מנחשים מספר. בוחרים טווח."],
+      ["/who", "מי אני?", "/who-hero.webp", "מגלים מי האדם שבקלף שלכם."],
+      ["/", "אסימון קלאסי", "/between-hero.png", "משחק הניחושים המקורי."]
+    ];
+    return withHeader(`<h1 class="title-tag">משחקים לכל המשפחה</h1><nav class="games-list" aria-label="משחקים">
+      ${games.map(([href, title, image, caption]) => `<a class="card game-cover" href="${href}">
+        <img src="${image}" alt=""><strong>${title}</strong><span>${caption}</span></a>`).join("")}</nav>
+      <div class="home-buttons">${button("create", "פתיחת חדר")}${button("join", "הצטרפות בקוד", "light")}</div>`,
+      { theme: "lilac", layout: "games-screen" });
   }
 
   function facePicker(selected) {
@@ -113,7 +138,7 @@
 
   function joinForm() {
     const create = screen === "create";
-    const account = guest ? null : session.profile;
+    const account = guest || landing !== "between" ? null : session.profile;
     return withHeader(`<form id="seat-form">
       <h1>${create ? "פותחים חדר" : "מצטרפים לחדר"}</h1>
       ${create ? "" : codeInput()}
@@ -122,15 +147,15 @@
       <p class="field-label">בחרו דמות</p>${facePicker(draft.face)}
       ${account ? `<p class="form-hint">משחקים בתור ${esc(account.name)}</p>` : '<p class="form-hint">אפשר להשאיר את הכינוי והדמות להגרלה.</p>'}
       <button type="submit" class="button" ${busy ? "disabled" : ""}>${create ? "פותחים" : "מצטרפים"}</button>
-    </form>${account ? "" : `<div class="account">${googleButton()}</div>`}`, { back: true });
+    </form>${account || landing !== "between" ? "" : `<div class="account">${googleButton()}</div>`}`, { back: true });
   }
 
-  function joinURL(code) { return `${session.shareOrigin}/between?room=${code}`; }
+  function joinURL(code, mode) { return `${session.shareOrigin}/${mode === "who" ? "who" : "between"}?room=${code}`; }
   function tvURL(code) { return `${session.shareOrigin}/between/tv?room=${code}`; }
 
   function joinTicket(state) {
     let qr = "";
-    try { qr = QR.svg(joinURL(state.code), { label: "קוד QR להצטרפות" }); } catch { /* the room code still works */ }
+    try { qr = QR.svg(joinURL(state.code, state.mode), { label: "קוד QR להצטרפות" }); } catch { /* the room code still works */ }
     return `<div class="ticket"><img src="/between-ticket.png" class="ticket-paper" alt="">
       <div class="qr-box">${qr}<small>סריקה להצטרפות</small></div>
       <div class="ticket-code" aria-label="קוד החדר">${numberHTML(state.code)}</div></div>`;
@@ -147,6 +172,10 @@
     const host = state.players.find(player => player.id === state.host);
     return withHeader(`<div class="lobby-title">${inkRays()}<h1 class="title-tag">החדר של ${esc(host?.name)}</h1>${inkRays()}</div>
       ${joinTicket(state)}<p class="pill">${state.players.length === 1 ? "שחקן אחד בחדר" : `${state.players.length} שחקנים בחדר`}</p>${roster(state)}
+      ${state.me === state.host ? `<section class="lobby-games"><h2>בוחרים משחק</h2><div>
+        ${Object.entries(gameNames).map(([key, label]) => `<button type="button" class="card" data-game-mode="${key}"
+          aria-pressed="${state.mode === key}">${label}</button>`).join("")}</div></section>` :
+        `<p class="pill">המשחק בחדר · ${gameNames[state.mode]}</p>`}
       <div class="room-links">
         ${button("copy-join", "שיתוף קישור למשחק", "light")}
         <details class="tv-menu"><summary>מסך משותף לטלוויזיה</summary><div class="tv-menu-actions">
@@ -157,6 +186,64 @@
       { theme: "yellow", header: "plain-head", layout: "lobby-screen", footer: state.me === state.host
         ? `<button type="button" class="button" id="start" ${state.players.length < 2 ? "disabled" : ""}>${state.players.length < 2 ? "מתחילים כשמצטרף עוד שחקן" : "מתחילים"}</button>${button("leave", "יציאה מהחדר", "plain")}`
         : `<p class="form-hint">מחכים שמארח החדר יתחיל</p>${button("leave", "יציאה מהחדר", "plain")}` });
+  }
+
+  function whoRules() {
+    return withHeader(`<h1>איך משחקים?</h1><ol class="rule-list">
+      <li>כל טלפון מציג את הקלפים של השחקנים האחרים. הקלף שלכם נשאר מוסתר.</li>
+      <li>עוברים ביניכם בתור. כל שחקן שואל בקול שאלה אחת שאפשר לענות עליה בכן או לא, או מנחש מה יש בקלף שלו.</li>
+      <li>המארח מסמן את מי שניחשו נכון לפי הסדר. בשניים מסמנים מקום אחד, בשלושה שניים, ומארבעה שחקנים מסמנים שלושה.</li>
+      <li>המקומות שווים 3, 2 ו־1 נקודות. לכל שחקן רמז פרטי אחד בסיבוב. שימוש בו מוריד נקודה מהניקוד שתקבלו על המקום שלכם.</li>
+    </ol>`, { back: true });
+  }
+
+  function whoWinner(state) {
+    const winner = state.placements[0];
+    if (!winner) return '<h1 class="title-tag">הסיבוב הסתיים</h1>';
+    return `<div class="who-celebration card">${confetti()}
+      ${celebratingFace(winner)}<div><p>ניחש ראשון · +${winner.points} נק׳</p><h1>${esc(winner.name)}</h1>
+      ${winner.identity ? `<strong class="who-identity">${esc(winner.identity)}</strong>` : ""}</div></div>`;
+  }
+
+  function whoPlacements(state) {
+    if (!state.placements.length) return "";
+    return `<section class="who-places"><h2>סדר הפתרון</h2><ol class="card">${state.placements.map(player =>
+      `<li>${photo(player.face, 32)}<span><strong>${player.place}. ${esc(player.name)}</strong>
+        ${player.hinted ? '<small>רמז · נקודה פחות</small>' : ""}</span><b class="earned">${numberHTML(`+${player.points}`)} נק׳</b></li>`).join("")}</ol></section>`;
+  }
+
+  function whoScreen(state) {
+    const isHost = state.host === state.me;
+    const round = `<p class="pill">סיבוב ${numberHTML(state.round)} · ${numberHTML(state.placements.length)} מתוך ${numberHTML(state.places)} מקומות</p>`;
+    if (state.phase === "who-reveal") return withHeader(`${round}${whoWinner(state)}
+      ${whoPlacements(state)}<section class="score-section"><h2>ניקוד מצטבר</h2>${standings(state)}</section>`,
+      { theme: "yellow", header: "plain-head", layout: "who-screen", footer: isHost
+        ? `${button("who-next", "מחלקים קלפים חדשים")}${button("who-lobby", "חזרה ללובי", "light")}`
+        : `<p class="form-hint">מחכים לחלוקה הבאה</p>${button("leave", "יציאה מהחדר", "plain")}` });
+    const placed = new Set(state.placements.map(player => player.id));
+    const me = state.players.find(player => player.id === state.me);
+    const others = state.players.filter(other => other !== me);
+    const hostActions = `<details class="who-picker card"><summary>מסמנים מי פתר</summary>
+      <p>מי ניחש עכשיו את הקלף שלו?</p><div class="who-winner-options">
+        ${state.players.filter(player => !placed.has(player.id)).map(player => `<button type="button" class="button light" data-who-winner="${player.id}"
+          data-round="${state.round}">${photo(player.face, 34)}<span>${esc(player.name)}</span></button>`).join("")}
+      </div><button type="button" class="button plain" data-who-winner="" data-round="${state.round}">מסיימים את הסיבוב</button></details>`;
+    const hint = state.hint ? `<div class="who-hint card"><strong>הרמז שלך · נקודה פחות</strong><p>${esc(state.hint)}</p></div>`
+      : placed.has(state.me) ? "" : button("who-hint", "רמז אישי · נקודה פחות", "light");
+    return withHeader(`${round}<h1 class="title-tag">מי אני?</h1>
+      <p class="who-instruction">בתורכם שואלים בקול שאלה של כן או לא, או מנחשים.</p>
+      ${hint}
+      <ul class="who-cards" aria-label="הקלפים בחדר">
+        <li class="who-card who-own"><img class="who-card-paper" src="/who-card-back.webp" alt="">
+          <span class="who-owner" aria-label="הקלף שלך מוסתר">הקלף שלך</span></li>
+        ${others.map((other, i) => `<li class="who-card" style="--i:${i + 1}">
+          <img class="who-card-paper" src="/who-card-front.webp" alt="">
+          <strong class="who-identity">${esc(state.cards?.[other.id])}</strong>
+          <span class="who-owner">${photo(other.face, 26)}<span>${esc(other.name)}${placed.has(other.id) ? " · פתרו" : ""}</span></span>
+        </li>`).join("")}
+      </ul>${whoPlacements(state)}`,
+      { header: "plain-head", layout: "who-screen", footer: `${isHost ? hostActions : ""}
+        ${button("leave", "יציאה מהחדר", "plain")}` });
   }
 
   function roundHeader(state, topic, clock = true) {
@@ -354,9 +441,14 @@
 
   function stage(state) {
     let content;
+    const title = gameNames[state?.mode] || gameNames.between;
     if (!state || state.phase === "lobby") {
-      content = `<div class="stage-lobby"><h1>בין לבין</h1>${state ? `${joinTicket(state)}${roster(state)}`
+      content = `<div class="stage-lobby"><h1>${title}</h1>${state ? `${joinTicket(state)}${roster(state)}`
         : `<form id="tv-form">${codeInput()}<button class="button" type="submit">צפייה במשחק</button></form>`}</div>`;
+    } else if (state.mode === "who") {
+      content = `<p class="pill">סיבוב ${numberHTML(state.round)}</p>${state.phase === "who-reveal"
+        ? `${whoWinner(state)}${standings(state)}`
+        : `<div class="stage-question"><h1>שאלות של כן או לא</h1><p>הקלפים בטלפונים</p></div>${roster(state)}${whoPlacements(state)}`}`;
     } else if (state.phase === "reveal") {
       content = `${roundHeader(state, null, false)}${answerCard(state, true)}${resultRows(state, true)}`;
     } else if (state.phase === "over") {
@@ -369,7 +461,7 @@
       content = `${roundHeader(state, state.question.topic)}<div class="stage-question"><h1>${esc(state.question.prompt)}</h1>
         ${state.hint ? `<p class="hint card">${esc(state.hint)}</p>` : ""}</div>${roster(state, true)}`;
     }
-    return `<section class="stage phase-${state?.phase || "lobby"}"><header>${mark()}<span>בין לבין</span></header>
+    return `<section class="stage phase-${state?.phase || "lobby"}"><header>${mark()}<span>${title}</span></header>
       ${content}${notice()}</section>`;
   }
 
@@ -380,13 +472,14 @@
     let markup;
     if (tv) markup = stage(model);
     else if (screen === "home") markup = home();
-    else if (screen === "rules") markup = rules();
+    else if (screen === "rules") markup = landing === "who" ? whoRules() : rules();
     else if (screen === "create" || screen === "join") markup = joinForm();
     else if (screen === "profile") markup = profile();
     else if (screen === "edit") markup = editProfile();
     else if (screen === "leaders") markup = leaders();
     else if (!model) markup = withHeader('<p>נכנסים לחדר…</p>');
     else if (model.phase === "lobby") markup = lobby(model);
+    else if (model.mode === "who") markup = whoScreen(model);
     else if (model.phase === "topic") markup = category(model);
     else if (model.phase === "guess" || model.phase === "tighten") markup = guessScreen(model);
     else if (model.phase === "reveal") markup = reveal(model);
@@ -468,6 +561,8 @@
           setTimeout(() => { if (model?.phase === "reveal" && model.round === state.round) window.SFX?.play(sound); }, 450);
         }
         if (state.phase === "over") window.SFX?.play("win");
+        if (state.phase === "who-active") window.SFX?.play("deal");
+        if (state.phase === "who-reveal" && state.placements.length) window.SFX?.play("win");
       }
       const resetScroll = !tv && (before?.phase !== state.phase || before?.round !== state.round || (!before?.entry && !!state.entry));
       render({ replay, resetScroll });
@@ -524,8 +619,9 @@
     screen = target;
     error = "";
     if (target === "create" || target === "join") {
-      draft.name = guest ? "" : session.profile?.name || "";
-      draft.face = guest ? "" : session.profile?.face || "";
+      const profile = guest || landing !== "between" ? null : session.profile;
+      draft.name = profile?.name || "";
+      draft.face = profile?.face || "";
     }
     render({ replay: true, resetScroll: true });
   }
@@ -584,6 +680,10 @@
     const id = button.id;
     if (button.dataset.face) {
       draft.face = button.dataset.face; markChoice("face", draft.face);
+    } else if (button.dataset.gameMode) {
+      await action("mode", { mode: button.dataset.gameMode });
+    } else if (button.dataset.whoWinner !== undefined) {
+      await action("who-winner", { winner: button.dataset.whoWinner || null, round: Number(button.dataset.round) });
     } else if (button.dataset.topic) {
       draft.topic = button.dataset.topic; markChoice("topic", draft.topic);
       document.getElementById("pick-topic").disabled = false;
@@ -610,7 +710,7 @@
       try { await api("/auth/logout", {}); session.profile = null; visit(seat ? "room" : "home"); }
       catch { error = "ההתנתקות לא הצליחה."; render(); }
     } else if (id === "copy-join" || id === "copy-tv") {
-      await copy(id === "copy-join" ? joinURL(roomCode) : tvURL(roomCode));
+      await copy(id === "copy-join" ? joinURL(roomCode, model.mode) : tvURL(roomCode));
     } else if (id === "plus" || id === "minus") {
       const delta = id === "plus" ? 1 : -1;
       draft.guess = String(Math.min(1_000_000_000, Math.max(0, Number(draft.guess) + delta)));
@@ -622,6 +722,8 @@
       await action("guess", { number: Number(draft.guess), tier: draft.tier });
     } else if (id === "tighten" || id === "keep") {
       await action("tighten", { shrink: id === "tighten" });
+    } else if (id === "who-hint" || id === "who-next" || id === "who-lobby") {
+      await action(id, { round: model.round });
     } else if (["start", "next", "again", "leave"].includes(id)) {
       await action(id);
     }
@@ -665,10 +767,11 @@
         data = result; visit("profile");
       } else if (event.target.id === "seat-form") {
         const acquired = await api(submittingPage === "create" ? "/create" : "/join", {
-          code: roomCode, name: draft.name, face: draft.face, guest
+          code: roomCode, name: draft.name, face: draft.face,
+          guest: guest || landing !== "between", mode: landing === "who" ? "who" : "between"
         });
         keepSeat(acquired); roomCode = acquired.code; screen = "room";
-        history.replaceState(null, "", "/between");
+        history.replaceState(null, "", path);
         render(); await poll();
       }
     } catch (problem) {
@@ -679,11 +782,12 @@
 
   if (seat && (!roomCode || roomCode === seat.code)) { roomCode = seat.code; screen = "room"; }
   else if (seat) keepSeat(null);
+  if (!tv && landing !== "between") document.title = landing === "who" ? "אסימון · מי אני?" : "אסימון · כל המשחקים";
   if (tv) document.body.classList.add("theatre");
   render({ replay: true });
   api("/session").then(result => {
     session = { ...session, ...result };
-    if (!guest && result.profile && (screen === "join" || screen === "create")) {
+    if (!guest && landing === "between" && result.profile && (screen === "join" || screen === "create")) {
       draft.name ||= result.profile.name; draft.face ||= result.profile.face;
     }
     render();

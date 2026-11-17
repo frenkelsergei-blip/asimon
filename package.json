@@ -1,8 +1,8 @@
 {
   "name": "asimon",
-  "version": "0.15.2",
+  "version": "0.16.0",
   "private": true,
-  "description": "Asimon — two party games for phones and an optional shared screen",
+  "description": "Asimon — family party games for phones and an optional shared screen",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
