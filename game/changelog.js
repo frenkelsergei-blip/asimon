@@ -36,6 +36,12 @@ const RANK = { patch:0, minor:1, major:2 };
 
 const RELEASES = [
 
+  { v:"0.17.4", date:"2026-11-17", lines:[
+    { kind:"fix",
+      en:"Open a room from a game's page and the lobby shows the chosen game.",
+      he:"כשפותחים חדר מתוך משחק, הלובי מציג את שם המשחק שכבר נבחר." },
+  ]},
+
   { v:"0.17.3", date:"2026-11-17", lines:[
     { kind:"fix",
       en:"In Who Am I?, the host's first turn starts as soon as they press Begin in the room.",

@@ -168,10 +168,11 @@
 
   function lobby(state) {
     const host = state.players.find(player => player.id === state.host);
+    const chooseGame = state.me === state.host && landing === "games";
     const startLabel = state.mode === "who" ? "מתחילים · דקה לתור הראשון" : "מתחילים";
     return withHeader(`<div class="lobby-title">${inkRays()}<h1 class="title-tag">החדר של ${esc(host?.name)}</h1>${inkRays()}</div>
       ${joinTicket(state)}<p class="pill">${state.players.length === 1 ? "שחקן אחד בחדר" : `${state.players.length} שחקנים בחדר`}</p>${roster(state)}
-      ${state.me === state.host ? `<section class="lobby-games"><h2>בוחרים משחק</h2><div>
+      ${chooseGame ? `<section class="lobby-games"><h2>בוחרים משחק</h2><div>
         ${Object.entries(gameNames).map(([key, label]) => `<button type="button" class="card" data-game-mode="${key}"
           aria-pressed="${state.mode === key}">${label}</button>`).join("")}</div></section>` :
         `<p class="pill">המשחק בחדר · ${gameNames[state.mode]}</p>`}

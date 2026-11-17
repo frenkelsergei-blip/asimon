@@ -5,6 +5,12 @@ game itself shows under the version at the foot of the first screen.
 
 Generated from `game/changelog.js` by `npm run release` — edit that file, not this one.
 
+## 0.17.4 — 2026-11-17
+
+### Fixed
+
+- Open a room from a game's page and the lobby shows the chosen game.
+
 ## 0.17.3 — 2026-11-17
 
 ### Fixed
