@@ -247,6 +247,11 @@ async function main() {
     const callback = await api(new Request(`${url}/auth/callback?code=test&state=${state}`, { headers: { cookie: stateCookie } }));
     assert.equal(callback.headers.get("location"), "/between");
     cookie = callback.headers.get("set-cookie").match(/asimon_between=[^;]+/)[0];
+    const gamesStart = await api(new Request(`${url}/auth/google?from=games`));
+    const gamesState = new URL(gamesStart.headers.get("location")).searchParams.get("state");
+    const gamesCookie = gamesStart.headers.get("set-cookie").split(";")[0];
+    const gamesCallback = await api(new Request(`${url}/auth/callback?code=test&state=${gamesState}`, { headers: { cookie: gamesCookie } }));
+    assert.equal(gamesCallback.headers.get("location"), "/games");
     global.fetch = realFetch;
     await call("/profile", { name: "נועה", face: "fox" }, { auth: true });
     assert.equal((await call("/session", undefined, { auth: true })).profile.name, "נועה");

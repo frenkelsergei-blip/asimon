@@ -36,6 +36,15 @@ const RANK = { patch:0, minor:1, major:2 };
 
 const RELEASES = [
 
+  { v:"0.17.5", date:"2026-11-17", lines:[
+    { kind:"change",
+      en:"Choose a game from the illustrated home screen, then open its room.",
+      he:"בוחרים משחק בכרטיס מאויר במסך הבית ואז פותחים את החדר." },
+    { kind:"change",
+      en:"Paper texture runs across the game screens, and Between has a new range illustration.",
+      he:"טקסטורת נייר משותפת למסכי המשחק, ול׳בין לבין׳ יש איור שמציג טווח." },
+  ]},
+
   { v:"0.17.4", date:"2026-11-17", lines:[
     { kind:"fix",
       en:"Open a room from a game's page and the lobby shows the chosen game.",

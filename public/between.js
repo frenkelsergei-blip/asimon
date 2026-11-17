@@ -6,6 +6,10 @@
   const tv = path.endsWith("/tv");
   const landing = path === "/who" ? "who" : path === "/games" ? "games" : "between";
   const gameNames = { between: "בין לבין", who: "מי אני?" };
+  const gameCovers = [
+    { mode: "between", title: "/asimon-between-cover-title.webp", art: "/between-hero.png" },
+    { mode: "who", title: "/asimon-who-cover-title.webp", art: "/asimon-who-cover-art.webp" }
+  ];
   const query = new URLSearchParams(location.search);
   const codeOf = value => String(value || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 4);
   let roomCode = codeOf(query.get("room"));
@@ -13,6 +17,7 @@
   let session = { google: false, profile: null, shareOrigin: location.origin };
   let model = null;
   let seat = tv ? null : readSeat();
+  let selectedGame = "";
   let draft = { name: "", face: "", guess: "", tier: null, topic: "" };
   let guest = false;
   let busy = false;
@@ -77,11 +82,15 @@
     </section>`;
   }
 
+  function googleURL() {
+    if (screen === "join" && roomCode.length === 4) return `/api/between/auth/google?room=${roomCode}`;
+    return landing === "games" ? "/api/between/auth/google?from=games" : "/api/between/auth/google";
+  }
+
   function googleButton() {
-    const suffix = roomCode ? `?room=${roomCode}` : "";
     const label = '<img src="/between-google.png" alt="">כניסה עם Google';
     return session.google
-      ? `<a class="button light google" href="/api/between/auth/google${suffix}">${label}</a>`
+      ? `<a class="button light google" href="${googleURL()}">${label}</a>`
       : button("google-unavailable", label, "light google");
   }
 
@@ -108,15 +117,22 @@
   }
 
   function gamesHome() {
-    const games = [
-      ["/between", "בין לבין", "/between-hero.png", "מנחשים מספר. בוחרים טווח."],
-      ["/who", "מי אני?", "/who-hero.webp", "מגלים מי האדם שבקלף שלכם."]
-    ];
-    return withHeader(`<h1 class="title-tag">משחקים לכל המשפחה</h1><nav class="games-list" aria-label="משחקים">
-      ${games.map(([href, title, image, caption]) => `<a class="card game-cover" href="${href}">
-        <img src="${image}" alt=""><strong>${title}</strong><span>${caption}</span></a>`).join("")}</nav>
-      <div class="home-buttons">${button("create", "פתיחת חדר")}${button("join", "הצטרפות בקוד", "light")}</div>`,
-      { theme: "lilac", layout: "games-screen" });
+    const account = session.profile
+      ? button("profile", esc(session.profile.name), "light")
+      : googleButton();
+    return withHeader(`<h1 class="games-heading"><img src="/asimon-game-picker-title.webp" alt="מה משחקים?"></h1>
+      <div class="games-list" role="group" aria-label="בחירת משחק">
+        ${gameCovers.map(({ mode, title, art }) => `<button type="button" class="game-cover" data-game="${mode}"
+          aria-label="${gameNames[mode]}" aria-pressed="${mode === selectedGame}">
+          <img class="game-cover-title" src="${title}" alt="">
+          <img class="game-cover-art" src="${art}" alt="">
+          <img class="game-cover-check" src="/asimon-cover-check.webp" alt="">
+        </button>`).join("")}
+      </div><div class="games-actions">
+        <button type="button" class="button" id="create" ${selectedGame ? "" : "disabled"}>פתיחת חדר</button>
+        ${button("join", "הצטרפות בקוד", "light")}
+      </div><div class="account">${account}</div>`,
+      { header: "plain-head", layout: "games-screen" });
   }
 
   function facePicker(selected) {
@@ -136,7 +152,7 @@
 
   function joinForm() {
     const create = screen === "create";
-    const account = guest || landing !== "between" ? null : session.profile;
+    const account = guest || landing === "who" ? null : session.profile;
     return withHeader(`<form id="seat-form">
       <h1>${create ? "פותחים חדר" : "מצטרפים לחדר"}</h1>
       ${create ? "" : codeInput()}
@@ -168,14 +184,10 @@
 
   function lobby(state) {
     const host = state.players.find(player => player.id === state.host);
-    const chooseGame = state.me === state.host && landing === "games";
     const startLabel = state.mode === "who" ? "מתחילים · דקה לתור הראשון" : "מתחילים";
     return withHeader(`<div class="lobby-title">${inkRays()}<h1 class="title-tag">החדר של ${esc(host?.name)}</h1>${inkRays()}</div>
       ${joinTicket(state)}<p class="pill">${state.players.length === 1 ? "שחקן אחד בחדר" : `${state.players.length} שחקנים בחדר`}</p>${roster(state)}
-      ${chooseGame ? `<section class="lobby-games"><h2>בוחרים משחק</h2><div>
-        ${Object.entries(gameNames).map(([key, label]) => `<button type="button" class="card" data-game-mode="${key}"
-          aria-pressed="${state.mode === key}">${label}</button>`).join("")}</div></section>` :
-        `<p class="pill">המשחק בחדר · ${gameNames[state.mode]}</p>`}
+      <p class="pill">המשחק בחדר · ${gameNames[state.mode]}</p>
       <div class="room-links">
         ${button("copy-join", "שיתוף קישור למשחק", "light")}
         <details class="tv-menu"><summary>מסך משותף לטלוויזיה</summary><div class="tv-menu-actions">
@@ -503,6 +515,7 @@
 
   function render({ replay = false, resetScroll = false } = {}) {
     const focus = document.activeElement?.id;
+    const gameScroll = app.querySelector(".games-list")?.scrollLeft;
     const openMenus = Array.from(app.querySelectorAll("details[open]"), menu => menu.className);
     const standingsOpen = !resetScroll && document.getElementById("game-standings-toggle")?.getAttribute("aria-expanded") === "true";
     let markup;
@@ -522,6 +535,9 @@
     else markup = podium(model);
     app.classList.toggle("animated", replay);
     app.innerHTML = markup;
+    const gameList = app.querySelector(".games-list");
+    if (gameList && gameScroll !== undefined) gameList.scrollLeft = gameScroll;
+    else gameList?.querySelector('[aria-pressed="true"]')?.scrollIntoView({ block: "nearest", inline: "nearest" });
     if (!resetScroll) {
       for (const menu of app.querySelectorAll("details")) menu.open = openMenus.includes(menu.className);
     }
@@ -657,7 +673,7 @@
     screen = target;
     error = "";
     if (target === "create" || target === "join") {
-      const profile = guest || landing !== "between" ? null : session.profile;
+      const profile = guest || landing === "who" ? null : session.profile;
       draft.name = profile?.name || "";
       draft.face = profile?.face || "";
     }
@@ -712,14 +728,16 @@
 
   app.addEventListener("click", async event => {
     const google = event.target.closest("a.google");
-    if (google && roomCode.length === 4) google.href = `/api/between/auth/google?room=${roomCode}`;
+    if (google) google.href = googleURL();
     const button = event.target.closest("button");
     if (!button) return;
     const id = button.id;
     if (button.dataset.face) {
       draft.face = button.dataset.face; markChoice("face", draft.face);
-    } else if (button.dataset.gameMode) {
-      await action("mode", { mode: button.dataset.gameMode });
+    } else if (button.dataset.game) {
+      selectedGame = button.dataset.game;
+      markChoice("game", selectedGame);
+      document.getElementById("create").disabled = false;
     } else if (button.dataset.topic) {
       draft.topic = button.dataset.topic; markChoice("topic", draft.topic);
       document.getElementById("pick-topic").disabled = false;
@@ -804,9 +822,11 @@
         session.profile = result.profile;
         data = result; visit("profile");
       } else if (event.target.id === "seat-form") {
+        const mode = landing === "games" ? selectedGame : landing;
+        if (submittingPage === "create" && !mode) return visit("home");
         const acquired = await api(submittingPage === "create" ? "/create" : "/join", {
           code: roomCode, name: draft.name, face: draft.face,
-          guest: guest || landing !== "between", mode: landing === "who" ? "who" : "between"
+          guest: guest || landing === "who", mode
         });
         keepSeat(acquired); roomCode = acquired.code; screen = "room";
         history.replaceState(null, "", path);
@@ -825,7 +845,7 @@
   render({ replay: true });
   api("/session").then(result => {
     session = { ...session, ...result };
-    if (!guest && landing === "between" && result.profile && (screen === "join" || screen === "create")) {
+    if (!guest && landing !== "who" && result.profile && (screen === "join" || screen === "create")) {
       draft.name ||= result.profile.name; draft.face ||= result.profile.face;
     }
     render();

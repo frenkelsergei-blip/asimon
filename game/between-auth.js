@@ -47,8 +47,10 @@ function auth(env) {
   }
 
   function start(request) {
-    const code = new URL(request.url).searchParams.get("room");
+    const params = new URL(request.url).searchParams;
+    const code = params.get("room");
     const room = /^[A-Z0-9]{4}$/.test(code || "") ? code : "";
+    const fromGames = params.get("from") === "games";
     const state = randomBytes(24).toString("base64url");
     const verifier = randomBytes(32).toString("base64url");
     const challenge = createHash("sha256").update(verifier).digest("base64url");
@@ -58,13 +60,13 @@ function auth(env) {
       response_type: "code", scope: "openid", state,
       code_challenge: challenge, code_challenge_method: "S256"
     }).toString();
-    return redirect(url.href, [cookie(request, stateName, sign({ state, verifier, room }, stateSeconds), stateSeconds)]);
+    return redirect(url.href, [cookie(request, stateName, sign({ state, verifier, room, fromGames }, stateSeconds), stateSeconds)]);
   }
 
   async function finish(request, register) {
     const url = new URL(request.url);
     const saved = read(request, stateName);
-    const returnTo = saved?.room ? `/between?room=${saved.room}` : "/between";
+    const returnTo = saved?.room ? `/between?room=${saved.room}` : saved?.fromGames ? "/games" : "/between";
     const cookies = [cookie(request, stateName, "", 0)];
     try {
       if (!saved || !url.searchParams.get("code") || saved.state !== url.searchParams.get("state")) throw new Error("oauth_state");

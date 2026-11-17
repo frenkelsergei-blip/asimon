@@ -5,6 +5,13 @@ game itself shows under the version at the foot of the first screen.
 
 Generated from `game/changelog.js` by `npm run release` — edit that file, not this one.
 
+## 0.17.5 — 2026-11-17
+
+### Changed
+
+- Choose a game from the illustrated home screen, then open its room.
+- Paper texture runs across the game screens, and Between has a new range illustration.
+
 ## 0.17.4 — 2026-11-17
 
 ### Fixed
