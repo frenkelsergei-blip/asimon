@@ -36,6 +36,12 @@ const RANK = { patch:0, minor:1, major:2 };
 
 const RELEASES = [
 
+  { v:"0.17.6", date:"2026-11-17", lines:[
+    { kind:"fix",
+      en:"The illustrations on the Between and Who Am I? covers are now the same scale.",
+      he:"האיורים בכרטיסי ׳בין לבין׳ ו׳מי אני?׳ מוצגים עכשיו באותו גודל." },
+  ]},
+
   { v:"0.17.5", date:"2026-11-17", lines:[
     { kind:"change",
       en:"Choose a game from the illustrated home screen, then open its room.",

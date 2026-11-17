@@ -7,7 +7,7 @@
   const landing = path === "/who" ? "who" : path === "/games" ? "games" : "between";
   const gameNames = { between: "בין לבין", who: "מי אני?" };
   const gameCovers = [
-    { mode: "between", title: "/asimon-between-cover-title.webp", art: "/between-hero.png" },
+    { mode: "between", title: "/asimon-between-cover-title.webp", art: "/asimon-between-cover-art.webp" },
     { mode: "who", title: "/asimon-who-cover-title.webp", art: "/asimon-who-cover-art.webp" }
   ];
   const query = new URLSearchParams(location.search);

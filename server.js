@@ -48,7 +48,8 @@ const ASSETS = ["index.html","app.js","art.js","boardart.js","qr.js","sfx.js","s
                 "between-result-paper.png", "between-winner-paper.png", "who-card-back.webp", "who-card-front.webp", "who-hero.webp",
                 "who-home-hero.webp", "who-title.webp",
                 "asimon-paper.webp", "asimon-game-picker-title.webp", "asimon-cover-check.webp",
-                "asimon-between-cover-title.webp", "asimon-who-cover-title.webp", "asimon-who-cover-art.webp",
+                "asimon-between-cover-title.webp", "asimon-between-cover-art.webp",
+                "asimon-who-cover-title.webp", "asimon-who-cover-art.webp",
                 ...["inventions","nature","food","space","israel","sports","culture","room"].map(topic => `between-topic-${topic}.webp`)];
 
 let BUILD = "", assetStamp = null;

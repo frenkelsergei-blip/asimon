@@ -5,6 +5,12 @@ game itself shows under the version at the foot of the first screen.
 
 Generated from `game/changelog.js` by `npm run release` — edit that file, not this one.
 
+## 0.17.6 — 2026-11-17
+
+### Fixed
+
+- The illustrations on the Between and Who Am I? covers are now the same scale.
+
 ## 0.17.5 — 2026-11-17
 
 ### Changed
