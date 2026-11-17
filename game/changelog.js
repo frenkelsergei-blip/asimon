@@ -36,6 +36,15 @@ const RANK = { patch:0, minor:1, major:2 };
 
 const RELEASES = [
 
+  { v:"0.17.2", date:"2026-11-17", lines:[
+    { kind:"fix",
+      en:"In Who Am I?, players can confirm a last-second guess after the timer expires.",
+      he:"ב׳מי אני?׳ אפשר לאשר ניחוש של הרגע האחרון גם אחרי שהשעון נגמר." },
+    { kind:"fix",
+      en:"Who Am I? and Between use the same title-card size and home screen layout.",
+      he:"מסכי הבית של ׳מי אני?׳ ו׳בין לבין׳ משתמשים באותן מידות ובאותה פריסה." },
+  ]},
+
   { v:"0.17.1", date:"2026-11-17", lines:[
     { kind:"change",
       en:"Asimon opens to the games collection, with a dedicated illustration for Between.",

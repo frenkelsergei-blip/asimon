@@ -42,9 +42,18 @@ function startTurn(room, now) {
   room.phase = "who-active";
 }
 
-function finishTurn(room, now) {
+function expireTurn(room) {
+  room.deadline = null;
+  room.phase = "who-verify";
+}
+
+function finishTurn(room, now, solved) {
   const seat = current(room);
-  const elapsed = now < room.deadline ? Math.ceil(Math.max(0, now - (room.deadline - turnMs)) / 100) * 100 : null;
+  let elapsed = null;
+  if (solved) {
+    const remaining = Math.max(0, (room.deadline ?? now) - now);
+    elapsed = Math.ceil(Math.max(0, turnMs - remaining) / 100) * 100;
+  }
   room.who.results.push({ ...seat, elapsed, hinted: Boolean(room.who.usedHints[seat.id]) });
   room.deadline = null;
   room.phase = "who-turn-result";
@@ -86,11 +95,11 @@ function view(room, player) {
     result.turn.hasNext = order.slice(index + 1).some(next => room.players.some(member => member.id === next.id));
     if (player) result.turn.identity = cards[seat.id];
   }
-  if (room.phase === "who-active" && player) {
-    if (player.id === seat.id) result.hint = usedHints[seat.id] ?? null;
-    else result.turn.identity = cards[seat.id];
+  if (player && ["who-active", "who-verify"].includes(room.phase)) {
+    if (player.id !== seat.id) result.turn.identity = cards[seat.id];
+    else if (room.phase === "who-active") result.hint = usedHints[seat.id] ?? null;
   }
   return result;
 }
 
-module.exports = { deal, current, startTurn, useHint, finishTurn, nextTurn, view };
+module.exports = { deal, current, startTurn, useHint, expireTurn, finishTurn, nextTurn, view };

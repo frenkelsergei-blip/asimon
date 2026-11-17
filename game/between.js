@@ -176,7 +176,7 @@ function advance(room, bank, now) {
   else if (room.phase === "guess") finishGuess(room, now);
   else if (room.phase === "tighten") reveal(room, now);
   else if (room.phase === "reveal") nextRound(room, bank, now);
-  else if (room.phase === "who-active") who.finishTurn(room, now);
+  else if (room.phase === "who-active") who.expireTurn(room);
   room.changedAt = now;
   return true;
 }
@@ -203,7 +203,7 @@ function action(room, player, body, bank, now) {
     if (room.phase === "tighten" && room.players.length && room.players.every(candidate => !candidate.entry || candidate.entry.tier === 0 || candidate.entry.adjusted)) reveal(room, now);
     if (room.mode === "who" && room.phase !== "lobby") {
       if (room.players.length < 2) resetLobby(room, now);
-      else if (["who-ready", "who-active"].includes(room.phase) && who.current(room).id === player.id) who.nextTurn(room);
+      else if (["who-ready", "who-active", "who-verify"].includes(room.phase) && who.current(room).id === player.id) who.nextTurn(room);
     }
   } else if (body.type === "mode" && room.phase === "lobby") {
     if (!modes.includes(body.mode)) throw new GameError("mode_invalid", 400);
@@ -215,13 +215,14 @@ function action(room, player, body, bank, now) {
       room.order = shuffle(room.players.map(candidate => candidate.id));
       offer(room, bank, now);
     }
-  } else if (["who-start", "who-solved", "who-hint", "who-continue"].includes(body.type)) {
+  } else if (["who-start", "who-solved", "who-missed", "who-hint", "who-continue"].includes(body.type)) {
     if (room.mode !== "who" || !room.who || body.round !== room.round || body.turn !== room.who.index + 1) {
       throw new GameError("wrong_phase");
     }
     const guessing = who.current(room).id === player.id;
     if (body.type === "who-start" && room.phase === "who-ready" && guessing) who.startTurn(room, now);
-    else if (body.type === "who-solved" && room.phase === "who-active" && !guessing && now < room.deadline) who.finishTurn(room, now);
+    else if (body.type === "who-solved" && !guessing && ["who-active", "who-verify"].includes(room.phase)) who.finishTurn(room, now, true);
+    else if (body.type === "who-missed" && !guessing && room.phase === "who-verify") who.finishTurn(room, now, false);
     else if (body.type === "who-hint" && room.phase === "who-active" && guessing && now < room.deadline) who.useHint(room, player, shuffle);
     else if (body.type === "who-continue" && room.phase === "who-turn-result") who.nextTurn(room);
     else throw new GameError("wrong_phase");

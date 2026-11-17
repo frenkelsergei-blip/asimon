@@ -5,6 +5,13 @@ game itself shows under the version at the foot of the first screen.
 
 Generated from `game/changelog.js` by `npm run release` — edit that file, not this one.
 
+## 0.17.2 — 2026-11-17
+
+### Fixed
+
+- In Who Am I?, players can confirm a last-second guess after the timer expires.
+- Who Am I? and Between use the same title-card size and home screen layout.
+
 ## 0.17.1 — 2026-11-17
 
 ### Changed

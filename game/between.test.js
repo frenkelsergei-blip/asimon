@@ -54,6 +54,9 @@ function checkWhoSmallRooms() {
       if (count === 4 && i === 0) {
         assert.equal(engine.advance(room, null, now + 59_999), false);
         assert.equal(engine.advance(room, null, now + 60_000), true);
+        assert.equal(room.phase, "who-verify");
+        assert.throws(() => act(witness, "who-continue", now + 60_000), /wrong_phase/);
+        act(witness, "who-missed", now + 60_000);
         assert.equal(engine.view(room, actor, now + 60_000).turn.elapsed, null);
         assert.throws(() => act(witness, "who-solved", now + 60_000), /wrong_phase/);
         act(witness, "who-continue", now + 60_000);
@@ -74,6 +77,36 @@ function checkWhoSmallRooms() {
   }
 }
 
+function checkWhoLateConfirmation() {
+  const room = engine.makeRoom("LATE", 0, "who");
+  for (const name of ["מנחש", "שופטת"]) engine.addPlayer(room, { name }, null, 0);
+  const [actor, witness] = room.players;
+  const act = (player, type, now, turn = 1) => engine.action(room, player, { type, round: 1, turn }, null, now);
+  act(actor, "start", 0);
+  act(actor, "who-start", 0);
+  act(actor, "who-hint", 10_000);
+  assert.throws(() => act(witness, "who-missed", 59_999), /wrong_phase/);
+  assert.equal(engine.advance(room, null, 60_000), true);
+  assert.equal(engine.advance(room, null, 61_000), false);
+  assert.equal(engine.view(room, actor, 61_000).turn.identity, undefined);
+  assert.equal(engine.view(room, null, 61_000).turn.identity, undefined);
+  assert.equal(engine.view(room, witness, 61_000).turn.identity, room.who.cards[actor.id]);
+  assert.throws(() => act(actor, "who-solved", 61_000), /wrong_phase/);
+  assert.throws(() => act(actor, "who-missed", 61_000), /wrong_phase/);
+  assert.throws(() => act(actor, "who-hint", 61_000), /wrong_phase/);
+  act(witness, "who-solved", 61_000);
+  assert.equal(engine.view(room, actor, 61_000).turn.elapsed, 60_000);
+  assert.throws(() => act(witness, "who-missed", 61_000), /wrong_phase/);
+  act(witness, "who-continue", 61_000);
+  act(witness, "who-start", 62_000, 2);
+  assert.throws(() => act(actor, "who-missed", 62_000, 1), /wrong_phase/);
+  engine.advance(room, null, 122_000);
+  act(actor, "who-missed", 122_000, 2);
+  act(actor, "who-continue", 122_000, 2);
+  assert.deepEqual(room.who.placements.map(({ elapsed, points }) => ({ elapsed, points })), [{ elapsed: 60_000, points: 2 }]);
+  assert.deepEqual(engine.view(room, actor, 122_000).missed.map(({ id }) => id), [witness.id]);
+}
+
 function checkHintRotation() {
   assert.ok(Object.keys(whoCards).length >= 50);
   for (const hints of Object.values(whoCards)) assert.equal(new Set(hints).size, 3);
@@ -91,6 +124,7 @@ function checkHintRotation() {
 async function main() {
   compareGolfGuesses();
   checkWhoSmallRooms();
+  checkWhoLateConfirmation();
   checkHintRotation();
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "asimon-between-"));
   const realFetch = global.fetch;

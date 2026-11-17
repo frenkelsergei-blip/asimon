@@ -85,22 +85,23 @@
       : button("google-unavailable", label, "light google");
   }
 
+  function homeIntro(title, titleArt, heroArt, tagline) {
+    return `<div class="hello">
+      <h1 class="title-card"><img src="${titleArt}" alt="${title}"></h1>
+      <img class="home-art" src="${heroArt}" alt="">
+      <p class="tagline">${tagline}</p>
+    </div><div class="home-buttons">${button("create", "פתיחת חדר")}${button("join", "הצטרפות לחדר", "light")}</div>`;
+  }
+
   function home() {
     if (landing === "games") return gamesHome();
-    if (landing === "who") return withHeader(`<div class="hello who-hello">
-      <h1 class="title-tag">מי אני?</h1><img src="/who-hero.webp" class="who-home-art" alt="">
-      <p class="tagline">דקה לשאלות כן או לא. מנחשים מי אתם.</p>
-    </div><div class="home-buttons">${button("create", "פתיחת חדר")}${button("join", "הצטרפות לחדר", "light")}</div>
+    if (landing === "who") return withHeader(`${homeIntro("מי אני?", "/who-title.webp", "/who-home-hero.webp", "דקה לנחש מי אתם.")}
     <nav class="links"><button type="button" id="rules" class="text">איך משחקים?</button><a href="/games">כל המשחקים</a></nav>`,
     { header: "plain-head", layout: "home-screen" });
     const account = session.profile
       ? `<div class="account row">${photo(session.profile.face, 31)}<button type="button" id="profile" class="text">${esc(session.profile.name)} · הפרופיל שלי</button></div>`
       : `<div class="account">${googleButton()}${button("guest", "המשך כאורח", "plain")}</div>`;
-    return withHeader(`<div class="hello">
-      <h1 class="title-card"><img src="/between-title.png" alt="בין לבין"></h1>
-      <img class="home-art" src="/between-hero.png" alt="">
-      <p class="tagline">מנחשים מספר. בוחרים טווח.</p>
-    </div><div class="home-buttons">${button("create", "פתיחת חדר")}${button("join", "הצטרפות לחדר", "light")}</div>
+    return withHeader(`${homeIntro("בין לבין", "/between-title.png", "/between-hero.png", "מנחשים מספר. בוחרים טווח.")}
     ${account}<nav class="links"><button type="button" id="leaders" class="text">טבלת המובילים</button>
       <button type="button" id="rules" class="text">איך משחקים?</button><a href="/games">כל המשחקים</a></nav>`,
     { header: "plain-head", layout: "home-screen" });
@@ -188,13 +189,14 @@
   function whoRules() {
     return withHeader(`<h1>איך משחקים?</h1><ol class="rule-list">
       <li>בתור שלכם יש לכם דקה לשאול בקול שאלות כן או לא ולנחש את השם בקלף שלכם. שאר השחקנים רואים את השם.</li>
-      <li>כשמישהו מנחש נכון, אחד השחקנים האחרים לוחץ על ״ניחשו נכון״. כשהזמן נגמר, התור נסגר.</li>
+      <li>כשמישהו מנחש נכון, אחד השחקנים האחרים לוחץ על ״ניחשו נכון״. אם השעון כבר נגמר, מסמנים אם הניחוש היה בזמן. אישור בשלב הזה נרשם כפתרון ב־60 שניות.</li>
       <li>בסוף הסיבוב מדרגים לפי זמן הפתרון. בשניים רק הראשון מקבל ניקוד. בשלושה שני הראשונים, ומארבעה שחקנים שלושת הראשונים.</li>
       <li>המקומות שווים 3, 2 ו־1 נקודות. רמז פרטי בתור שלכם מוריד נקודה מהניקוד שקיבלתם. בשוויון בזמן, מי שניחש בלי רמז קודם, ואז סדר התורות קובע.</li>
     </ol>`, { back: true });
   }
 
   const whoTime = elapsed => `${numberHTML((elapsed / 1000).toFixed(1))} שנ׳`;
+  const whoTurnResult = turn => turn.elapsed === null ? "לא ניחשו בזמן" : `ניחוש נכון ב־${whoTime(turn.elapsed)}`;
 
   function whoWinner(state) {
     const winner = state.placements[0];
@@ -209,7 +211,7 @@
     if (!results.length) return "";
     return `<section class="who-places"><h2>זמני הסיבוב</h2><ol class="card">${results.map(player =>
       `<li>${photo(player.face, 32)}<span><strong>${player.place ? `${player.place}. ` : ""}${esc(player.name)}</strong>
-        <small>${player.elapsed === null ? "נגמר הזמן" : whoTime(player.elapsed)}${player.hinted ? " · רמז" : ""}</small>
+        <small>${player.elapsed === null ? "לא ניחשו בזמן" : whoTime(player.elapsed)}${player.hinted ? " · רמז" : ""}</small>
       </span><b class="earned">${numberHTML(`+${player.points ?? 0}`)} נק׳</b></li>`).join("")}</ol></section>`;
   }
 
@@ -242,8 +244,15 @@
     let guidance = "";
     let controls = "";
     if (result) {
-      title = turn.elapsed === null ? "הזמן נגמר" : `ניחוש נכון ב־${whoTime(turn.elapsed)}`;
+      title = whoTurnResult(turn);
       controls = button("who-continue", turn.hasNext ? "לתור הבא" : "לתוצאות הסיבוב");
+    } else if (state.phase === "who-verify") {
+      title = "הזמן נגמר";
+      if (own) guidance = "מחכים ששאר השחקנים יאשרו אם ניחשת בזמן.";
+      else {
+        guidance = "האם הניחוש היה נכון בזמן?";
+        controls = `${button("who-solved", "כן, ניחשו נכון")}${button("who-missed", "לא ניחשו בזמן", "light")}`;
+      }
     } else if (state.phase === "who-ready") {
       if (own) controls = button("who-start", "מתחילים · 60 שניות");
       else guidance = "מחכים לתחילת התור";
@@ -466,9 +475,11 @@
         content = `<p class="pill">סיבוב ${numberHTML(state.round)}</p>${whoWinner(state)}${whoPlacements(state)}${standings(state)}`;
       } else {
         const { turn } = state;
-        const status = state.phase === "who-turn-result"
-          ? (turn.elapsed === null ? "הזמן נגמר" : `ניחוש נכון ב־${whoTime(turn.elapsed)}`)
-          : (state.phase === "who-ready" ? "מחכים לתחילת התור" : "שואלים שאלות כן או לא");
+        const status = {
+          "who-ready": "מחכים לתחילת התור",
+          "who-active": "שואלים שאלות כן או לא",
+          "who-verify": "הזמן נגמר · מחכים לאישור השחקנים"
+        }[state.phase] ?? whoTurnResult(turn);
         content = `${whoTurnHeader(state)}<div class="stage-question">${photo(turn.face, 120)}
           <h1>התור של ${esc(turn.name)}</h1><p>${status}</p></div>`;
       }
@@ -745,7 +756,7 @@
       await action("guess", { number: Number(draft.guess), tier: draft.tier });
     } else if (id === "tighten" || id === "keep") {
       await action("tighten", { shrink: id === "tighten" });
-    } else if (["who-start", "who-hint", "who-solved", "who-continue"].includes(id)) {
+    } else if (["who-start", "who-hint", "who-solved", "who-missed", "who-continue"].includes(id)) {
       await action(id, { round: model.round, turn: model.turn.number });
     } else if (id === "who-next" || id === "who-lobby") {
       await action(id, { round: model.round });

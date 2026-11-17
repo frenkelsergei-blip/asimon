@@ -46,6 +46,7 @@ const ASSETS = ["index.html","app.js","art.js","boardart.js","qr.js","sfx.js","s
                 "between-card-star.png", "between-corner-wide.png", "between-corner-medium.png",
                 "between-corner-narrow.png", "between-card-stack.png", "between-ticket.png",
                 "between-result-paper.png", "between-winner-paper.png", "who-card-back.webp", "who-card-front.webp", "who-hero.webp",
+                "who-home-hero.webp", "who-title.webp",
                 ...["inventions","nature","food","space","israel","sports","culture","room"].map(topic => `between-topic-${topic}.webp`)];
 
 let BUILD = "", assetStamp = null;
