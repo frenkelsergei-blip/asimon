@@ -36,6 +36,12 @@ const RANK = { patch:0, minor:1, major:2 };
 
 const RELEASES = [
 
+  { v:"0.17.3", date:"2026-11-17", lines:[
+    { kind:"fix",
+      en:"In Who Am I?, the host's first turn starts as soon as they press Begin in the room.",
+      he:"ב׳מי אני?׳ לחיצה על ״מתחילים״ בלובי מפעילה מיד את שעון התור הראשון." },
+  ]},
+
   { v:"0.17.2", date:"2026-11-17", lines:[
     { kind:"fix",
       en:"In Who Am I?, players can confirm a last-second guess after the timer expires.",

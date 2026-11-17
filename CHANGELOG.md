@@ -5,6 +5,12 @@ game itself shows under the version at the foot of the first screen.
 
 Generated from `game/changelog.js` by `npm run release` — edit that file, not this one.
 
+## 0.17.3 — 2026-11-17
+
+### Fixed
+
+- In Who Am I?, the host's first turn starts as soon as they press Begin in the room.
+
 ## 0.17.2 — 2026-11-17
 
 ### Fixed

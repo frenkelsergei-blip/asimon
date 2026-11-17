@@ -44,11 +44,13 @@ function checkWhoSmallRooms() {
       const body = { round: 1, turn: i + 1 };
       const now = i * 60_000;
       const act = (player, type, time = now) => engine.action(room, player, { type, ...body }, null, time);
-      assert.equal(room.phase, "who-ready");
-      assert.equal(engine.view(room, actor, now).turn.id, actor.id);
-      assert.equal(room.deadline, null);
-      act(actor, "who-start");
+      if (i > 0) {
+        assert.equal(room.phase, "who-ready");
+        assert.equal(room.deadline, null);
+        act(actor, "who-start");
+      }
       assert.equal(room.phase, "who-active");
+      assert.equal(engine.view(room, actor, now).turn.id, actor.id);
       assert.equal(room.deadline, now + 60_000);
       if (i === count - 1) act(actor, "who-hint");
       if (count === 4 && i === 0) {
@@ -83,7 +85,6 @@ function checkWhoLateConfirmation() {
   const [actor, witness] = room.players;
   const act = (player, type, now, turn = 1) => engine.action(room, player, { type, round: 1, turn }, null, now);
   act(actor, "start", 0);
-  act(actor, "who-start", 0);
   act(actor, "who-hint", 10_000);
   assert.throws(() => act(witness, "who-missed", 59_999), /wrong_phase/);
   assert.equal(engine.advance(room, null, 60_000), true);
@@ -179,16 +180,19 @@ async function main() {
       const actor = whoSeats[i];
       const witness = whoSeats[(i + 1) % whoSeats.length];
       const fields = { round: 1, turn: i + 1 };
-      assert.equal(whoState.phase, "who-ready");
       assert.equal(whoState.turn.identity, undefined);
       assert.equal(whoState.turn.number, i + 1);
       await whoAction(witness, "who-start", fields, 409);
-      const active = await whoAction(actor, "who-start", fields);
+      if (i > 0) assert.equal(whoState.phase, "who-ready");
+      const active = i === 0 ? whoState : await whoAction(actor, "who-start", fields);
       assert.equal(active.phase, "who-active");
       assert.equal(active.turn.id, active.me);
       assert.equal(active.turn.identity, undefined);
       assert.equal(active.deadline - active.now, 60_000);
+      if (i === 0) await whoAction(actor, "who-start", fields, 409);
       const seeCard = await call(whoRoom, undefined, { seat: witness });
+      assert.equal(seeCard.phase, "who-active");
+      assert.equal(seeCard.deadline, active.deadline);
       assert.ok(seeCard.turn.identity);
       assert.equal(seeCard.cards, undefined);
       dealing.add(seeCard.turn.identity);

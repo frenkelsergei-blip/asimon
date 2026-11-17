@@ -168,6 +168,7 @@
 
   function lobby(state) {
     const host = state.players.find(player => player.id === state.host);
+    const startLabel = state.mode === "who" ? "מתחילים · דקה לתור הראשון" : "מתחילים";
     return withHeader(`<div class="lobby-title">${inkRays()}<h1 class="title-tag">החדר של ${esc(host?.name)}</h1>${inkRays()}</div>
       ${joinTicket(state)}<p class="pill">${state.players.length === 1 ? "שחקן אחד בחדר" : `${state.players.length} שחקנים בחדר`}</p>${roster(state)}
       ${state.me === state.host ? `<section class="lobby-games"><h2>בוחרים משחק</h2><div>
@@ -182,7 +183,7 @@
         </div></details>
       </div><p class="share-result" id="share-result" aria-live="polite"></p>`,
       { theme: "yellow", header: "plain-head", layout: "lobby-screen", footer: state.me === state.host
-        ? `<button type="button" class="button" id="start" ${state.players.length < 2 ? "disabled" : ""}>${state.players.length < 2 ? "מתחילים כשמצטרף עוד שחקן" : "מתחילים"}</button>${button("leave", "יציאה מהחדר", "plain")}`
+        ? `<button type="button" class="button" id="start" ${state.players.length < 2 ? "disabled" : ""}>${state.players.length < 2 ? "מתחילים כשמצטרף עוד שחקן" : startLabel}</button>${button("leave", "יציאה מהחדר", "plain")}`
         : `<p class="form-hint">מחכים שמארח החדר יתחיל</p>${button("leave", "יציאה מהחדר", "plain")}` });
   }
 
@@ -254,7 +255,7 @@
         controls = `${button("who-solved", "כן, ניחשו נכון")}${button("who-missed", "לא ניחשו בזמן", "light")}`;
       }
     } else if (state.phase === "who-ready") {
-      if (own) controls = button("who-start", "מתחילים · 60 שניות");
+      if (own) controls = button("who-start", "מפעילים את השעון · 60 שניות");
       else guidance = "מחכים לתחילת התור";
     } else if (own) {
       guidance = "שואלים שאלות כן או לא ומנחשים בקול.";

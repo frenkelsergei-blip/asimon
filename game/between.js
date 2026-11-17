@@ -210,8 +210,10 @@ function action(room, player, body, bank, now) {
     room.mode = body.mode;
   } else if (body.type === "start" && room.phase === "lobby") {
     if (room.players.length < 2) throw new GameError("need_2");
-    if (room.mode === "who") who.deal(room, shuffle);
-    else {
+    if (room.mode === "who") {
+      who.deal(room, shuffle);
+      who.startTurn(room, now);
+    } else {
       room.order = shuffle(room.players.map(candidate => candidate.id));
       offer(room, bank, now);
     }
